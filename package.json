@@ -1,0 +1,7 @@
+{
+  "name": "sentinelai",
+  "version": "0.1.0",
+  "private": true,
+  "description": "AI-powered incident intelligence platform.",
+  "packageManager": "pnpm@10.15.0"
+}
