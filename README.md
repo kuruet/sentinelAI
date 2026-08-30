@@ -141,13 +141,14 @@ pnpm format
 
 ## Documentation
 
-| Document                                             | Purpose                                                |
-| ---------------------------------------------------- | ------------------------------------------------------ |
-| [Environment Strategy](ENVIRONMENT.md)               | Environment variables and secret-management policy     |
-| [Git Workflow](GIT_WORKFLOW.md)                      | Branching, commits, pull requests, and Git conventions |
-| [Architecture](docs/architecture/ARCHITECTURE.md)    | Planned system architecture                            |
-| [Development Guide](docs/development/DEVELOPMENT.md) | Local development workflow                             |
-| [Architecture Decisions](docs/decisions/README.md)   | Architecture decision records                          |
+| Document                                               | Purpose                                                |
+| ------------------------------------------------------ | ------------------------------------------------------ |
+| [Environment Strategy](ENVIRONMENT.md)                 | Environment variables and secret-management policy     |
+| [Git Workflow](GIT_WORKFLOW.md)                        | Branching, commits, pull requests, and Git conventions |
+| [Architecture](docs/architecture/ARCHITECTURE.md)      | Planned system architecture                            |
+| [Development Guide](docs/development/DEVELOPMENT.md)   | Local development workflow                             |
+| [Development Standards](docs/development/STANDARDS.md) | Coding, testing, security, and review conventions      |
+| [Architecture Decisions](docs/decisions/README.md)     | Architecture decision records                          |
 
 ## Development Philosophy
 

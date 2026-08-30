@@ -136,3 +136,4 @@ If Git reports unexpected changes, run `git status` and inspect `git diff` befor
 - [Environment Strategy](../../ENVIRONMENT.md)
 - [Git Workflow](../../GIT_WORKFLOW.md)
 - [Architecture Decisions](../decisions/README.md)
+- [Development Standards](STANDARDS.md)
