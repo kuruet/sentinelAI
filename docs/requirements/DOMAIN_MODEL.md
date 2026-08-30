@@ -1,593 +1,960 @@
-# SentinelAI - Domain Model
+# SentinelAI - Domain Model & Core Entities
 
 ## 1. Purpose
 
-This document defines the core domain entities, relationships, lifecycle states, ownership boundaries, and domain concepts required by SentinelAI. It provides the conceptual foundation for subsequent data architecture, API design, and system architecture decisions.
+This document defines the conceptual domain model for SentinelAI.
+
+It identifies the core business entities, their responsibilities, important relationships, lifecycle concepts, ownership boundaries, and domain invariants that will guide subsequent database, API, application-service, and implementation decisions.
+
+This document defines the conceptual model rather than a final database schema.
+
+---
 
 ## 2. Domain Modeling Principles
 
-1. Domain entities represent meaningful SentinelAI concepts rather than infrastructure implementation details.
-2. Relationships between entities must remain explicit and traceable.
-3. Historical investigation information must remain auditable.
-4. AI-generated information must remain distinguishable from verified facts and human findings.
-5. Simulation entities must remain distinguishable from normal production incident entities.
-6. Domain ownership should remain clear even within the modular-monolith architecture.
+The SentinelAI domain model shall follow these principles:
+
+1. Domain concepts shall represent business capabilities rather than database tables.
+2. Each core entity shall have a clear responsibility.
+3. Relationships between entities shall be explicit.
+4. Domain invariants shall be enforced by the application.
+5. External-provider concepts shall not leak directly into the core domain.
+6. AI-generated information shall remain distinguishable from human-validated findings.
+7. Simulation concepts shall remain distinct from production incident concepts while supporting controlled association.
+8. Incident history and investigation evidence shall remain traceable.
+9. Entity lifecycle transitions shall be explicit.
+10. The model shall support future integration without unnecessary coupling.
+
+---
+
+## 3. Core Domain Areas
 
-## 3. Core Domain Entities
+The SentinelAI domain can be organized into the following conceptual areas:
 
-### 3.1 User
+| Domain Area         | Primary Concepts                                          |
+| ------------------- | --------------------------------------------------------- |
+| Incident Management | Incident, Incident Participant, Incident Status, Severity |
+| System Context      | Service, Component, Dependency                            |
+| Timeline            | Event, Timeline Entry                                     |
+| Evidence            | Evidence, Evidence Source, Evidence Association           |
+| Investigation       | Investigation, Finding, Hypothesis                        |
+| AI Assistance       | Analysis Request, Analysis Result, AI Finding             |
+| Remediation         | Recommendation, Decision, Action                          |
+| Simulation          | Scenario, Execution, Simulation Event                     |
+| Reporting           | Incident Report                                           |
+| Integration         | Integration, External Source, Ingestion                   |
+| Audit               | Audit Record                                              |
+| Operations          | Async Operation                                           |
 
-Represents a human identity that can interact with SentinelAI.
+---
 
-**Key concepts:**
+## 4. Incident
 
-- User identity
-- Display information
-- Account status
-- Assigned roles
-- Created and updated timestamps
+An Incident represents a software-system event or condition that requires investigation and potentially coordinated response.
 
-**Ownership:** Identity and access management.
+An incident is the central aggregation point for incident-related information.
 
-### 3.2 Role
+An incident may contain or reference:
 
-Represents a defined authorization role assigned to one or more users.
+- Incident metadata.
+- Severity.
+- Lifecycle status.
+- Affected services.
+- Participants.
+- Events.
+- Evidence.
+- Investigations.
+- Hypotheses.
+- Recommendations.
+- Remediation decisions.
+- Simulation associations.
+- Reports.
 
-**Key concepts:**
+An incident shall have a stable identity.
 
-- Role identifier
-- Role name
-- Permissions
-- Role status
+---
 
-**Ownership:** Identity and access management.
+## 5. Incident Attributes
 
-### 3.3 Incident
+Conceptually, an Incident should contain information such as:
 
-Represents an operational event or condition requiring investigation, coordination, or resolution.
+- Unique identifier.
+- Title.
+- Description.
+- Severity.
+- Lifecycle status.
+- Detection time.
+- Start time where known.
+- Resolution time where known.
+- Creation timestamp.
+- Last-update timestamp.
+- Source information.
+- Created-by information.
+- Current owner or responsible role where applicable.
 
-**Key concepts:**
+Exact field names and persistence types shall be finalized during implementation.
 
-- Incident identifier
-- Title
-- Description
-- Severity
-- Priority
-- Status
-- Detection time
-- Start time
-- Resolution time
-- Assigned participants
-- Affected components
-- Created and updated timestamps
+---
 
-**Ownership:** Incident management.
+## 6. Incident Lifecycle
 
-### 3.4 Incident State
+The incident lifecycle shall use explicit states.
 
-Represents the lifecycle state of an incident.
+A conceptual lifecycle is:
 
-**Conceptual states:**
+    Detected
+       |
+       v
+    Investigating
+       |
+       v
+    Mitigating
+       |
+       v
+    Resolved
+       |
+       v
+    Closed
 
-- Detected
-- Investigating
-- Mitigating
-- Monitoring
-- Resolved
-- Closed
+Additional states may be introduced if justified by later requirements.
 
-State transitions must be controlled and auditable.
+Invalid lifecycle transitions shall be rejected.
 
-### 3.5 Incident Participant
+An incident shall not be considered resolved merely because an AI analysis has completed.
 
-Represents a user associated with an incident in a defined responsibility or participation role.
+---
 
-**Examples:**
+## 7. Severity
 
-- Incident Commander
-- Incident Responder
-- Subject Matter Expert
-- Service Owner
+Severity represents the operational impact or urgency associated with an incident.
 
-**Ownership:** Incident management.
+Severity shall be represented using a controlled set of values rather than unrestricted strings.
 
-### 3.6 Service
+The exact severity scale shall be finalized during domain and UI implementation.
 
-Represents an application, backend component, infrastructure service, or other operational component relevant to incident investigation.
+Severity shall remain distinct from lifecycle status.
 
-**Key concepts:**
+---
 
-- Service identifier
-- Name
-- Type
-- Ownership information
-- Environment
-- Status
-- Metadata
+## 8. Incident Participant
 
-**Ownership:** System context / service catalog.
+An Incident Participant represents a person, team, or operational role associated with an incident.
 
-### 3.7 Dependency
+A participant may represent:
 
-Represents a relationship in which one service or component depends on another system component or external resource.
+- Incident commander.
+- Investigator.
+- Responder.
+- Service owner.
+- Reviewer.
+- Other authorized operational roles.
 
-**Key concepts:**
+Participant association shall preserve the participant's role and relationship to the incident.
 
-- Source component
-- Target component
-- Dependency type
-- Direction
-- Metadata
+---
 
-**Ownership:** System context.
+## 9. Service
 
-### 3.8 Event
+A Service represents a logical software service that participates in the system being investigated.
 
-Represents a timestamped occurrence relevant to an incident or system investigation.
+A service may have:
 
-**Examples:**
+- Stable identifier.
+- Name.
+- Description.
+- Environment.
+- Ownership information.
+- Operational metadata.
+- Dependencies.
+- Associated incidents.
 
-- Alert
-- Log event
-- Metric anomaly
-- Deployment
-- Configuration change
-- Service state change
-- Simulation event
+A service shall remain a domain concept independent of a specific infrastructure provider.
 
-**Key concepts:**
+---
 
-- Event identifier
-- Event type
-- Timestamp
-- Source
-- Service/component
-- Severity
-- Payload or metadata
+## 10. Component
 
-**Ownership:** Event and context processing.
+A Component represents a logical subsystem or deployable unit within a service or system context.
 
-### 3.9 Evidence
+Components may include:
 
-Represents information used to support or challenge an investigation hypothesis or finding.
+- API layer.
+- Worker.
+- Database subsystem.
+- Queue consumer.
+- Cache layer.
+- External dependency.
 
-**Examples:**
+The exact distinction between Service and Component shall be finalized when the system architecture and implementation structure are defined.
 
-- Log evidence
-- Metric evidence
-- Alert evidence
-- Deployment evidence
-- Configuration evidence
-- Dependency evidence
-- Human-provided evidence
+---
 
-**Key concepts:**
+## 11. Dependency
 
-- Evidence identifier
-- Type
-- Source
-- Timestamp or time range
-- Content reference
-- Provenance
-- Relevance metadata
+A Dependency represents a relationship in which one service or component relies on another service, component, or external system.
 
-**Ownership:** Evidence management.
+A dependency may capture:
 
-### 3.10 Evidence Provenance
+- Source entity.
+- Target entity.
+- Dependency type.
+- Optional criticality.
+- Relationship metadata.
 
-Represents the origin and traceability information associated with evidence.
+Dependencies are important for determining potential blast radius and investigation context.
 
-**Key concepts:**
+---
 
-- Source system
-- Source identifier
-- Collection time
-- Original timestamp
-- Collection method
-- Integrity metadata where applicable
+## 12. Event
 
-Provenance must allow investigators to understand where evidence originated.
+An Event represents a time-associated occurrence relevant to an incident or investigation.
 
-### 3.11 Investigation
+Examples include:
 
-Represents the structured investigation process associated with an incident.
+- Alert.
+- Error occurrence.
+- Deployment.
+- Configuration change.
+- Service state change.
+- Metric anomaly.
+- External provider event.
+- Simulation event.
 
-**Key concepts:**
+An event should preserve:
 
-- Investigation identifier
-- Incident reference
-- Investigator(s)
-- Investigation status
-- Started time
-- Completed time
-- Investigation findings
-- Investigation history
+- Unique identifier.
+- Timestamp.
+- Event type.
+- Source.
+- Description or payload reference.
+- Associated service or component where known.
+- Provenance information.
 
-**Ownership:** Investigation domain.
+---
 
-### 3.12 Investigation Finding
+## 13. Timeline Entry
 
-Represents a conclusion, observation, or analytical result recorded during an investigation.
+A Timeline Entry represents the presentation or ordering of relevant events within an incident investigation.
 
-Findings may be human-authored or derived from validated AI-assisted analysis.
+The timeline shall support deterministic ordering.
 
-**Key concepts:**
+Ordering should primarily consider event timestamps with defined secondary ordering where timestamps are equal.
 
-- Finding identifier
-- Type
-- Description
-- Author/source
-- Confidence where applicable
-- Supporting evidence
-- Validation status
-- Created timestamp
+Timeline presentation shall not alter the underlying event provenance.
 
-### 3.13 AI Analysis
+---
 
-Represents an AI-assisted analysis execution performed against permitted incident context and evidence.
+## 14. Evidence
 
-**Key concepts:**
+Evidence represents information that can support or contradict an investigation hypothesis.
 
-- Analysis identifier
-- Incident/investigation reference
-- Model/provider reference
-- Input context reference
-- Execution status
-- Started/completed timestamps
-- Result reference
-- Failure information where applicable
+Evidence may originate from:
 
-AI analysis is an execution record, not itself a verified fact.
+- Logs.
+- Metrics.
+- Alerts.
+- Deployments.
+- Events.
+- Traces.
+- Configuration changes.
+- External systems.
+- Simulation execution.
+- Human investigation notes.
 
-### 3.14 Root-Cause Hypothesis
+Evidence shall preserve provenance where possible.
 
-Represents a candidate explanation for the underlying cause of an incident.
+---
 
-**Key concepts:**
+## 15. Evidence Source
 
-- Hypothesis identifier
-- Description
-- Confidence
-- Supporting evidence
-- Contradicting evidence
-- Source
-- Validation status
-- Created timestamp
+An Evidence Source identifies where evidence originated.
 
-**Conceptual validation states:**
+Examples include:
 
-- Unreviewed
-- Supported
-- Rejected
-- Uncertain
-- Superseded
+- Application log.
+- Monitoring platform.
+- Deployment platform.
+- Source-control system.
+- Metrics platform.
+- Simulation engine.
+- Human investigator.
 
-### 3.15 Remediation Recommendation
+Provider-specific source information shall remain behind integration boundaries where possible.
 
-Represents advisory guidance about a possible action or mitigation derived from investigation findings or supported rules.
+---
 
-**Key concepts:**
+## 16. Evidence Association
 
-- Recommendation identifier
-- Description
-- Rationale
-- Supporting evidence
-- Risk information
-- Source
-- Status
+Evidence may be associated with:
 
-A recommendation is advisory unless a separately authorized execution capability exists.
+- Incident.
+- Investigation.
+- Hypothesis.
+- Finding.
+- Timeline event.
 
-### 3.16 Remediation Decision
+Associations shall preserve enough information to understand why evidence is relevant.
 
-Represents the human operational decision made in response to an incident.
+The same evidence may support multiple investigation concepts where appropriate.
 
-**Key concepts:**
+---
 
-- Decision identifier
-- Selected action
-- Decision maker
-- Decision time
-- Context
-- Outcome
+## 17. Evidence Provenance
 
-### 3.17 Incident Report
+Evidence provenance should provide information such as:
 
-Represents a structured summary of an incident and its investigation.
+- Source.
+- Source identifier.
+- Observation timestamp.
+- Ingestion timestamp.
+- Collection method.
+- External reference where available.
 
-**Key concepts:**
+Provenance shall help investigators distinguish observed information from generated interpretation.
 
-- Report identifier
-- Incident reference
-- Summary
-- Timeline
-- Findings
-- Root cause
-- Remediation
-- Generated timestamp
-- Author or generator
+---
 
-### 3.18 Simulation Scenario
+## 18. Investigation
 
-Represents a defined and controlled failure scenario that can be executed by the simulation system.
+An Investigation represents the structured process of examining an incident.
 
-**Key concepts:**
+An investigation belongs to an incident and may contain:
 
-- Scenario identifier
-- Name
-- Description
-- Failure type
-- Parameters
-- Safety constraints
-- Target environment
-- Enabled status
+- Investigation status.
+- Investigators.
+- Findings.
+- Hypotheses.
+- Evidence associations.
+- Investigation comments.
+- AI-analysis results.
+- Recommendations.
+- Validation decisions.
 
-### 3.19 Simulation Execution
+An investigation shall maintain traceability to its parent incident.
 
-Represents one execution of a simulation scenario.
+---
 
-**Key concepts:**
+## 19. Investigation Lifecycle
 
-- Execution identifier
-- Scenario reference
-- Initiating user/process
-- Environment
-- Execution status
-- Start/end time
-- Configuration snapshot
-- Generated event references
-- Cleanup status
+A conceptual investigation lifecycle is:
 
-### 3.20 Integration
-
-Represents a configured connection to an external operational system.
-
-**Examples:**
-
-- Monitoring platform
-- Logging platform
-- Alerting platform
-- Source-control system
-- Deployment system
-- Infrastructure platform
-- AI provider
-
-**Key concepts:**
-
-- Integration identifier
-- Type
-- Provider
-- Configuration reference
-- Status
-- Last successful interaction
-- Last error information
-
-### 3.21 Audit Record
-
-Represents a traceable record of an important user or system action.
-
-**Key concepts:**
-
-- Audit identifier
-- Actor
-- Action
-- Resource
-- Timestamp
-- Result
-- Metadata
-
-## 4. Core Relationships
-
-| Relationship                                | Description                                                                          |
-| ------------------------------------------- | ------------------------------------------------------------------------------------ |
-| User -> Role                                | A user may be assigned one or more roles.                                            |
-| User -> Incident                            | A user may create, investigate, coordinate, or participate in incidents.             |
-| Incident -> Participant                     | An incident contains assigned participants and responsibilities.                     |
-| Incident -> Event                           | An incident may contain or reference relevant events.                                |
-| Incident -> Evidence                        | An incident may contain or reference investigation evidence.                         |
-| Incident -> Service                         | An incident may affect one or more services.                                         |
-| Service -> Dependency                       | A service may depend on other services or resources.                                 |
-| Incident -> Investigation                   | An incident may have one or more investigation records as required by the lifecycle. |
-| Investigation -> Evidence                   | An investigation evaluates relevant evidence.                                        |
-| Investigation -> Finding                    | An investigation produces findings.                                                  |
-| AI Analysis -> Investigation                | AI analysis operates within an investigation context.                                |
-| AI Analysis -> Evidence                     | AI analysis consumes permitted evidence.                                             |
-| AI Analysis -> Hypothesis                   | AI analysis may generate candidate hypotheses.                                       |
-| Hypothesis -> Evidence                      | A hypothesis may reference supporting or contradicting evidence.                     |
-| Hypothesis -> Finding                       | A validated hypothesis may contribute to an investigation finding.                   |
-| Finding -> Incident                         | Findings belong to an incident investigation.                                        |
-| Recommendation -> Finding                   | Recommendations may be derived from findings.                                        |
-| Remediation Decision -> Incident            | A remediation decision is recorded against an incident.                              |
-| Incident -> Report                          | An incident may have one or more generated reports.                                  |
-| Simulation Scenario -> Simulation Execution | A scenario may be executed multiple times.                                           |
-| Simulation Execution -> Event               | An execution may generate system or simulation events.                               |
-| Simulation Execution -> Incident            | An execution may produce or associate with an investigation incident.                |
-| Integration -> Event                        | Integrations may provide external events.                                            |
-| Integration -> Evidence                     | Integrations may provide evidence.                                                   |
-| Audit Record -> User/System                 | Audit records identify the actor responsible for an important action.                |
-
-## 5. Incident Lifecycle
-
-```text
-Detected
-   |
-   v
-Investigating
-   |
-   v
-Mitigating
-   |
-   v
-Monitoring
-   |
-   v
-Resolved
-   |
-   v
-Closed
-```
-
-The lifecycle may support controlled transitions appropriate to the incident-management workflow. Invalid transitions shall be rejected.
-
-## 6. Investigation Lifecycle
-
-```text
-Created
-   |
-   v
-Context Collection
-   |
-   v
-Evidence Analysis
-   |
-   v
-AI Analysis (optional)
-   |
-   v
-Hypothesis Review
-   |
-   v
-Human Validation
-   |
-   v
-Findings Recorded
-   |
-   v
-Completed
-```
-
-Investigation state is distinct from incident state. An incident may remain active while investigation activities continue.
-
-## 7. AI Analysis Lifecycle
-
-```text
-Requested
-   |
-   v
-Preparing
-   |
-   v
-Running
-   |
-   +-------> Failed
-   |
-   v
-Validating Output
-   |
-   v
-Completed
-```
-
-AI analysis failures must not corrupt the associated incident or investigation.
-
-## 8. Simulation Execution Lifecycle
-
-```text
-Requested
-   |
-   v
-Validated
-   |
-   v
-Preparing
-   |
-   v
-Running
-   |
-   +-------> Failed
-   |
-   v
-Cleaning Up
-   |
-   v
-Completed
-```
-
-Cleanup should be attempted after execution failure where applicable.
-
-## 9. Domain Ownership Boundaries
-
-| Domain              | Primary Responsibility                                         |
-| ------------------- | -------------------------------------------------------------- |
-| Identity & Access   | Users, roles, authentication context, authorization context    |
-| Incident Management | Incidents, participants, lifecycle, incident coordination      |
-| System Context      | Services, dependencies, component relationships                |
-| Event Processing    | Events, normalization, temporal context                        |
-| Evidence Management | Evidence, provenance, correlation metadata                     |
-| Investigation       | Investigations, findings, hypotheses, validation               |
-| AI Analysis         | AI analysis execution, provider abstraction, generated outputs |
-| Remediation         | Recommendations, decisions, remediation records                |
-| Reporting           | Incident reports and structured summaries                      |
-| Simulation          | Scenarios, executions, simulation lifecycle                    |
-| Integration         | External-system connections and adapters                       |
-| Audit               | Traceability of important actions                              |
-
-## 10. Domain Invariants
-
-1. An incident must have a unique identifier.
-2. An incident must have a valid lifecycle state.
-3. Incident state transitions must be controlled.
-4. Evidence must retain provenance information where applicable.
-5. AI-generated information must be distinguishable from verified facts.
-6. AI-generated hypotheses must have an explicit validation state.
-7. Human validation must remain attributable to an authorized user.
-8. Remediation recommendations must remain advisory unless explicitly authorized for execution.
-9. Simulation executions must reference a valid scenario.
-10. Simulation execution must remain within configured safety boundaries.
-11. Important audit records must identify an actor or system process where applicable.
-12. Historical investigation information must remain traceable.
-13. Relationships between domain entities must not create invalid references.
-
-## 11. Domain Model Summary
-
-```text
-                         +----------------+
-                         |      User      |
-                         +-------+--------+
-                                 |
-                              has Role
-                                 |
-                         +-------v--------+
-                         |     Incident   |
-                         +---+---+---+----+
-                             |   |   |
-                 +-----------+   |   +-------------+
-                 |               |                 |
-                 v               v                 v
-             Services          Events           Evidence
-                 |                                 |
-                 v                                 |
-            Dependencies                           |
-                                                   v
-                                           +-------+--------+
-                                           |  Investigation |
-                                           +---+---+---+----+
-                                               |   |   |
-                                    +----------+   |   +-----------+
-                                    |              |               |
-                                    v              v               v
-                                  Finding     AI Analysis     Hypothesis
-                                                   |               |
-                                                   +-------+-------+
-                                                           |
-                                                           v
-                                                  Evidence-backed
-                                                    Validation
-                                                           |
-                                                           v
-                                               Remediation Guidance
-                                                           |
-                                                           v
-                                                Human Decision
-                                                           |
-                                                           v
-                                                    Resolution
-
-Simulation Scenario -> Simulation Execution -> Events -> Incident -> Investigation
-
-External Integrations -> Events / Evidence
-```
-
-## 12. Scope
-
-This document establishes the conceptual domain model for SentinelAI. It intentionally avoids database-specific schema decisions. Physical data structures, persistence technology, API representations, and implementation details will be defined in subsequent Phase 1 steps.
+    Initialized
+        |
+        v
+    Active
+        |
+        v
+    Findings Available
+        |
+        v
+    Validated
+        |
+        v
+    Completed
+
+The exact lifecycle may be refined during implementation.
+
+---
+
+## 20. Hypothesis
+
+A Hypothesis represents a candidate explanation for an incident.
+
+A hypothesis may be:
+
+- Human-generated.
+- AI-generated.
+- Derived from correlated evidence.
+
+A hypothesis shall not automatically be treated as the confirmed root cause.
+
+A hypothesis should contain or reference:
+
+- Explanation.
+- Supporting evidence.
+- Contradicting evidence where available.
+- Confidence.
+- Origin.
+- Validation state.
+- Related services or components.
+
+---
+
+## 21. Hypothesis Origin
+
+Hypothesis origin shall distinguish at least:
+
+- Human.
+- AI.
+- System-generated correlation.
+
+This distinction is important for transparency and auditability.
+
+---
+
+## 22. Hypothesis Validation
+
+A hypothesis may progress through states such as:
+
+    Proposed
+       |
+       v
+    Under Review
+       |
+       +------------+
+       |            |
+       v            v
+    Supported    Rejected
+       |
+       v
+    Confirmed
+
+Confirmation shall require an appropriate human or system validation process.
+
+AI-generated hypotheses shall not automatically become confirmed findings.
+
+---
+
+## 23. Finding
+
+A Finding represents an investigation conclusion supported by available evidence.
+
+A finding should distinguish between:
+
+- Observed fact.
+- Interpretation.
+- Hypothesis.
+- Validated conclusion.
+
+Findings shall preserve relevant evidence references where practical.
+
+---
+
+## 24. AI Analysis Request
+
+An AI Analysis Request represents an application request for AI-assisted investigation.
+
+It should capture:
+
+- Investigation reference.
+- Requested analysis type.
+- Requesting user.
+- Relevant context reference.
+- Operation status.
+- Provider reference where appropriate.
+- Creation timestamp.
+- Completion timestamp where applicable.
+
+Provider-specific request details shall remain outside the core domain where possible.
+
+---
+
+## 25. AI Analysis Result
+
+An AI Analysis Result represents the output returned by an AI-assisted analysis operation after application-level validation.
+
+It may contain:
+
+- Candidate hypotheses.
+- Evidence references.
+- Reasoning summary.
+- Confidence information.
+- Analysis metadata.
+- Provider metadata where appropriate.
+- Validation state.
+
+Raw provider responses should not automatically become trusted domain state.
+
+---
+
+## 26. AI Trust Boundary
+
+AI-generated information shall remain distinguishable from system-observed evidence.
+
+Conceptually:
+
+    Observed Evidence
+           |
+           v
+    Investigation Context
+           |
+           v
+      AI Analysis
+           |
+           v
+    Generated Hypothesis
+           |
+           v
+    Evidence Validation
+           |
+           v
+    Human Review
+           |
+           v
+    Validated Finding
+
+The AI system shall not own the final operational decision.
+
+---
+
+## 27. Recommendation
+
+A Recommendation represents a proposed remediation or investigation action.
+
+Recommendations may originate from:
+
+- Human investigators.
+- AI-assisted analysis.
+- Operational rules.
+
+A recommendation shall remain distinct from an executed action.
+
+---
+
+## 28. Remediation Decision
+
+A Remediation Decision represents the authorized human or system decision regarding a recommendation.
+
+A decision may include:
+
+- Accepted.
+- Rejected.
+- Deferred.
+- Modified.
+
+The decision should preserve:
+
+- Decision maker.
+- Timestamp.
+- Original recommendation.
+- Decision rationale where appropriate.
+
+---
+
+## 29. Remediation Action
+
+A Remediation Action represents an action taken to mitigate or resolve an incident.
+
+Actions may include:
+
+- Configuration change.
+- Deployment rollback.
+- Service restart.
+- Dependency recovery.
+- Traffic adjustment.
+- Other approved operational action.
+
+SentinelAI shall not assume that every recommendation is automatically executed.
+
+---
+
+## 30. Simulation Scenario
+
+A Simulation Scenario represents a predefined or controlled failure scenario.
+
+A scenario should define:
+
+- Scenario identity.
+- Name.
+- Description.
+- Target environment.
+- Preconditions.
+- Expected behavior.
+- Safety constraints.
+- Supported parameters.
+
+Scenarios shall not provide unrestricted arbitrary execution.
+
+---
+
+## 31. Simulation Execution
+
+A Simulation Execution represents one execution of a simulation scenario.
+
+It should contain:
+
+- Execution identity.
+- Scenario reference.
+- Requested-by information.
+- Start time.
+- Completion time.
+- Execution status.
+- Environment.
+- Result information.
+
+Simulation execution shall be independently traceable.
+
+---
+
+## 32. Simulation Event
+
+A Simulation Event represents an event produced during a simulation execution.
+
+Simulation events may later be associated with an incident for investigation and demonstration purposes.
+
+Simulation provenance shall remain distinguishable from real production evidence.
+
+---
+
+## 33. Incident-Simulation Association
+
+A simulation execution may generate an associated incident for controlled investigation.
+
+The association shall preserve the distinction between:
+
+- Simulated evidence.
+- Real operational evidence.
+
+A simulated incident shall not be represented as a real production incident without explicit contextual information.
+
+---
+
+## 34. Incident Report
+
+An Incident Report represents a structured record of incident findings and outcomes.
+
+A report may contain:
+
+- Incident summary.
+- Timeline.
+- Impact.
+- Affected services.
+- Evidence summary.
+- Root-cause conclusion.
+- Contributing factors.
+- Remediation.
+- Lessons learned.
+- Investigation metadata.
+
+Report generation may be asynchronous.
+
+---
+
+## 35. Integration
+
+An Integration represents a configured connection between SentinelAI and an external operational system.
+
+An integration may represent:
+
+- Monitoring provider.
+- Logging provider.
+- Deployment provider.
+- Source-control provider.
+- Incident-management provider.
+- Metrics provider.
+
+Integration configuration shall remain isolated from core domain logic.
+
+---
+
+## 36. External Source
+
+An External Source represents a provider or system from which incident-related information originates.
+
+The external source may provide:
+
+- Events.
+- Alerts.
+- Logs.
+- Metrics.
+- Deployments.
+- Other operational evidence.
+
+External source identifiers should be preserved for traceability.
+
+---
+
+## 37. Ingestion
+
+Ingestion represents the controlled process of receiving and normalizing external information.
+
+Conceptually:
+
+    External Source
+          |
+          v
+    Integration Adapter
+          |
+          v
+    Validation
+          |
+          v
+    Normalization
+          |
+          v
+    Internal Event / Evidence
+          |
+          v
+    Incident Context
+
+Ingestion should support deduplication and provenance tracking where appropriate.
+
+---
+
+## 38. Async Operation
+
+An Async Operation represents a long-running application process.
+
+Examples include:
+
+- AI analysis.
+- Simulation execution.
+- Report generation.
+- Large ingestion jobs.
+- External synchronization.
+
+Conceptual states include:
+
+    Queued
+       |
+       v
+    Running
+       |
+       +-------------+
+       |             |
+       v             v
+    Succeeded      Failed
+
+The operation shall have a stable identifier and traceable lifecycle.
+
+---
+
+## 39. Audit Record
+
+An Audit Record represents an important user or system action that should be traceable.
+
+Audit records may capture:
+
+- Actor.
+- Action.
+- Target.
+- Timestamp.
+- Correlation identifier.
+- Relevant outcome.
+
+Audit records shall not unnecessarily contain sensitive payloads.
+
+---
+
+## 40. Core Relationships
+
+The primary conceptual relationships are:
+
+    Incident
+       |
+       +---- Participants
+       |
+       +---- Services
+       |        |
+       |        +---- Dependencies
+       |
+       +---- Events
+       |
+       +---- Evidence
+       |
+       +---- Investigation
+       |        |
+       |        +---- Hypotheses
+       |        |
+       |        +---- Findings
+       |        |
+       |        +---- AI Analysis
+       |        |
+       |        +---- Recommendations
+       |                 |
+       |                 +---- Remediation Decisions
+       |
+       +---- Simulation Association
+       |
+       +---- Incident Report
+
+These relationships represent the conceptual domain and are not a final relational schema.
+
+---
+
+## 41. Ownership Boundaries
+
+The domain shall maintain clear ownership boundaries.
+
+Conceptually:
+
+| Entity               | Primary Owner                  |
+| -------------------- | ------------------------------ |
+| Incident             | Incident Management            |
+| Investigation        | Investigation Domain           |
+| Evidence             | Evidence Domain                |
+| Hypothesis           | Investigation Domain           |
+| Finding              | Investigation Domain           |
+| Service              | System Context                 |
+| Dependency           | System Context                 |
+| Simulation Scenario  | Simulation Domain              |
+| Simulation Execution | Simulation Domain              |
+| AI Analysis          | AI Integration / Investigation |
+| Integration          | Integration Domain             |
+| Audit Record         | Audit / Operational Domain     |
+
+The exact module boundaries shall be finalized during system architecture.
+
+---
+
+## 42. Domain Invariants
+
+The following invariants shall be preserved:
+
+1. Every investigation belongs to an incident.
+2. Every hypothesis belongs to an investigation.
+3. Evidence associations must reference valid evidence.
+4. Incident lifecycle transitions must follow valid state transitions.
+5. An AI-generated hypothesis shall remain identifiable as AI-generated.
+6. AI-generated output shall not automatically become a confirmed root cause.
+7. Simulation executions shall reference valid scenarios.
+8. Simulation evidence shall remain identifiable as simulated.
+9. External evidence shall preserve provenance where available.
+10. Remediation recommendations shall be distinct from remediation decisions.
+11. Audit records shall preserve important actor and action information.
+12. Async operations shall have explicit lifecycle states.
+
+---
+
+## 43. Identity and Traceability
+
+Core domain entities shall have stable identifiers.
+
+Relationships should use identifiers rather than relying exclusively on display names.
+
+Important operations shall preserve correlation information where appropriate.
+
+Traceability should allow investigators to connect:
+
+    Incident
+       |
+       v
+    Investigation
+       |
+       +---- Evidence
+       |
+       +---- Hypothesis
+       |
+       +---- AI Analysis
+       |
+       +---- Human Validation
+       |
+       v
+    Finding
+       |
+       v
+    Remediation Decision
+
+---
+
+## 44. Temporal Information
+
+Incident investigation is inherently time-sensitive.
+
+The domain should preserve relevant timestamps for:
+
+- Incident creation.
+- Incident detection.
+- Incident start.
+- Events.
+- Evidence observation.
+- Evidence ingestion.
+- Investigation activity.
+- AI analysis.
+- Simulation execution.
+- Remediation.
+- Resolution.
+- Report generation.
+
+The system should distinguish observation time from ingestion time where both are available.
+
+---
+
+## 45. Provenance
+
+Important information shall preserve provenance wherever practical.
+
+Provenance should distinguish between:
+
+- Human-entered information.
+- System-observed information.
+- External-provider information.
+- AI-generated information.
+- Simulation-generated information.
+
+This distinction supports evidence-based investigation and explainability.
+
+---
+
+## 46. Domain Separation from Infrastructure
+
+The conceptual domain model shall remain independent of:
+
+- Database technology.
+- ORM implementation.
+- HTTP framework.
+- AI-provider SDK.
+- Simulation runtime.
+- Cloud provider.
+
+Infrastructure-specific representations shall be translated into domain concepts through appropriate application boundaries.
+
+---
+
+## 47. Domain Evolution
+
+The domain model shall be expected to evolve as implementation and evaluation reveal additional requirements.
+
+New entities should only be introduced when they represent a meaningful domain concept.
+
+Existing entities should not be split merely to mirror database normalization.
+
+Domain complexity shall be justified by actual business or operational requirements.
+
+---
+
+## 48. Deferred Decisions
+
+The following details remain subject to later architecture and implementation decisions:
+
+- Exact entity field names.
+- Exact identifier format.
+- Exact enum values.
+- Database schema.
+- ORM mappings.
+- Aggregate boundaries.
+- Transaction boundaries.
+- Event-sourcing decisions.
+- Persistence strategy.
+- Exact module/package boundaries.
+
+These decisions shall be derived from the conceptual model rather than defining the conceptual model prematurely.
+
+---
+
+## 49. Domain Model Acceptance Criteria
+
+The domain model shall be considered sufficiently defined when:
+
+1. Core business concepts are explicitly identified.
+2. Each core concept has a clear responsibility.
+3. Important relationships are documented.
+4. Lifecycle states are explicit where required.
+5. Domain invariants are identified.
+6. Evidence provenance is preserved.
+7. AI-generated information is distinguishable from observed evidence.
+8. Simulation information is distinguishable from real operational information.
+9. Human decisions remain distinguishable from AI recommendations.
+10. Infrastructure concerns remain outside the conceptual domain model.
+11. The model can support the functional and non-functional requirements.
+12. Subsequent API and architecture design can reference stable domain concepts.
+
+---
+
+## 50. Scope
+
+This document defines the conceptual domain model and core entities for SentinelAI.
+
+It establishes the vocabulary, responsibilities, relationships, lifecycle concepts, provenance rules, ownership boundaries, and domain invariants required to guide subsequent architecture and implementation.
+
+It does not define a final database schema, ORM mapping, API schema, or implementation-specific class structure.
