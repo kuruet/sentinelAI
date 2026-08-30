@@ -2,346 +2,674 @@
 
 ## 1. Purpose
 
-This document defines the quality, operational, security, reliability, and engineering characteristics required of SentinelAI. These requirements describe how the system should behave and operate rather than defining individual business capabilities.
+This document defines the non-functional requirements for SentinelAI. These requirements establish the expected quality attributes and operational characteristics of the platform, including performance, scalability, availability, reliability, maintainability, observability, security, usability, compatibility, testability, and operational readiness.
 
-## 2. Requirement Identification
+These requirements complement the functional requirements by defining how the system shall behave and what quality standards it shall satisfy.
 
-Requirements use the identifier format NFR-XXX. Each requirement establishes an expected quality attribute or operational constraint.
+---
 
-## 3. Performance
+## 2. Quality Attributes
 
-### NFR-001 - API Response Time
+SentinelAI shall be designed with the following quality attributes:
 
-The system should provide responsive API operations under normal operating conditions and should avoid unnecessary processing in synchronous request paths.
+1. Reliability.
+2. Availability.
+3. Performance.
+4. Scalability.
+5. Security.
+6. Maintainability.
+7. Observability.
+8. Testability.
+9. Usability.
+10. Extensibility.
+11. Portability.
+12. Fault isolation.
+13. Operational recoverability.
 
-### NFR-002 - Investigation Response Time
+---
 
-The system should provide incident investigation data without unnecessary delay and should clearly communicate when an analysis operation is asynchronous or long-running.
+## 3. Performance Requirements
 
-### NFR-003 - AI Analysis Processing
+The system shall provide responsive behavior for normal interactive operations.
 
-AI-assisted analysis should execute asynchronously when processing time may exceed normal interactive request limits.
+Interactive API operations should normally complete within an acceptable response time under expected development and deployment workloads.
 
-### NFR-004 - Background Processing
+The architecture shall distinguish between:
 
-Long-running operations such as AI analysis, evidence processing, report generation, and simulation execution should be handled through appropriate background processing mechanisms where required.
+- Interactive operations.
+- Resource-intensive operations.
+- Long-running asynchronous operations.
 
-## 4. Scalability
+Long-running operations such as AI analysis, simulation execution, large ingestion jobs, and report generation shall not unnecessarily block interactive API requests.
 
-### NFR-005 - Horizontal Scalability
+Performance targets shall be refined during implementation and deployment testing.
 
-The architecture should allow stateless application components to scale horizontally when workload increases.
+---
 
-### NFR-006 - Data Growth
+## 4. API Performance
 
-The system should support growth in incident, evidence, event, investigation, audit, and simulation data without requiring fundamental architectural redesign.
+The API shall:
 
-### NFR-007 - Concurrent Users
+- Avoid unnecessary database queries.
+- Avoid unbounded collection responses.
+- Support pagination for potentially large datasets.
+- Validate requests efficiently.
+- Use bounded external calls.
+- Apply appropriate timeouts.
+- Avoid unnecessary serialization and payload expansion.
 
-The system should support multiple concurrent engineering users while maintaining acceptable application responsiveness.
+API performance shall be measurable through request latency and throughput metrics.
 
-### NFR-008 - Integration Growth
+---
 
-The architecture should allow additional external integrations to be introduced without requiring major changes to unrelated core capabilities.
+## 5. AI Analysis Performance
 
-## 5. Availability and Reliability
+AI-assisted investigation may depend on external provider latency.
 
-### NFR-009 - Service Availability
+The system shall therefore treat AI analysis as an operation whose execution time may vary.
 
-Core SentinelAI services should be designed for high availability appropriate to the deployment environment and project scope.
+The API shall support asynchronous tracking where analysis cannot reasonably complete within an interactive request.
 
-### NFR-010 - Fault Isolation
+The user shall be able to determine whether an analysis is:
 
-Failures in one subsystem or integration should be isolated where practical so that unrelated platform capabilities remain available.
+- Queued.
+- Running.
+- Completed.
+- Failed.
 
-### NFR-011 - Graceful Degradation
+AI-provider delays shall not prevent users from accessing existing incident information.
 
-The system should degrade gracefully when optional dependencies or external integrations are unavailable.
+---
 
-### NFR-012 - Failure Recovery
+## 6. Simulation Performance
 
-Recoverable failures should be handled through appropriate retry, timeout, recovery, or compensation mechanisms.
+Simulation execution shall be isolated from normal interactive application requests.
 
-### NFR-013 - Idempotency
+Long-running simulations shall execute asynchronously.
 
-Operations that may be retried should use idempotent behavior where practical to prevent unintended duplicate effects.
+The system shall provide execution status and results without requiring clients to maintain an open request for the entire execution duration.
 
-## 6. Security
+Simulation resource consumption shall be bounded according to the execution environment.
 
-### NFR-014 - Authentication
+---
 
-Protected SentinelAI capabilities shall require appropriate user authentication.
+## 7. Scalability
 
-### NFR-015 - Authorization
+The architecture shall support horizontal growth of stateless application workloads where practical.
 
-Access to resources and operations shall be controlled according to user roles and permissions.
+The design shall avoid unnecessary assumptions that only a single backend process will exist.
 
-### NFR-016 - Least Privilege
+Scalability considerations shall include:
 
-Users, services, integrations, and system components shall receive only the permissions required to perform their responsibilities.
+- API workload.
+- Background operations.
+- AI analysis workload.
+- Simulation workload.
+- Evidence volume.
+- Incident history.
+- External integration activity.
 
-### NFR-017 - Secure Communication
+Stateful components shall have clearly defined ownership and scaling constraints.
 
-Sensitive communication between system components and supported external integrations should use appropriate transport security.
+---
 
-### NFR-018 - Secret Management
+## 8. Reliability
 
-Credentials, API keys, tokens, and other secrets shall not be hard-coded in source code or committed to version control.
+The system shall preserve consistency of important incident and investigation state.
 
-### NFR-019 - Input Validation
+Failures in one subsystem should not unnecessarily corrupt unrelated application state.
 
-External and user-provided input shall be validated before being processed by system components.
+The architecture shall provide controlled behavior for:
 
-### NFR-020 - Secure Error Handling
+- Database failures.
+- AI-provider failures.
+- Simulation failures.
+- External integration failures.
+- Background job failures.
+- Network failures.
 
-Error responses shall avoid unnecessarily exposing secrets, internal implementation details, or sensitive system information.
+Failed operations shall produce recoverable and observable states where appropriate.
 
-## 7. Data Protection and Privacy
+---
 
-### NFR-021 - Data Minimization
+## 9. Availability
 
-The system should collect and retain only information required for supported incident investigation and operational purposes.
+Core incident-management capabilities should remain available even when optional external integrations are unavailable.
 
-### NFR-022 - Sensitive Data Handling
+For example:
 
-Sensitive operational information shall be handled according to configured security and data-handling policies.
+- AI-provider failure should not prevent incident retrieval.
+- Simulation-engine failure should not prevent investigation access.
+- External monitoring failure should not erase previously stored incident information.
 
-### NFR-023 - Data Isolation
+Availability targets shall be finalized according to the deployment environment.
 
-Data belonging to different authorized scopes or tenants, where multi-tenancy is introduced, shall be logically isolated.
+---
 
-### NFR-024 - Retention
+## 10. Fault Isolation
 
-Incident, evidence, AI analysis, simulation, and audit data shall follow defined retention policies.
+Subsystem failures shall be isolated where practical.
 
-### NFR-025 - Secure Deletion
+The architecture should prevent a failure in:
 
-Data subject to deletion or retention expiry should be removed or rendered inaccessible according to the applicable retention policy.
+- AI integration.
+- Simulation engine.
+- External monitoring adapter.
+- Background worker.
 
-## 8. Auditability
+from unnecessarily bringing down unrelated core application capabilities.
 
-### NFR-026 - Audit Trail
+Integration boundaries shall therefore be designed with explicit failure handling.
 
-Security-sensitive and operationally significant actions shall produce auditable records.
+---
 
-### NFR-027 - Audit Integrity
+## 11. Resilience
 
-Audit records should be protected against unauthorized modification or deletion.
+External operations shall use:
 
-### NFR-028 - Traceability
+- Bounded timeouts.
+- Controlled retries.
+- Appropriate backoff.
+- Failure classification.
+- Idempotency where required.
 
-Important system actions should be traceable to the initiating user, service, integration, or automated process where applicable.
+The system shall avoid unbounded retry loops and retry storms.
 
-## 9. Observability
+Resource-intensive operations shall have appropriate execution limits.
 
-### NFR-029 - Structured Logging
+---
 
-Application components should produce structured logs suitable for centralized analysis.
+## 12. Data Consistency
 
-### NFR-030 - Metrics
+Important domain state shall maintain defined consistency guarantees.
 
-Core services should expose operational metrics required to understand health, performance, and resource usage.
+The system shall prevent invalid lifecycle transitions.
 
-### NFR-031 - Health Checks
+Relationships between incidents, events, evidence, investigations, hypotheses, simulations, and reports shall preserve referential integrity according to the domain model.
 
-Deployable services should expose appropriate health or readiness information.
+Partial failures shall not silently create inconsistent application state.
 
-### NFR-032 - Correlation
+---
 
-Requests and distributed operations should support correlation identifiers or equivalent tracing information where applicable.
+## 13. Durability
 
-### NFR-033 - AI Observability
+Persisted incident information shall survive normal application-process restarts.
 
-AI operations should provide sufficient operational metadata to identify request status, latency, failures, and model-provider interaction without unnecessarily logging sensitive prompt or response content.
+Important investigation state, evidence metadata, findings, and audit records shall be stored using durable persistence mechanisms appropriate to the deployment environment.
 
-## 10. Maintainability
+The exact database technology and durability configuration shall be finalized during architecture implementation.
 
-### NFR-034 - Modular Design
+---
 
-The system shall maintain clear boundaries between major capabilities even though the initial backend architecture is a modular monolith.
+## 14. Observability
 
-### NFR-035 - Code Quality
+SentinelAI shall provide sufficient observability to understand system behavior.
 
-Implementation should follow consistent coding, formatting, linting, typing, and review standards established by the project.
+Observability should include:
 
-### NFR-036 - Documentation
+- Structured logs.
+- Application metrics.
+- Request latency.
+- Error rates.
+- Background operation status.
+- External dependency performance.
+- AI-provider activity.
+- Simulation execution activity.
 
-Important architectural, operational, API, configuration, and domain decisions should be documented.
+Correlation identifiers should connect related operations across system boundaries.
 
-### NFR-037 - Configuration
+---
 
-Environment-specific configuration should be externalized from application logic wherever practical.
+## 15. Logging
 
-### NFR-038 - Dependency Management
+Application logs shall be structured and machine-readable where practical.
 
-Third-party dependencies should be intentionally selected, versioned, and maintained.
+Logs should provide sufficient information to diagnose:
 
-## 11. Testability
+- Request failures.
+- Integration failures.
+- Background-job failures.
+- AI-analysis failures.
+- Simulation failures.
+- Security-relevant events.
 
-### NFR-039 - Automated Verification
+Logs shall not unnecessarily contain secrets or sensitive information.
 
-Core application behavior should be designed so that automated verification can be introduced and maintained.
+---
 
-### NFR-040 - Component Testability
+## 16. Metrics
 
-Major application components should have clear boundaries that allow isolated testing.
+The system should expose measurable operational metrics.
 
-### NFR-041 - Integration Testability
+Important metrics include:
 
-External integrations should be designed so that integration behavior can be tested using controlled environments, mocks, or test adapters where appropriate.
+- API request count.
+- API error count.
+- API latency.
+- Background operation count.
+- Background operation failure rate.
+- AI-analysis latency.
+- AI-analysis failure rate.
+- Simulation execution count.
+- Simulation execution failure rate.
+- External integration latency.
+- External integration failure rate.
 
-### NFR-042 - Simulation Testability
+Metrics shall support operational troubleshooting and future reliability analysis.
 
-Simulation scenarios should be deterministic or reproducible where practical so that investigation behavior can be evaluated consistently.
+---
 
-## 12. AI Safety and Reliability
+## 17. Traceability
 
-### NFR-043 - AI Output Validation
+Important operations should be traceable using correlation or request identifiers.
 
-AI-generated output shall be validated against the expected application structure before being used by downstream system components.
+Traceability should allow operators to connect:
 
-### NFR-044 - AI Output Trust Boundary
+    User Request
+        |
+        v
+    API Operation
+        |
+        v
+    Application Service
+        |
+        +----------------+
+        |                |
+        v                v
+    Persistence      External Service
+        |                |
+        +--------+-------+
+                 |
+                 v
+            Observability
 
-AI-generated information shall be treated as untrusted generated data and shall not automatically override verified system facts.
+Traceability shall not require exposing sensitive payloads.
 
-### NFR-045 - Evidence Grounding
+---
 
-AI-assisted investigation should use available incident context and evidence rather than relying solely on unsupported generated assertions.
+## 18. Maintainability
 
-### NFR-046 - Human Oversight
+The codebase shall be organized into clear architectural boundaries.
 
-Consequential operational decisions shall remain subject to authorized human review unless a separately defined and explicitly authorized automation capability exists.
+Components should have focused responsibilities.
 
-### NFR-047 - AI Failure Handling
+The system shall avoid unnecessary coupling between:
 
-The system shall handle AI provider failures, invalid responses, timeouts, and unavailable models without corrupting incident state.
+- Presentation.
+- API.
+- Application services.
+- Domain logic.
+- Persistence.
+- External integrations.
+- AI providers.
+- Simulation execution.
 
-### NFR-048 - AI Provider Abstraction
+Changes to an external provider should require minimal changes to unrelated domain logic.
 
-The architecture should allow supported AI providers or models to be changed without requiring widespread changes to unrelated application components.
+---
 
-## 13. Simulation Safety
+## 19. Extensibility
 
-### NFR-049 - Isolation
+The architecture shall support adding new integrations without redesigning the core incident domain.
 
-Simulation execution shall operate within explicitly controlled boundaries and shall not unintentionally affect protected production environments.
+The architecture should also allow additional AI providers to be introduced behind the AI integration boundary.
 
-### NFR-050 - Authorization
+Additional simulation scenarios should be addable without changing unrelated incident-management functionality.
 
-Only authorized users or processes shall be able to execute simulation scenarios.
+New incident evidence sources should be normalizable into internal representations through controlled adapters.
 
-### NFR-051 - Reproducibility
+---
 
-Simulation scenarios should support reproducible execution through controlled configuration, scenario definitions, and execution metadata.
+## 20. Testability
 
-### NFR-052 - Simulation Cleanup
+System components shall be designed so important behavior can be tested independently.
 
-Simulation resources and temporary state should be cleaned up after execution according to the configured lifecycle policy.
+Testing should cover:
 
-## 14. Data Consistency and Integrity
+- Domain rules.
+- API behavior.
+- Authorization.
+- Integration boundaries.
+- AI response handling.
+- Simulation workflows.
+- Error handling.
+- Background operations.
 
-### NFR-053 - Transactional Integrity
+External dependencies should be replaceable with controlled test doubles where appropriate.
 
-Operations that modify related persistent data should maintain appropriate transactional or consistency guarantees.
+---
 
-### NFR-054 - Referential Integrity
+## 21. Automated Quality Checks
 
-Relationships between incidents, events, evidence, services, investigations, simulations, and findings should remain internally consistent.
+The repository shall maintain automated quality checks appropriate to the implementation.
 
-### NFR-055 - Duplicate Prevention
+At minimum, the development workflow shall maintain:
 
-The system should prevent or safely handle duplicate ingestion and repeated processing where duplicate data could affect investigation accuracy.
+- Type checking.
+- Linting.
+- Formatting validation.
 
-## 15. Resilience and External Dependencies
+Additional automated testing shall be introduced as implementation progresses.
 
-### NFR-056 - Timeout Handling
+A failed quality check shall be visible to developers before changes are considered complete.
 
-External service calls shall use appropriate timeout controls.
+---
 
-### NFR-057 - Retry Policy
+## 22. Usability
 
-Retries against external dependencies shall use bounded and controlled retry behavior.
+The user interface shall present incident information in a way that supports rapid investigation.
 
-### NFR-058 - Circuit Protection
+The system should make important information discoverable without requiring users to navigate unnecessarily between unrelated views.
 
-External integrations should support appropriate circuit-breaking or equivalent protection when repeated failures could cause cascading problems.
+Important concepts such as:
 
-### NFR-059 - Dependency Failure Visibility
+- Incident status.
+- Severity.
+- Timeline.
+- Evidence.
+- Hypotheses.
+- Confidence.
+- Recommendations.
+- Simulation state.
 
-Failures or degraded availability of important external dependencies should be observable to operators.
+should have clear representations.
 
-## 16. Disaster Recovery
+---
 
-### NFR-060 - Backup Strategy
+## 23. Explainability
 
-Persistent data considered necessary for operational continuity should have an appropriate backup strategy for the deployment environment.
+AI-assisted findings shall provide understandable reasoning and evidence references where available.
 
-### NFR-061 - Recovery Capability
+The system shall distinguish between:
 
-The system should provide a documented recovery procedure appropriate to the deployment environment and project requirements.
+- Observed evidence.
+- AI-generated interpretation.
+- Hypothesis.
+- Human validation.
+- Confirmed finding.
 
-### NFR-062 - Data Recovery Validation
+The interface shall avoid presenting uncertain AI output as established fact.
 
-Backup and recovery mechanisms should be periodically verifiable where operationally applicable.
+---
 
-## 17. Deployment and Operations
+## 24. Accessibility
 
-### NFR-063 - Environment Separation
+The frontend should follow established accessibility practices.
 
-Development, testing, and production environments should be logically separated where multiple deployment environments are used.
+The application should support:
 
-### NFR-064 - Reproducible Deployment
+- Keyboard navigation.
+- Meaningful labels.
+- Clear visual hierarchy.
+- Appropriate contrast.
+- Accessible status communication.
+- Usable error messages.
 
-Application deployments should be reproducible from version-controlled source and configuration.
+Accessibility requirements shall be refined during frontend implementation.
 
-### NFR-065 - Configuration Validation
+---
 
-Required configuration should be validated during application startup or deployment rather than failing unpredictably during normal operation.
+## 25. Compatibility
 
-### NFR-066 - Graceful Shutdown
+The application shall use supported versions of its runtime, framework, and dependencies.
 
-Services should support graceful shutdown so that active operations can complete or terminate safely where practical.
+The frontend should support the browsers selected for the project's target environment.
 
-## 18. API and Integration Quality
+API contracts shall remain compatible within a supported API version.
 
-### NFR-067 - API Consistency
+Breaking changes shall be introduced through explicit versioning.
 
-APIs should use consistent conventions for request validation, responses, errors, pagination, and resource identification.
+---
 
-### NFR-068 - Versioning
+## 26. Portability
 
-Externally consumed APIs should support an appropriate versioning strategy when breaking changes are introduced.
+The system should avoid unnecessary dependency on a single infrastructure provider.
 
-### NFR-069 - Integration Isolation
+Application components should be deployable in standard supported environments without requiring provider-specific assumptions in domain logic.
 
-External integration-specific behavior should remain isolated behind clear application boundaries or adapters.
+External-provider-specific functionality shall remain isolated behind integration boundaries.
 
-## 19. Usability and Engineering Experience
+---
 
-### NFR-070 - Investigation Clarity
+## 27. Configuration Management
 
-The user interface should present incident state, timeline, evidence, affected components, AI findings, and recommendations in a clear and understandable manner.
+Environment-specific configuration shall remain external to application source code.
 
-### NFR-071 - Error Clarity
+Configuration shall distinguish between:
 
-User-facing errors should provide actionable information without exposing sensitive internal details.
+- Development.
+- Testing.
+- Staging.
+- Production.
 
-### NFR-072 - Long-Running Operation Visibility
+Sensitive configuration shall use secure secret-management mechanisms.
 
-Users should be able to understand the state of long-running operations such as AI analysis, report generation, and simulations.
+Default configuration shall not enable unsafe privileged behavior.
 
-## 20. Compatibility and Portability
+---
 
-### NFR-073 - Runtime Compatibility
+## 28. Deployment Requirements
 
-The system should operate consistently within the supported runtime and deployment environments defined by the project.
+Deployments should be reproducible.
 
-### NFR-074 - Integration Portability
+The deployment process shall provide clear separation between:
 
-Integration adapters should minimize coupling to a single external provider where practical.
+- Application artifacts.
+- Configuration.
+- Secrets.
+- Environment-specific resources.
 
-## 21. Requirement Boundary
+Deployment failures shall not leave the system in an undefined operational state where practical.
 
-These non-functional requirements define product-level quality and operational expectations. Specific numeric service-level objectives, infrastructure sizing, deployment topology, technology-specific controls, capacity targets, and implementation mechanisms will be refined during subsequent architecture and implementation phases.
+---
 
-These requirements do not imply that all corresponding quality characteristics are already implemented.
+## 29. Recovery
+
+The system shall support recovery from common operational failures.
+
+Recovery considerations shall include:
+
+- Application restart.
+- Background-job failure.
+- External integration outage.
+- AI-provider outage.
+- Simulation-engine outage.
+- Database recovery.
+
+Recovery procedures shall preserve important incident and investigation state.
+
+---
+
+## 30. Backup Requirements
+
+Persistent operational data should have appropriate backup mechanisms according to deployment requirements.
+
+Backup strategy shall consider:
+
+- Incident data.
+- Investigation data.
+- Evidence metadata.
+- Audit records.
+- Configuration where required.
+
+Backup contents shall receive protection appropriate to their sensitivity.
+
+---
+
+## 31. Resource Management
+
+Resource-intensive operations shall have defined limits.
+
+The system should protect itself from excessive:
+
+- Request payload sizes.
+- Evidence sizes.
+- Concurrent AI operations.
+- Concurrent simulations.
+- Background jobs.
+- External integration requests.
+
+Resource limits shall be configurable according to deployment needs.
+
+---
+
+## 32. Concurrency
+
+Concurrent operations shall not create invalid domain state.
+
+The system shall consider race conditions involving:
+
+- Incident state transitions.
+- Duplicate event ingestion.
+- AI-analysis requests.
+- Simulation execution.
+- Integration synchronization.
+- Background operations.
+
+Concurrency controls shall be implemented according to the selected persistence and execution architecture.
+
+---
+
+## 33. Idempotency
+
+Operations susceptible to duplicate execution shall support idempotent behavior where appropriate.
+
+This particularly applies to:
+
+- External events.
+- Webhooks.
+- Background jobs.
+- AI-analysis requests.
+- Simulation requests.
+
+Repeated requests shall not unintentionally create duplicate domain state.
+
+---
+
+## 34. Operational Transparency
+
+The system shall provide users and operators with meaningful operation status.
+
+Long-running operations shall expose enough information to determine whether they are:
+
+- Waiting.
+- Running.
+- Successful.
+- Failed.
+
+Failure states should provide actionable information without exposing sensitive internal implementation details.
+
+---
+
+## 35. Security Quality
+
+Security requirements defined in the Security Requirements document shall be treated as mandatory quality attributes.
+
+Non-functional design shall therefore preserve:
+
+- Authentication.
+- Authorization.
+- Least privilege.
+- Secure configuration.
+- Data protection.
+- Auditability.
+- Secret protection.
+- Secure failure behavior.
+
+Performance or usability improvements shall not bypass security controls.
+
+---
+
+## 36. Documentation Quality
+
+Important architecture and operational behavior shall be documented.
+
+Documentation should remain synchronized with implemented behavior.
+
+Requirements documents shall distinguish between:
+
+- Required behavior.
+- Architectural constraints.
+- Deferred decisions.
+- Implemented capabilities.
+
+The project shall avoid documenting unimplemented functionality as completed functionality.
+
+---
+
+## 37. Code Quality
+
+Implementation should favor:
+
+- Clear naming.
+- Small focused modules.
+- Explicit contracts.
+- Strong typing.
+- Predictable error handling.
+- Limited coupling.
+- Reusable abstractions where justified.
+
+Complexity shall be introduced only when it provides clear architectural or operational value.
+
+---
+
+## 38. Failure Transparency
+
+Failures shall be observable and represented explicitly.
+
+The system shall avoid silently ignoring important failures.
+
+Where an operation cannot complete, the system should preserve enough state to determine:
+
+- What failed.
+- When it failed.
+- Which operation failed.
+- Which subsystem was involved.
+- Whether retry or recovery is possible.
+
+---
+
+## 39. Non-Functional Acceptance Criteria
+
+The system shall be considered aligned with these requirements when:
+
+1. Core operations have defined performance expectations.
+2. Long-running operations are handled asynchronously where appropriate.
+3. External failures are isolated.
+4. Important state is durable.
+5. System behavior is observable.
+6. Correlation identifiers support troubleshooting.
+7. Components remain testable.
+8. API contracts remain versionable.
+9. Resource consumption is bounded.
+10. Security controls remain enforced.
+11. Deployment configuration remains environment-specific.
+12. Operational recovery is considered in the architecture.
+
+---
+
+## 40. Deferred Decisions
+
+The following details shall be finalized during later architecture and implementation phases:
+
+- Exact performance targets.
+- Availability targets.
+- Scaling thresholds.
+- Infrastructure topology.
+- Monitoring platform.
+- Logging platform.
+- Distributed tracing implementation.
+- Backup technology.
+- Deployment platform.
+- Browser support matrix.
+- Exact testing framework and coverage targets.
+
+These decisions shall be based on measured requirements and the final system architecture.
+
+---
+
+## 41. Scope
+
+This document establishes the non-functional requirements for SentinelAI and defines expectations for performance, scalability, reliability, availability, security, maintainability, observability, testability, usability, compatibility, portability, recoverability, and operational quality.
+
+Implementation-specific technologies and numeric targets shall be finalized during subsequent architecture and implementation phases.
