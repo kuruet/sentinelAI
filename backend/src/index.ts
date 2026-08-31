@@ -5,16 +5,14 @@ import { redis } from './infrastructure/redis';
 import { infrastructureTestQueue, queueRedisConnection } from './infrastructure/queue';
 import { infrastructureTestWorker, workerRedisConnection } from './infrastructure/worker';
 import { registerErrorHandling } from './errors/error-handler';
-import { healthRoutes } from './routes/health';
-import { validationRoutes } from './routes/validation';
+import { registerRoutes } from './routes';
 
 export function buildApp() {
   const app = Fastify({
     logger: true,
   });
 
-  void app.register(healthRoutes);
-  void app.register(validationRoutes);
+  void registerRoutes(app);
 
   registerErrorHandling(app);
 
