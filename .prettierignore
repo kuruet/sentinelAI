@@ -5,3 +5,6 @@ coverage/
 .next/
 frontend/.vite/
 pnpm-lock.yaml
+
+# Prisma generated client
+backend/src/generated/prisma/

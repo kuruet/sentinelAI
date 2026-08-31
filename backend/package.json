@@ -1,0 +1,18 @@
+{
+  "name": "@sentinelai/backend",
+  "version": "0.1.0",
+  "private": true,
+  "description": "SentinelAI backend service.",
+  "dependencies": {
+    "@prisma/adapter-pg": "^7.10.0",
+    "@prisma/client": "^7.10.0",
+    "dotenv": "^17.4.2",
+    "pg": "^8.23.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.4.0",
+    "@types/pg": "^8.23.1",
+    "prisma": "7.10.0",
+    "tsx": "^4.23.13"
+  }
+}

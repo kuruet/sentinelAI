@@ -1,0 +1,152 @@
+// SentinelAI persistence foundation.
+//
+// This schema contains the core incident-investigation persistence model.
+// Domain APIs must not expose these ORM models directly.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum IncidentStatus {
+  IDENTIFIED
+  INVESTIGATING
+  RESOLVED
+  CLOSED
+}
+
+enum IncidentSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum ParticipantRole {
+  RESPONDER
+  INCIDENT_COMMANDER
+  OBSERVER
+}
+
+enum EventType {
+  ALERT
+  LOG
+  METRIC
+  DEPLOYMENT
+  CONFIGURATION_CHANGE
+  MANUAL
+  SYSTEM
+}
+
+enum EvidenceType {
+  LOG
+  METRIC
+  TRACE
+  ALERT
+  DEPLOYMENT
+  CONFIGURATION
+  DOCUMENT
+  MANUAL
+  OTHER
+}
+
+model Incident {
+  id          String           @id @default(uuid())
+  title       String
+  description String?
+  status      IncidentStatus   @default(IDENTIFIED)
+  severity    IncidentSeverity
+  priority    Int              @default(0)
+
+  startedAt  DateTime?
+  resolvedAt DateTime?
+  closedAt   DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  participants  IncidentParticipant[]
+  events        IncidentEvent[]
+  evidence      Evidence[]
+  investigation Investigation?
+
+  @@index([status])
+  @@index([severity])
+  @@index([createdAt])
+}
+
+model IncidentParticipant {
+  id         String          @id @default(uuid())
+  incidentId String
+  userId     String
+  role       ParticipantRole
+
+  createdAt DateTime @default(now())
+
+  incident Incident @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+
+  @@unique([incidentId, userId])
+  @@index([userId])
+}
+
+model IncidentEvent {
+  id          String    @id @default(uuid())
+  incidentId  String
+  eventType   EventType
+  occurredAt  DateTime
+  sequence    Int
+  title       String
+  description String?
+  source      String?
+  metadata    Json?
+
+  createdAt DateTime @default(now())
+
+  incident Incident @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+
+  @@unique([incidentId, sequence])
+  @@index([incidentId, occurredAt])
+  @@index([eventType])
+}
+
+model Evidence {
+  id           String       @id @default(uuid())
+  incidentId   String
+  evidenceType EvidenceType
+  title        String
+  description  String?
+  source       String
+  sourceRef    String?
+  collectedAt  DateTime?
+  occurredAt   DateTime?
+  contentHash  String?
+  trustLevel   String?
+  metadata     Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  incident Incident @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+
+  @@index([incidentId, occurredAt])
+  @@index([evidenceType])
+  @@index([source])
+  @@index([contentHash])
+}
+
+model Investigation {
+  id          String    @id @default(uuid())
+  incidentId  String    @unique
+  summary     String?
+  startedAt   DateTime?
+  completedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  incident Incident @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+}
