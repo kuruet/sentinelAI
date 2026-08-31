@@ -1,14 +1,30 @@
 import type { FastifyInstance } from 'fastify';
+import type { ApiSuccessResponse } from '../contracts';
 import { prisma } from '../infrastructure/database';
 import { connectRedis, redis } from '../infrastructure/redis';
 import { queueRedisConnection } from '../infrastructure/queue';
 import { workerRedisConnection } from '../infrastructure/worker';
 
+interface HealthData {
+  service: string;
+}
+
+interface ReadinessData {
+  service: string;
+  checks: {
+    postgres: boolean;
+    redis: boolean;
+    bullmq: boolean;
+  };
+}
+
 export async function healthRoutes(app: FastifyInstance) {
-  app.get('/api/v1/health', async () => {
+  app.get('/api/v1/health', async (): Promise<ApiSuccessResponse<HealthData>> => {
     return {
       status: 'ok',
-      service: 'sentinelai-backend',
+      data: {
+        service: 'sentinelai-backend',
+      },
     };
   });
 
@@ -44,18 +60,26 @@ export async function healthRoutes(app: FastifyInstance) {
 
     const ready = checks.postgres && checks.redis && checks.bullmq;
 
-    if (!ready) {
-      return reply.code(503).send({
-        status: 'not_ready',
-        service: 'sentinelai-backend',
-        checks,
-      });
-    }
-
-    return {
-      status: 'ready',
+    const data: ReadinessData = {
       service: 'sentinelai-backend',
       checks,
     };
+
+    if (!ready) {
+      return reply.code(503).send({
+        status: 'error',
+        error: {
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Backend dependencies are not ready.',
+        },
+      });
+    }
+
+    const response: ApiSuccessResponse<ReadinessData> = {
+      status: 'ok',
+      data,
+    };
+
+    return reply.send(response);
   });
 }
