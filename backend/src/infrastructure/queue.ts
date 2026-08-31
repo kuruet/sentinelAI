@@ -1,20 +1,12 @@
-import { config } from 'dotenv';
 import { Queue } from 'bullmq';
 import IORedis from 'ioredis';
-
-config({ path: '../.env' });
-
-const connectionString = process.env.REDIS_URL;
-
-if (!connectionString) {
-  throw new Error('REDIS_URL is not configured.');
-}
+import { env } from '../config/env';
 
 export const QUEUE_NAMES = {
   infrastructureTest: 'sentinelai.infrastructure-test',
 } as const;
 
-export const queueRedisConnection = new IORedis(connectionString, {
+export const queueRedisConnection = new IORedis(env.REDIS_URL, {
   maxRetriesPerRequest: null,
 });
 

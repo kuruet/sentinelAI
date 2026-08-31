@@ -1,17 +1,9 @@
-import { config } from 'dotenv';
 import { Worker } from 'bullmq';
 import IORedis from 'ioredis';
+import { env } from '../config/env';
 import { QUEUE_NAMES } from './queue';
 
-config({ path: '../.env' });
-
-const connectionString = process.env.REDIS_URL;
-
-if (!connectionString) {
-  throw new Error('REDIS_URL is not configured.');
-}
-
-export const workerRedisConnection = new IORedis(connectionString, {
+export const workerRedisConnection = new IORedis(env.REDIS_URL, {
   maxRetriesPerRequest: null,
 });
 

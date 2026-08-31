@@ -1,13 +1,11 @@
-import { config } from 'dotenv';
 import Fastify from 'fastify';
+import { env } from './config/env';
 import { prisma } from './infrastructure/database';
 import { redis } from './infrastructure/redis';
 import { infrastructureTestQueue, queueRedisConnection } from './infrastructure/queue';
 import { infrastructureTestWorker, workerRedisConnection } from './infrastructure/worker';
 import { registerErrorHandling } from './errors/error-handler';
 import { healthRoutes } from './routes/health';
-
-config({ path: '../.env' });
 
 export function buildApp() {
   const app = Fastify({
@@ -40,8 +38,8 @@ export async function start() {
 
   try {
     await app.listen({
-      host: process.env.BACKEND_HOST ?? '127.0.0.1',
-      port: Number(process.env.PORT ?? 3000),
+      host: env.BACKEND_HOST,
+      port: env.PORT,
     });
   } catch (error) {
     app.log.error(error);
