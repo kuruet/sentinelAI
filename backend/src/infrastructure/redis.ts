@@ -26,3 +26,9 @@ redis.on('error', (error) => {
 if (process.env.NODE_ENV !== 'production') {
   globalForRedis.redis = redis;
 }
+
+export async function connectRedis() {
+  if (!redis.isOpen) {
+    await redis.connect();
+  }
+}
