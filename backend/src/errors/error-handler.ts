@@ -47,6 +47,23 @@ export function registerErrorHandling(app: FastifyInstance) {
       return reply.code(400).send(response);
     }
 
+    if (
+      errorCode === 'FST_JWT_NO_AUTHORIZATION_IN_HEADER' ||
+      errorCode === 'FST_JWT_AUTHORIZATION_TOKEN_EXPIRED' ||
+      errorCode === 'FST_JWT_AUTHORIZATION_TOKEN_INVALID' ||
+      errorCode === 'FST_JWT_AUTHORIZATION_TOKEN_INVALID'
+    ) {
+      const response: ApiErrorResponse = {
+        status: 'error',
+        error: {
+          code: 'BAD_REQUEST',
+          message: 'Authentication required.',
+        },
+      };
+
+      return reply.code(401).send(response);
+    }
+
     request.log.error(error);
 
     const response: ApiErrorResponse = {

@@ -6,12 +6,15 @@ import { infrastructureTestQueue, queueRedisConnection } from './infrastructure/
 import { infrastructureTestWorker, workerRedisConnection } from './infrastructure/worker';
 import { registerErrorHandling } from './errors/error-handler';
 import { registerRoutes } from './routes';
+import { registerAuthentication, registerSecurity } from './security';
 
 export function buildApp() {
   const app = Fastify({
     logger: true,
   });
 
+  void registerSecurity(app);
+  void registerAuthentication(app);
   void registerRoutes(app);
 
   registerErrorHandling(app);
