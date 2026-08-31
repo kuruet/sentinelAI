@@ -1,9 +1,10 @@
 import { config } from 'dotenv';
 import Fastify from 'fastify';
 import { prisma } from './infrastructure/database';
-import { connectRedis, redis } from './infrastructure/redis';
+import { redis } from './infrastructure/redis';
 import { infrastructureTestQueue, queueRedisConnection } from './infrastructure/queue';
 import { infrastructureTestWorker, workerRedisConnection } from './infrastructure/worker';
+import { registerErrorHandling } from './errors/error-handler';
 import { healthRoutes } from './routes/health';
 
 config({ path: '../.env' });
@@ -14,6 +15,8 @@ export function buildApp() {
   });
 
   void app.register(healthRoutes);
+
+  registerErrorHandling(app);
 
   app.addHook('onClose', async () => {
     await infrastructureTestWorker.close();
@@ -36,8 +39,6 @@ export async function start() {
   const app = buildApp();
 
   try {
-    await connectRedis();
-
     await app.listen({
       host: process.env.BACKEND_HOST ?? '127.0.0.1',
       port: Number(process.env.PORT ?? 3000),

@@ -1,6 +1,7 @@
 import type { FastifyInstance } from 'fastify';
+import { AppError } from '../errors/app-error';
 import { prisma } from '../infrastructure/database';
-import { redis } from '../infrastructure/redis';
+import { connectRedis, redis } from '../infrastructure/redis';
 import { queueRedisConnection } from '../infrastructure/queue';
 import { workerRedisConnection } from '../infrastructure/worker';
 
@@ -27,6 +28,7 @@ export async function healthRoutes(app: FastifyInstance) {
     }
 
     try {
+      await connectRedis();
       await redis.ping();
       checks.redis = true;
     } catch (error) {
@@ -56,5 +58,9 @@ export async function healthRoutes(app: FastifyInstance) {
       service: 'sentinelai-backend',
       checks,
     };
+  });
+
+  app.get('/api/v1/test-error', async () => {
+    throw new AppError(400, 'BAD_REQUEST', 'Intentional test error.');
   });
 }
