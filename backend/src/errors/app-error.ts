@@ -1,4 +1,5 @@
-export type ApiErrorCode = 'BAD_REQUEST' | 'NOT_FOUND' | 'INTERNAL_SERVER_ERROR';
+export type ApiErrorCode =
+  'BAD_REQUEST' | 'VALIDATION_ERROR' | 'NOT_FOUND' | 'INTERNAL_SERVER_ERROR';
 
 export interface ApiErrorResponse {
   status: 'error';

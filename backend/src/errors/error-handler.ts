@@ -27,6 +27,26 @@ export function registerErrorHandling(app: FastifyInstance) {
       return reply.code(error.statusCode).send(response);
     }
 
+    const errorCode =
+      typeof error === 'object' &&
+      error !== null &&
+      'code' in error &&
+      typeof error.code === 'string'
+        ? error.code
+        : undefined;
+
+    if (error instanceof SyntaxError || errorCode === 'FST_ERR_CTP_INVALID_JSON_BODY') {
+      const response: ApiErrorResponse = {
+        status: 'error',
+        error: {
+          code: 'BAD_REQUEST',
+          message: 'Invalid JSON request body.',
+        },
+      };
+
+      return reply.code(400).send(response);
+    }
+
     request.log.error(error);
 
     const response: ApiErrorResponse = {

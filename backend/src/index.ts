@@ -6,6 +6,7 @@ import { infrastructureTestQueue, queueRedisConnection } from './infrastructure/
 import { infrastructureTestWorker, workerRedisConnection } from './infrastructure/worker';
 import { registerErrorHandling } from './errors/error-handler';
 import { healthRoutes } from './routes/health';
+import { validationRoutes } from './routes/validation';
 
 export function buildApp() {
   const app = Fastify({
@@ -13,6 +14,7 @@ export function buildApp() {
   });
 
   void app.register(healthRoutes);
+  void app.register(validationRoutes);
 
   registerErrorHandling(app);
 
