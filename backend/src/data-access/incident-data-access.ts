@@ -1,9 +1,11 @@
+import type { IncidentSeverity } from '../contracts/incident';
+
 export interface IncidentRecord {
   id: string;
   title: string;
   description: string | null;
   status: string;
-  severity: string;
+  severity: IncidentSeverity;
   priority: number;
   startedAt: Date | null;
   resolvedAt: Date | null;
