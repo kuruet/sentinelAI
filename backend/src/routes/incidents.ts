@@ -2,7 +2,12 @@ import type { FastifyInstance } from 'fastify';
 import type { ApiSuccessResponse, IncidentListResponse, IncidentResponse } from '../contracts';
 import { incidentService } from '../application';
 import { AppError } from '../errors/app-error';
-import { createIncidentRequestSchema, listIncidentsQuerySchema, parseRequest } from '../validation';
+import {
+  createIncidentRequestSchema,
+  listIncidentsQuerySchema,
+  parseRequest,
+  updateIncidentRequestSchema,
+} from '../validation';
 
 export async function incidentRoutes(app: FastifyInstance) {
   app.post(
@@ -21,6 +26,29 @@ export async function incidentRoutes(app: FastifyInstance) {
     },
   );
 
+  app.patch(
+    '/api/v1/incidents/:id',
+    async (request): Promise<ApiSuccessResponse<IncidentResponse>> => {
+      const { id } = request.params as { id?: string };
+
+      if (!id || id.trim().length === 0) {
+        throw new AppError(400, 'BAD_REQUEST', 'Incident ID is required.');
+      }
+
+      const input = parseRequest(updateIncidentRequestSchema, request.body);
+
+      const incident = await incidentService.updateIncident(id, input);
+
+      if (!incident) {
+        throw new AppError(404, 'NOT_FOUND', 'Incident not found.');
+      }
+
+      return {
+        status: 'ok',
+        data: incident,
+      };
+    },
+  );
   app.get(
     '/api/v1/incidents',
     async (request): Promise<ApiSuccessResponse<IncidentListResponse>> => {

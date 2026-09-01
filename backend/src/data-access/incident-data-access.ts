@@ -2,6 +2,7 @@ import type {
   CreateIncidentRequest,
   IncidentSeverity,
   ListIncidentsQuery,
+  UpdateIncidentRequest,
 } from '../contracts/incident';
 
 export interface IncidentRecord {
@@ -26,5 +27,6 @@ export interface IncidentListResult {
 export interface IncidentDataAccess {
   findById(id: string): Promise<IncidentRecord | null>;
   create(input: CreateIncidentRequest): Promise<IncidentRecord>;
+  update(id: string, input: UpdateIncidentRequest): Promise<IncidentRecord | null>;
   list(query: ListIncidentsQuery): Promise<IncidentListResult>;
 }

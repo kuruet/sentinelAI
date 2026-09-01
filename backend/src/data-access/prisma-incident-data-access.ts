@@ -1,5 +1,9 @@
 import { prisma } from '../infrastructure/database';
-import type { CreateIncidentRequest, ListIncidentsQuery } from '../contracts/incident';
+import type {
+  CreateIncidentRequest,
+  ListIncidentsQuery,
+  UpdateIncidentRequest,
+} from '../contracts/incident';
 import type {
   IncidentDataAccess,
   IncidentListResult,
@@ -33,6 +37,32 @@ export class PrismaIncidentDataAccess implements IncidentDataAccess {
     return this.toRecord(incident);
   }
 
+  async update(id: string, input: UpdateIncidentRequest): Promise<IncidentRecord | null> {
+    const existing = await prisma.incident.findUnique({
+      where: { id },
+    });
+
+    if (!existing) {
+      return null;
+    }
+
+    const incident = await prisma.incident.update({
+      where: { id },
+      data: {
+        ...(input.title !== undefined ? { title: input.title } : {}),
+        ...(input.description !== undefined ? { description: input.description } : {}),
+        ...(input.severity !== undefined ? { severity: input.severity } : {}),
+        ...(input.priority !== undefined ? { priority: input.priority } : {}),
+        ...(input.startedAt !== undefined
+          ? {
+              startedAt: input.startedAt === null ? null : new Date(input.startedAt),
+            }
+          : {}),
+      },
+    });
+
+    return this.toRecord(incident);
+  }
   async list(query: ListIncidentsQuery): Promise<IncidentListResult> {
     const where = {
       ...(query.status ? { status: query.status as never } : {}),

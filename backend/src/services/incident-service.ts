@@ -3,6 +3,7 @@ import type {
   IncidentListResponse,
   IncidentResponse,
   ListIncidentsQuery,
+  UpdateIncidentRequest,
 } from '../contracts/incident';
 import type { IncidentDataAccess, IncidentRecord } from '../data-access/incident-data-access';
 
@@ -19,6 +20,11 @@ export class IncidentService {
     return this.toResponse(incident);
   }
 
+  async updateIncident(id: string, input: UpdateIncidentRequest): Promise<IncidentResponse | null> {
+    const incident = await this.incidentDataAccess.update(id, input);
+
+    return incident ? this.toResponse(incident) : null;
+  }
   async listIncidents(query: ListIncidentsQuery): Promise<IncidentListResponse> {
     const result = await this.incidentDataAccess.list(query);
 

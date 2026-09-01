@@ -8,5 +8,6 @@ export {
   type CreateIncidentRequest,
   type IncidentListResponse,
   type IncidentResponse,
+  type UpdateIncidentRequest,
   type IncidentSeverity,
 } from './incident';

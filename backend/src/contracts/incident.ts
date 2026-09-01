@@ -10,6 +10,14 @@ export interface CreateIncidentRequest {
   startedAt?: string | null;
 }
 
+export interface UpdateIncidentRequest {
+  title?: string;
+  description?: string | null;
+  severity?: IncidentSeverity;
+  priority?: number;
+  startedAt?: string | null;
+}
+
 export interface IncidentResponse {
   id: string;
   title: string;
