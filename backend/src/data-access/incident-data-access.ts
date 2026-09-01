@@ -1,4 +1,4 @@
-import type { IncidentSeverity } from '../contracts/incident';
+import type { CreateIncidentRequest, IncidentSeverity } from '../contracts/incident';
 
 export interface IncidentRecord {
   id: string;
@@ -16,4 +16,5 @@ export interface IncidentRecord {
 
 export interface IncidentDataAccess {
   findById(id: string): Promise<IncidentRecord | null>;
+  create(input: CreateIncidentRequest): Promise<IncidentRecord>;
 }

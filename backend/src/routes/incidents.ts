@@ -2,8 +2,25 @@ import type { FastifyInstance } from 'fastify';
 import type { ApiSuccessResponse, IncidentResponse } from '../contracts';
 import { incidentService } from '../application';
 import { AppError } from '../errors/app-error';
+import { parseRequest, createIncidentRequestSchema } from '../validation';
 
 export async function incidentRoutes(app: FastifyInstance) {
+  app.post(
+    '/api/v1/incidents',
+    async (request, reply): Promise<ApiSuccessResponse<IncidentResponse>> => {
+      const input = parseRequest(createIncidentRequestSchema, request.body);
+
+      const incident = await incidentService.createIncident(input);
+
+      reply.code(201);
+
+      return {
+        status: 'ok',
+        data: incident,
+      };
+    },
+  );
+
   app.get(
     '/api/v1/incidents/:id',
     async (request): Promise<ApiSuccessResponse<IncidentResponse>> => {
