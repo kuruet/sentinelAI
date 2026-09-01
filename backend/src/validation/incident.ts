@@ -29,3 +29,14 @@ export const createIncidentRequestSchema = z
   .strict();
 
 export type CreateIncidentRequestInput = z.infer<typeof createIncidentRequestSchema>;
+
+export const listIncidentsQuerySchema = z
+  .object({
+    status: z.string().trim().min(1).optional(),
+    severity: z.enum(['LOW', 'MEDIUM', 'HIGH', 'CRITICAL']).optional(),
+    page: z.coerce.number().int().min(1).default(1),
+    limit: z.coerce.number().int().min(1).max(100).default(20),
+  })
+  .strict();
+
+export type ListIncidentsQueryInput = z.infer<typeof listIncidentsQuerySchema>;

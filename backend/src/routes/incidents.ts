@@ -1,8 +1,8 @@
 import type { FastifyInstance } from 'fastify';
-import type { ApiSuccessResponse, IncidentResponse } from '../contracts';
+import type { ApiSuccessResponse, IncidentListResponse, IncidentResponse } from '../contracts';
 import { incidentService } from '../application';
 import { AppError } from '../errors/app-error';
-import { parseRequest, createIncidentRequestSchema } from '../validation';
+import { createIncidentRequestSchema, listIncidentsQuerySchema, parseRequest } from '../validation';
 
 export async function incidentRoutes(app: FastifyInstance) {
   app.post(
@@ -17,6 +17,20 @@ export async function incidentRoutes(app: FastifyInstance) {
       return {
         status: 'ok',
         data: incident,
+      };
+    },
+  );
+
+  app.get(
+    '/api/v1/incidents',
+    async (request): Promise<ApiSuccessResponse<IncidentListResponse>> => {
+      const query = parseRequest(listIncidentsQuerySchema, request.query);
+
+      const incidents = await incidentService.listIncidents(query);
+
+      return {
+        status: 'ok',
+        data: incidents,
       };
     },
   );

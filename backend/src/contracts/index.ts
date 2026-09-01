@@ -6,6 +6,7 @@ export type { ApiMessageResponse, ApiSuccessResponse } from './api-response';
 export {
   INCIDENT_SEVERITIES,
   type CreateIncidentRequest,
+  type IncidentListResponse,
   type IncidentResponse,
   type IncidentSeverity,
 } from './incident';

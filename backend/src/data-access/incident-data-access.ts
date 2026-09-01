@@ -1,4 +1,8 @@
-import type { CreateIncidentRequest, IncidentSeverity } from '../contracts/incident';
+import type {
+  CreateIncidentRequest,
+  IncidentSeverity,
+  ListIncidentsQuery,
+} from '../contracts/incident';
 
 export interface IncidentRecord {
   id: string;
@@ -14,7 +18,13 @@ export interface IncidentRecord {
   updatedAt: Date;
 }
 
+export interface IncidentListResult {
+  items: IncidentRecord[];
+  total: number;
+}
+
 export interface IncidentDataAccess {
   findById(id: string): Promise<IncidentRecord | null>;
   create(input: CreateIncidentRequest): Promise<IncidentRecord>;
+  list(query: ListIncidentsQuery): Promise<IncidentListResult>;
 }

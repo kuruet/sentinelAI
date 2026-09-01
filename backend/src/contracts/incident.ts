@@ -23,3 +23,18 @@ export interface IncidentResponse {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface ListIncidentsQuery {
+  status?: string;
+  severity?: IncidentSeverity;
+  page: number;
+  limit: number;
+}
+
+export interface IncidentListResponse {
+  items: IncidentResponse[];
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
