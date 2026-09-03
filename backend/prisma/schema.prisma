@@ -150,3 +150,19 @@ model Investigation {
 
   incident Incident @relation(fields: [incidentId], references: [id], onDelete: Cascade)
 }
+
+model AuditLog {
+  id           String   @id @default(uuid())
+  actorUserId  String
+  action       String
+  resourceType String
+  resourceId   String
+  incidentId   String?
+  metadata     Json?
+  createdAt    DateTime @default(now())
+
+  @@index([incidentId, createdAt])
+  @@index([actorUserId, createdAt])
+  @@index([resourceType, resourceId])
+  @@index([action, createdAt])
+}

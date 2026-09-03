@@ -14,5 +14,5 @@ export interface InvestigationDataAccess {
     input: UpdateInvestigationRequest,
   ): Promise<InvestigationResponse | null>;
 
-  deleteByIncidentId(incidentId: string): Promise<boolean>;
+  deleteByIncidentId(incidentId: string): Promise<string | null>;
 }

@@ -1,6 +1,7 @@
 import type { FastifyInstance } from 'fastify';
 import type {
   ApiSuccessResponse,
+  AuditLogListResponse,
   EvidenceListResponse,
   EvidenceResponse,
   IncidentEventListResponse,
@@ -16,6 +17,7 @@ import {
   incidentAuthorizationService,
   incidentParticipantService,
   incidentService,
+  auditLogService,
 } from '../application';
 import { AppError } from '../errors/app-error';
 import { authenticate, getAuthenticatedIdentity } from '../security';
@@ -42,6 +44,14 @@ export async function incidentRoutes(app: FastifyInstance) {
       const identity = getAuthenticatedIdentity(request);
 
       const incident = await incidentService.createIncident(input, identity.userId);
+
+      await auditLogService.record({
+        actorUserId: identity.userId,
+        action: 'INCIDENT_CREATED',
+        resourceType: 'INCIDENT',
+        resourceId: incident.id,
+        incidentId: incident.id,
+      });
 
       reply.code(201);
 
@@ -71,6 +81,15 @@ export async function incidentRoutes(app: FastifyInstance) {
         throw new AppError(404, 'NOT_FOUND', 'Incident not found.');
       }
 
+      await auditLogService.record({
+        actorUserId: identity.userId,
+        action: 'INCIDENT_SEVERITY_PRIORITY_UPDATED',
+        resourceType: 'INCIDENT',
+        resourceId: id,
+        incidentId: id,
+        metadata: input,
+      });
+
       return {
         status: 'ok',
         data: incident,
@@ -97,6 +116,15 @@ export async function incidentRoutes(app: FastifyInstance) {
       if (!incident) {
         throw new AppError(404, 'NOT_FOUND', 'Incident not found.');
       }
+
+      await auditLogService.record({
+        actorUserId: identity.userId,
+        action: 'INCIDENT_UPDATED',
+        resourceType: 'INCIDENT',
+        resourceId: id,
+        incidentId: id,
+        metadata: input,
+      });
 
       return {
         status: 'ok',
@@ -125,6 +153,15 @@ export async function incidentRoutes(app: FastifyInstance) {
         if (!incident) {
           throw new AppError(404, 'NOT_FOUND', 'Incident not found.');
         }
+
+        await auditLogService.record({
+          actorUserId: identity.userId,
+          action: 'INCIDENT_LIFECYCLE_UPDATED',
+          resourceType: 'INCIDENT',
+          resourceId: id,
+          incidentId: id,
+          metadata: input,
+        });
 
         return {
           status: 'ok',
@@ -219,6 +256,15 @@ export async function incidentRoutes(app: FastifyInstance) {
           throw new AppError(404, 'NOT_FOUND', 'Incident not found.');
         }
 
+        await auditLogService.record({
+          actorUserId: identity.userId,
+          action: 'PARTICIPANT_ADDED',
+          resourceType: 'INCIDENT_PARTICIPANT',
+          resourceId: participant.id,
+          incidentId: id,
+          metadata: { userId: participant.userId, role: participant.role },
+        });
+
         reply.code(201);
 
         return {
@@ -294,6 +340,14 @@ export async function incidentRoutes(app: FastifyInstance) {
         throw new AppError(404, 'NOT_FOUND', 'Participant not found.');
       }
 
+      await auditLogService.record({
+        actorUserId: identity.userId,
+        action: 'PARTICIPANT_REMOVED',
+        resourceType: 'INCIDENT_PARTICIPANT',
+        resourceId: participantId,
+        incidentId: id,
+      });
+
       return {
         status: 'ok',
         message: 'Incident participant removed.',
@@ -321,6 +375,15 @@ export async function incidentRoutes(app: FastifyInstance) {
           throw new AppError(404, 'NOT_FOUND', 'Incident not found.');
         }
 
+        await auditLogService.record({
+          actorUserId: identity.userId,
+          action: 'EVENT_CREATED',
+          resourceType: 'INCIDENT_EVENT',
+          resourceId: event.id,
+          incidentId: id,
+          metadata: { eventType: event.eventType, sequence: event.sequence },
+        });
+
         reply.code(201);
 
         return {
@@ -337,6 +400,33 @@ export async function incidentRoutes(app: FastifyInstance) {
 
         throw error;
       }
+    },
+  );
+
+  app.get(
+    '/api/v1/incidents/:id/audit',
+    async (request, reply): Promise<ApiSuccessResponse<AuditLogListResponse>> => {
+      const { id } = request.params as { id: string };
+      const identity = getAuthenticatedIdentity(request);
+
+      await incidentAuthorizationService.requireReadAccess(id, identity.userId);
+
+      const entries = await auditLogService.listByIncident(id);
+
+      return reply.send({
+        data: {
+          items: entries.map((entry) => ({
+            id: entry.id,
+            actorUserId: entry.actorUserId,
+            action: entry.action,
+            resourceType: entry.resourceType,
+            resourceId: entry.resourceId,
+            incidentId: entry.incidentId,
+            metadata: entry.metadata,
+            createdAt: entry.createdAt.toISOString(),
+          })),
+        },
+      });
     },
   );
 
@@ -407,6 +497,15 @@ export async function incidentRoutes(app: FastifyInstance) {
       if (!evidence) {
         throw new AppError(404, 'NOT_FOUND', 'Incident not found.');
       }
+
+      await auditLogService.record({
+        actorUserId: identity.userId,
+        action: 'EVIDENCE_CREATED',
+        resourceType: 'EVIDENCE',
+        resourceId: evidence.id,
+        incidentId: id,
+        metadata: { evidenceType: evidence.evidenceType, source: evidence.source },
+      });
 
       reply.code(201);
 
@@ -503,6 +602,14 @@ export async function incidentRoutes(app: FastifyInstance) {
         throw new AppError(404, 'NOT_FOUND', 'Evidence not found.');
       }
 
+      await auditLogService.record({
+        actorUserId: identity.userId,
+        action: 'EVIDENCE_DELETED',
+        resourceType: 'EVIDENCE',
+        resourceId: evidenceId,
+        incidentId: id,
+      });
+
       return {
         status: 'ok',
         data: {
@@ -531,6 +638,14 @@ export async function incidentRoutes(app: FastifyInstance) {
         if (!investigation) {
           throw new AppError(404, 'NOT_FOUND', 'Incident not found.');
         }
+
+        await auditLogService.record({
+          actorUserId: identity.userId,
+          action: 'INVESTIGATION_CREATED',
+          resourceType: 'INVESTIGATION',
+          resourceId: investigation.id,
+          incidentId: id,
+        });
 
         reply.code(201);
 
@@ -596,6 +711,15 @@ export async function incidentRoutes(app: FastifyInstance) {
         throw new AppError(404, 'NOT_FOUND', 'Investigation not found.');
       }
 
+      await auditLogService.record({
+        actorUserId: identity.userId,
+        action: 'INVESTIGATION_UPDATED',
+        resourceType: 'INVESTIGATION',
+        resourceId: investigation.id,
+        incidentId: id,
+        metadata: input,
+      });
+
       return {
         status: 'ok',
         data: investigation,
@@ -624,6 +748,14 @@ export async function incidentRoutes(app: FastifyInstance) {
       if (!removed) {
         throw new AppError(404, 'NOT_FOUND', 'Investigation not found.');
       }
+
+      await auditLogService.record({
+        actorUserId: identity.userId,
+        action: 'INVESTIGATION_DELETED',
+        resourceType: 'INVESTIGATION',
+        resourceId: removed,
+        incidentId: id,
+      });
 
       return {
         status: 'ok',

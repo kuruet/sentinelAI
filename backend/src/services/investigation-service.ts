@@ -54,7 +54,7 @@ export class InvestigationService {
     return this.investigationDataAccess.update(incidentId, input);
   }
 
-  async removeInvestigation(incidentId: string): Promise<boolean | null> {
+  async removeInvestigation(incidentId: string): Promise<string | null> {
     const incident = await this.incidentDataAccess.findById(incidentId);
 
     if (!incident) {

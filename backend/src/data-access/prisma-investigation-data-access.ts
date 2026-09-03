@@ -69,7 +69,7 @@ export class PrismaInvestigationDataAccess implements InvestigationDataAccess {
     return this.toResponse(investigation);
   }
 
-  async deleteByIncidentId(incidentId: string): Promise<boolean> {
+  async deleteByIncidentId(incidentId: string): Promise<string | null> {
     const existing = await prisma.investigation.findUnique({
       where: {
         incidentId,
@@ -80,7 +80,7 @@ export class PrismaInvestigationDataAccess implements InvestigationDataAccess {
     });
 
     if (!existing) {
-      return false;
+      return null;
     }
 
     await prisma.investigation.delete({
@@ -89,7 +89,7 @@ export class PrismaInvestigationDataAccess implements InvestigationDataAccess {
       },
     });
 
-    return true;
+    return existing.id;
   }
 
   private toResponse(investigation: {

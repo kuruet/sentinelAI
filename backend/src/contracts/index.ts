@@ -42,3 +42,5 @@ export {
   type UpdateInvestigationRequest,
   type InvestigationResponse,
 } from './investigation';
+
+export type { AuditLogResponse, AuditLogListResponse } from './audit-log';
