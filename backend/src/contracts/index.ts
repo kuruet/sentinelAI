@@ -29,3 +29,10 @@ export {
   type IncidentEventResponse,
   type IncidentEventListResponse,
 } from './incident-event';
+export {
+  EVIDENCE_TYPES,
+  type EvidenceType,
+  type CreateEvidenceRequest,
+  type EvidenceResponse,
+  type EvidenceListResponse,
+} from './evidence';

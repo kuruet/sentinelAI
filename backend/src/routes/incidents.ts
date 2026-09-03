@@ -1,14 +1,22 @@
 import type { FastifyInstance } from 'fastify';
 import type {
   ApiSuccessResponse,
+  EvidenceListResponse,
+  EvidenceResponse,
   IncidentEventListResponse,
   IncidentEventResponse,
   IncidentListResponse,
   IncidentResponse,
 } from '../contracts';
-import { incidentEventService, incidentParticipantService, incidentService } from '../application';
+import {
+  evidenceService,
+  incidentEventService,
+  incidentParticipantService,
+  incidentService,
+} from '../application';
 import { AppError } from '../errors/app-error';
 import {
+  createEvidenceRequestSchema,
   addIncidentParticipantRequestSchema,
   createIncidentEventRequestSchema,
   createIncidentRequestSchema,
@@ -18,7 +26,6 @@ import {
   updateIncidentSeverityPriorityRequestSchema,
   updateIncidentRequestSchema,
 } from '../validation';
-
 export async function incidentRoutes(app: FastifyInstance) {
   app.post(
     '/api/v1/incidents',
@@ -338,6 +345,116 @@ export async function incidentRoutes(app: FastifyInstance) {
       return {
         status: 'ok',
         data: timeline,
+      };
+    },
+  );
+  app.post(
+    '/api/v1/incidents/:id/evidence',
+    async (request, reply): Promise<ApiSuccessResponse<EvidenceResponse>> => {
+      const { id } = request.params as { id?: string };
+
+      if (!id || id.trim().length === 0) {
+        throw new AppError(400, 'BAD_REQUEST', 'Incident ID is required.');
+      }
+
+      const input = parseRequest(createEvidenceRequestSchema, request.body);
+      const evidence = await evidenceService.createEvidence(id, input);
+
+      if (!evidence) {
+        throw new AppError(404, 'NOT_FOUND', 'Incident not found.');
+      }
+
+      reply.code(201);
+
+      return {
+        status: 'ok',
+        data: evidence,
+      };
+    },
+  );
+
+  app.get(
+    '/api/v1/incidents/:id/evidence',
+    async (request): Promise<ApiSuccessResponse<EvidenceListResponse>> => {
+      const { id } = request.params as { id?: string };
+
+      if (!id || id.trim().length === 0) {
+        throw new AppError(400, 'BAD_REQUEST', 'Incident ID is required.');
+      }
+
+      const evidence = await evidenceService.listEvidence(id);
+
+      if (!evidence) {
+        throw new AppError(404, 'NOT_FOUND', 'Incident not found.');
+      }
+
+      return {
+        status: 'ok',
+        data: evidence,
+      };
+    },
+  );
+
+  app.get(
+    '/api/v1/incidents/:id/evidence/:evidenceId',
+    async (request): Promise<ApiSuccessResponse<EvidenceResponse>> => {
+      const { id, evidenceId } = request.params as {
+        id?: string;
+        evidenceId?: string;
+      };
+
+      if (!id || id.trim().length === 0) {
+        throw new AppError(400, 'BAD_REQUEST', 'Incident ID is required.');
+      }
+
+      if (!evidenceId || evidenceId.trim().length === 0) {
+        throw new AppError(400, 'BAD_REQUEST', 'Evidence ID is required.');
+      }
+
+      const evidence = await evidenceService.getEvidence(id, evidenceId);
+
+      if (!evidence) {
+        throw new AppError(404, 'NOT_FOUND', 'Evidence not found.');
+      }
+
+      return {
+        status: 'ok',
+        data: evidence,
+      };
+    },
+  );
+
+  app.delete(
+    '/api/v1/incidents/:id/evidence/:evidenceId',
+    async (request): Promise<ApiSuccessResponse<{ message: string }>> => {
+      const { id, evidenceId } = request.params as {
+        id?: string;
+        evidenceId?: string;
+      };
+
+      if (!id || id.trim().length === 0) {
+        throw new AppError(400, 'BAD_REQUEST', 'Incident ID is required.');
+      }
+
+      if (!evidenceId || evidenceId.trim().length === 0) {
+        throw new AppError(400, 'BAD_REQUEST', 'Evidence ID is required.');
+      }
+
+      const removed = await evidenceService.removeEvidence(id, evidenceId);
+
+      if (removed === null) {
+        throw new AppError(404, 'NOT_FOUND', 'Incident not found.');
+      }
+
+      if (!removed) {
+        throw new AppError(404, 'NOT_FOUND', 'Evidence not found.');
+      }
+
+      return {
+        status: 'ok',
+        data: {
+          message: 'Evidence deleted successfully.',
+        },
       };
     },
   );
