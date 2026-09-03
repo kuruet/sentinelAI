@@ -135,6 +135,36 @@ export class PrismaIncidentDataAccess implements IncidentDataAccess {
     };
   }
 
+  async listAccessibleToUser(
+    query: ListIncidentsQuery,
+    userId: string,
+  ): Promise<IncidentListResult> {
+    const where = {
+      participants: {
+        some: {
+          userId,
+        },
+      },
+      ...(query.status !== undefined ? { status: query.status } : {}),
+      ...(query.severity !== undefined ? { severity: query.severity } : {}),
+    };
+
+    const [items, total] = await Promise.all([
+      prisma.incident.findMany({
+        where,
+        skip: (query.page - 1) * query.limit,
+        take: query.limit,
+        orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+      }),
+      prisma.incident.count({ where }),
+    ]);
+
+    return {
+      items: items.map((incident) => this.toRecord(incident)),
+      total,
+    };
+  }
+
   private toRecord(incident: {
     id: string;
     title: string;

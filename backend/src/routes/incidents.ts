@@ -13,10 +13,12 @@ import {
   evidenceService,
   incidentEventService,
   investigationService,
+  incidentAuthorizationService,
   incidentParticipantService,
   incidentService,
 } from '../application';
 import { AppError } from '../errors/app-error';
+import { authenticate, getAuthenticatedIdentity } from '../security';
 import {
   createEvidenceRequestSchema,
   createInvestigationRequestSchema,
@@ -31,12 +33,15 @@ import {
   updateIncidentRequestSchema,
 } from '../validation';
 export async function incidentRoutes(app: FastifyInstance) {
+  app.addHook('onRequest', authenticate);
   app.post(
     '/api/v1/incidents',
     async (request, reply): Promise<ApiSuccessResponse<IncidentResponse>> => {
       const input = parseRequest(createIncidentRequestSchema, request.body);
 
-      const incident = await incidentService.createIncident(input);
+      const identity = getAuthenticatedIdentity(request);
+
+      const incident = await incidentService.createIncident(input, identity.userId);
 
       reply.code(201);
 
@@ -54,6 +59,9 @@ export async function incidentRoutes(app: FastifyInstance) {
       if (!id || id.trim().length === 0) {
         throw new AppError(400, 'BAD_REQUEST', 'Incident ID is required.');
       }
+
+      const identity = getAuthenticatedIdentity(request);
+      await incidentAuthorizationService.requireManagerAccess(id, identity.userId);
 
       const input = parseRequest(updateIncidentSeverityPriorityRequestSchema, request.body);
 
@@ -79,6 +87,9 @@ export async function incidentRoutes(app: FastifyInstance) {
         throw new AppError(400, 'BAD_REQUEST', 'Incident ID is required.');
       }
 
+      const identity = getAuthenticatedIdentity(request);
+      await incidentAuthorizationService.requireManagerAccess(id, identity.userId);
+
       const input = parseRequest(updateIncidentRequestSchema, request.body);
 
       const incident = await incidentService.updateIncident(id, input);
@@ -102,6 +113,9 @@ export async function incidentRoutes(app: FastifyInstance) {
       if (!id || id.trim().length === 0) {
         throw new AppError(400, 'BAD_REQUEST', 'Incident ID is required.');
       }
+
+      const identity = getAuthenticatedIdentity(request);
+      await incidentAuthorizationService.requireManagerAccess(id, identity.userId);
 
       const input = parseRequest(updateIncidentLifecycleRequestSchema, request.body);
 
@@ -134,7 +148,9 @@ export async function incidentRoutes(app: FastifyInstance) {
     async (request): Promise<ApiSuccessResponse<IncidentListResponse>> => {
       const query = parseRequest(listIncidentsQuerySchema, request.query);
 
-      const incidents = await incidentService.listIncidents(query);
+      const identity = getAuthenticatedIdentity(request);
+
+      const incidents = await incidentService.listIncidents(query, identity.userId);
 
       return {
         status: 'ok',
@@ -151,6 +167,9 @@ export async function incidentRoutes(app: FastifyInstance) {
       if (!id || id.trim().length === 0) {
         throw new AppError(400, 'BAD_REQUEST', 'Incident ID is required.');
       }
+
+      const identity = getAuthenticatedIdentity(request);
+      await incidentAuthorizationService.requireReadAccess(id, identity.userId);
 
       const incident = await incidentService.getIncidentById(id);
 
@@ -187,6 +206,9 @@ export async function incidentRoutes(app: FastifyInstance) {
       if (!id || id.trim().length === 0) {
         throw new AppError(400, 'BAD_REQUEST', 'Incident ID is required.');
       }
+
+      const identity = getAuthenticatedIdentity(request);
+      await incidentAuthorizationService.requireManagerAccess(id, identity.userId);
 
       const input = parseRequest(addIncidentParticipantRequestSchema, request.body);
 
@@ -227,6 +249,9 @@ export async function incidentRoutes(app: FastifyInstance) {
         throw new AppError(400, 'BAD_REQUEST', 'Incident ID is required.');
       }
 
+      const identity = getAuthenticatedIdentity(request);
+      await incidentAuthorizationService.requireReadAccess(id, identity.userId);
+
       const participants = await incidentParticipantService.listParticipants(id);
 
       if (!participants) {
@@ -256,6 +281,9 @@ export async function incidentRoutes(app: FastifyInstance) {
         throw new AppError(400, 'BAD_REQUEST', 'Participant ID is required.');
       }
 
+      const identity = getAuthenticatedIdentity(request);
+      await incidentAuthorizationService.requireManagerAccess(id, identity.userId);
+
       const deleted = await incidentParticipantService.removeParticipant(id, participantId);
 
       if (deleted === null) {
@@ -280,6 +308,9 @@ export async function incidentRoutes(app: FastifyInstance) {
       if (!id || id.trim().length === 0) {
         throw new AppError(400, 'BAD_REQUEST', 'Incident ID is required.');
       }
+
+      const identity = getAuthenticatedIdentity(request);
+      await incidentAuthorizationService.requireContributorAccess(id, identity.userId);
 
       const input = parseRequest(createIncidentEventRequestSchema, request.body);
 
@@ -318,6 +349,9 @@ export async function incidentRoutes(app: FastifyInstance) {
         throw new AppError(400, 'BAD_REQUEST', 'Incident ID is required.');
       }
 
+      const identity = getAuthenticatedIdentity(request);
+      await incidentAuthorizationService.requireReadAccess(id, identity.userId);
+
       const events = await incidentEventService.listEvents(id);
 
       if (!events) {
@@ -340,6 +374,9 @@ export async function incidentRoutes(app: FastifyInstance) {
         throw new AppError(400, 'BAD_REQUEST', 'Incident ID is required.');
       }
 
+      const identity = getAuthenticatedIdentity(request);
+      await incidentAuthorizationService.requireReadAccess(id, identity.userId);
+
       const timeline = await incidentEventService.getTimeline(id);
 
       if (!timeline) {
@@ -360,6 +397,9 @@ export async function incidentRoutes(app: FastifyInstance) {
       if (!id || id.trim().length === 0) {
         throw new AppError(400, 'BAD_REQUEST', 'Incident ID is required.');
       }
+
+      const identity = getAuthenticatedIdentity(request);
+      await incidentAuthorizationService.requireContributorAccess(id, identity.userId);
 
       const input = parseRequest(createEvidenceRequestSchema, request.body);
       const evidence = await evidenceService.createEvidence(id, input);
@@ -385,6 +425,9 @@ export async function incidentRoutes(app: FastifyInstance) {
       if (!id || id.trim().length === 0) {
         throw new AppError(400, 'BAD_REQUEST', 'Incident ID is required.');
       }
+
+      const identity = getAuthenticatedIdentity(request);
+      await incidentAuthorizationService.requireReadAccess(id, identity.userId);
 
       const evidence = await evidenceService.listEvidence(id);
 
@@ -415,6 +458,9 @@ export async function incidentRoutes(app: FastifyInstance) {
         throw new AppError(400, 'BAD_REQUEST', 'Evidence ID is required.');
       }
 
+      const identity = getAuthenticatedIdentity(request);
+      await incidentAuthorizationService.requireReadAccess(id, identity.userId);
+
       const evidence = await evidenceService.getEvidence(id, evidenceId);
 
       if (!evidence) {
@@ -444,6 +490,9 @@ export async function incidentRoutes(app: FastifyInstance) {
         throw new AppError(400, 'BAD_REQUEST', 'Evidence ID is required.');
       }
 
+      const identity = getAuthenticatedIdentity(request);
+      await incidentAuthorizationService.requireManagerAccess(id, identity.userId);
+
       const removed = await evidenceService.removeEvidence(id, evidenceId);
 
       if (removed === null) {
@@ -470,6 +519,9 @@ export async function incidentRoutes(app: FastifyInstance) {
       if (!id || id.trim().length === 0) {
         throw new AppError(400, 'BAD_REQUEST', 'Incident ID is required.');
       }
+
+      const identity = getAuthenticatedIdentity(request);
+      await incidentAuthorizationService.requireContributorAccess(id, identity.userId);
 
       const input = parseRequest(createInvestigationRequestSchema, request.body);
 
@@ -508,6 +560,9 @@ export async function incidentRoutes(app: FastifyInstance) {
         throw new AppError(400, 'BAD_REQUEST', 'Incident ID is required.');
       }
 
+      const identity = getAuthenticatedIdentity(request);
+      await incidentAuthorizationService.requireReadAccess(id, identity.userId);
+
       const investigation = await investigationService.getInvestigation(id);
 
       if (!investigation) {
@@ -529,6 +584,9 @@ export async function incidentRoutes(app: FastifyInstance) {
       if (!id || id.trim().length === 0) {
         throw new AppError(400, 'BAD_REQUEST', 'Incident ID is required.');
       }
+
+      const identity = getAuthenticatedIdentity(request);
+      await incidentAuthorizationService.requireContributorAccess(id, identity.userId);
 
       const input = parseRequest(updateInvestigationRequestSchema, request.body);
 
@@ -553,6 +611,9 @@ export async function incidentRoutes(app: FastifyInstance) {
       if (!id || id.trim().length === 0) {
         throw new AppError(400, 'BAD_REQUEST', 'Incident ID is required.');
       }
+
+      const identity = getAuthenticatedIdentity(request);
+      await incidentAuthorizationService.requireManagerAccess(id, identity.userId);
 
       const removed = await investigationService.removeInvestigation(id);
 

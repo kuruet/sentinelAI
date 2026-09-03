@@ -9,6 +9,7 @@ import type {
   UpdateIncidentRequest,
 } from '../contracts/incident';
 import type { IncidentDataAccess, IncidentRecord } from '../data-access/incident-data-access';
+import type { IncidentParticipantDataAccess } from '../data-access/incident-participant-data-access';
 
 const LIFECYCLE_TRANSITIONS: Record<IncidentStatus, IncidentStatus | null> = {
   IDENTIFIED: 'INVESTIGATING',
@@ -18,14 +19,25 @@ const LIFECYCLE_TRANSITIONS: Record<IncidentStatus, IncidentStatus | null> = {
 };
 
 export class IncidentService {
-  constructor(private readonly incidentDataAccess: IncidentDataAccess) {}
+  constructor(
+    private readonly incidentDataAccess: IncidentDataAccess,
+    private readonly participantDataAccess: IncidentParticipantDataAccess,
+  ) {}
 
   async getIncidentById(id: string): Promise<IncidentRecord | null> {
     return this.incidentDataAccess.findById(id);
   }
 
-  async createIncident(input: CreateIncidentRequest): Promise<IncidentResponse> {
+  async createIncident(
+    input: CreateIncidentRequest,
+    creatorUserId: string,
+  ): Promise<IncidentResponse> {
     const incident = await this.incidentDataAccess.create(input);
+
+    await this.participantDataAccess.create(incident.id, {
+      userId: creatorUserId,
+      role: 'INCIDENT_COMMANDER',
+    });
 
     return this.toResponse(incident);
   }
@@ -67,8 +79,8 @@ export class IncidentService {
     return updated ? this.toResponse(updated) : null;
   }
 
-  async listIncidents(query: ListIncidentsQuery): Promise<IncidentListResponse> {
-    const result = await this.incidentDataAccess.list(query);
+  async listIncidents(query: ListIncidentsQuery, userId: string): Promise<IncidentListResponse> {
+    const result = await this.incidentDataAccess.listAccessibleToUser(query, userId);
 
     return {
       items: result.items.map((incident) => this.toResponse(incident)),

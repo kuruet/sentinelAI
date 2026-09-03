@@ -40,4 +40,5 @@ export interface IncidentDataAccess {
     input: UpdateIncidentSeverityPriorityRequest,
   ): Promise<IncidentRecord | null>;
   list(query: ListIncidentsQuery): Promise<IncidentListResult>;
+  listAccessibleToUser(query: ListIncidentsQuery, userId: string): Promise<IncidentListResult>;
 }

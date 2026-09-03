@@ -50,13 +50,12 @@ export function registerErrorHandling(app: FastifyInstance) {
     if (
       errorCode === 'FST_JWT_NO_AUTHORIZATION_IN_HEADER' ||
       errorCode === 'FST_JWT_AUTHORIZATION_TOKEN_EXPIRED' ||
-      errorCode === 'FST_JWT_AUTHORIZATION_TOKEN_INVALID' ||
       errorCode === 'FST_JWT_AUTHORIZATION_TOKEN_INVALID'
     ) {
       const response: ApiErrorResponse = {
         status: 'error',
         error: {
-          code: 'BAD_REQUEST',
+          code: 'UNAUTHORIZED',
           message: 'Authentication required.',
         },
       };
