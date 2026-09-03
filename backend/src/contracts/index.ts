@@ -22,3 +22,10 @@ export type {
   IncidentParticipantResponse,
   ParticipantRole,
 } from './participant';
+export {
+  INCIDENT_EVENT_TYPES,
+  type IncidentEventType,
+  type CreateIncidentEventRequest,
+  type IncidentEventResponse,
+  type IncidentEventListResponse,
+} from './incident-event';

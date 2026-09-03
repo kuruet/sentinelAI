@@ -1,2 +1,3 @@
 export { incidentService } from './incident';
 export { incidentParticipantService } from './incident-participant';
+export { incidentEventService } from './incident-event';

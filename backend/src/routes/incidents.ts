@@ -1,9 +1,16 @@
 import type { FastifyInstance } from 'fastify';
-import type { ApiSuccessResponse, IncidentListResponse, IncidentResponse } from '../contracts';
-import { incidentParticipantService, incidentService } from '../application';
+import type {
+  ApiSuccessResponse,
+  IncidentEventListResponse,
+  IncidentEventResponse,
+  IncidentListResponse,
+  IncidentResponse,
+} from '../contracts';
+import { incidentEventService, incidentParticipantService, incidentService } from '../application';
 import { AppError } from '../errors/app-error';
 import {
   addIncidentParticipantRequestSchema,
+  createIncidentEventRequestSchema,
   createIncidentRequestSchema,
   listIncidentsQuerySchema,
   parseRequest,
@@ -251,6 +258,86 @@ export async function incidentRoutes(app: FastifyInstance) {
       return {
         status: 'ok',
         message: 'Incident participant removed.',
+      };
+    },
+  );
+  app.post(
+    '/api/v1/incidents/:id/events',
+    async (request, reply): Promise<ApiSuccessResponse<IncidentEventResponse>> => {
+      const { id } = request.params as { id?: string };
+
+      if (!id || id.trim().length === 0) {
+        throw new AppError(400, 'BAD_REQUEST', 'Incident ID is required.');
+      }
+
+      const input = parseRequest(createIncidentEventRequestSchema, request.body);
+
+      try {
+        const event = await incidentEventService.createEvent(id, input);
+
+        if (!event) {
+          throw new AppError(404, 'NOT_FOUND', 'Incident not found.');
+        }
+
+        reply.code(201);
+
+        return {
+          status: 'ok',
+          data: event,
+        };
+      } catch (error) {
+        if (
+          error instanceof Error &&
+          error.message.startsWith('Incident event sequence already exists:')
+        ) {
+          throw new AppError(400, 'BAD_REQUEST', error.message);
+        }
+
+        throw error;
+      }
+    },
+  );
+
+  app.get(
+    '/api/v1/incidents/:id/events',
+    async (request): Promise<ApiSuccessResponse<IncidentEventListResponse>> => {
+      const { id } = request.params as { id?: string };
+
+      if (!id || id.trim().length === 0) {
+        throw new AppError(400, 'BAD_REQUEST', 'Incident ID is required.');
+      }
+
+      const events = await incidentEventService.listEvents(id);
+
+      if (!events) {
+        throw new AppError(404, 'NOT_FOUND', 'Incident not found.');
+      }
+
+      return {
+        status: 'ok',
+        data: events,
+      };
+    },
+  );
+
+  app.get(
+    '/api/v1/incidents/:id/timeline',
+    async (request): Promise<ApiSuccessResponse<IncidentEventListResponse>> => {
+      const { id } = request.params as { id?: string };
+
+      if (!id || id.trim().length === 0) {
+        throw new AppError(400, 'BAD_REQUEST', 'Incident ID is required.');
+      }
+
+      const timeline = await incidentEventService.getTimeline(id);
+
+      if (!timeline) {
+        throw new AppError(404, 'NOT_FOUND', 'Incident not found.');
+      }
+
+      return {
+        status: 'ok',
+        data: timeline,
       };
     },
   );

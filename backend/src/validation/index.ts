@@ -17,3 +17,4 @@ export {
 } from './participant';
 
 export { parseRequest } from './parse-request';
+export { createIncidentEventRequestSchema } from './incident-event';
