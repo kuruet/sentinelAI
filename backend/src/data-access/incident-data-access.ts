@@ -1,7 +1,9 @@
 import type {
   CreateIncidentRequest,
   IncidentSeverity,
+  IncidentStatus,
   ListIncidentsQuery,
+  UpdateIncidentLifecycleRequest,
   UpdateIncidentRequest,
 } from '../contracts/incident';
 
@@ -9,7 +11,7 @@ export interface IncidentRecord {
   id: string;
   title: string;
   description: string | null;
-  status: string;
+  status: IncidentStatus;
   severity: IncidentSeverity;
   priority: number;
   startedAt: Date | null;
@@ -28,5 +30,9 @@ export interface IncidentDataAccess {
   findById(id: string): Promise<IncidentRecord | null>;
   create(input: CreateIncidentRequest): Promise<IncidentRecord>;
   update(id: string, input: UpdateIncidentRequest): Promise<IncidentRecord | null>;
+  updateLifecycle(
+    id: string,
+    input: UpdateIncidentLifecycleRequest,
+  ): Promise<IncidentRecord | null>;
   list(query: ListIncidentsQuery): Promise<IncidentListResult>;
 }

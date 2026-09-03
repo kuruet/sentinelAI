@@ -2,6 +2,7 @@ import { prisma } from '../infrastructure/database';
 import type {
   CreateIncidentRequest,
   ListIncidentsQuery,
+  UpdateIncidentLifecycleRequest,
   UpdateIncidentRequest,
 } from '../contracts/incident';
 import type {
@@ -16,11 +17,7 @@ export class PrismaIncidentDataAccess implements IncidentDataAccess {
       where: { id },
     });
 
-    if (!incident) {
-      return null;
-    }
-
-    return this.toRecord(incident);
+    return incident ? this.toRecord(incident) : null;
   }
 
   async create(input: CreateIncidentRequest): Promise<IncidentRecord> {
@@ -63,26 +60,54 @@ export class PrismaIncidentDataAccess implements IncidentDataAccess {
 
     return this.toRecord(incident);
   }
+
+  async updateLifecycle(
+    id: string,
+    input: UpdateIncidentLifecycleRequest,
+  ): Promise<IncidentRecord | null> {
+    const existing = await prisma.incident.findUnique({
+      where: { id },
+    });
+
+    if (!existing) {
+      return null;
+    }
+
+    const incident = await prisma.incident.update({
+      where: { id },
+      data: {
+        status: input.status,
+        ...(input.status === 'RESOLVED' ? { resolvedAt: existing.resolvedAt ?? new Date() } : {}),
+        ...(input.status === 'CLOSED'
+          ? {
+              resolvedAt: existing.resolvedAt ?? new Date(),
+              closedAt: existing.closedAt ?? new Date(),
+            }
+          : {}),
+      },
+    });
+
+    return this.toRecord(incident);
+  }
+
   async list(query: ListIncidentsQuery): Promise<IncidentListResult> {
     const where = {
-      ...(query.status ? { status: query.status as never } : {}),
-      ...(query.severity ? { severity: query.severity } : {}),
+      ...(query.status !== undefined ? { status: query.status } : {}),
+      ...(query.severity !== undefined ? { severity: query.severity } : {}),
     };
 
-    const skip = (query.page - 1) * query.limit;
-
-    const [incidents, total] = await Promise.all([
+    const [items, total] = await Promise.all([
       prisma.incident.findMany({
         where,
-        orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
-        skip,
+        skip: (query.page - 1) * query.limit,
         take: query.limit,
+        orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
       }),
       prisma.incident.count({ where }),
     ]);
 
     return {
-      items: incidents.map((incident) => this.toRecord(incident)),
+      items: items.map((incident) => this.toRecord(incident)),
       total,
     };
   }
@@ -91,8 +116,8 @@ export class PrismaIncidentDataAccess implements IncidentDataAccess {
     id: string;
     title: string;
     description: string | null;
-    status: string;
-    severity: IncidentRecord['severity'];
+    status: 'IDENTIFIED' | 'INVESTIGATING' | 'RESOLVED' | 'CLOSED';
+    severity: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
     priority: number;
     startedAt: Date | null;
     resolvedAt: Date | null;

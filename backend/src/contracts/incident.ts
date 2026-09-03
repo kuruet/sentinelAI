@@ -2,6 +2,10 @@ export const INCIDENT_SEVERITIES = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'] as cons
 
 export type IncidentSeverity = (typeof INCIDENT_SEVERITIES)[number];
 
+export const INCIDENT_STATUSES = ['IDENTIFIED', 'INVESTIGATING', 'RESOLVED', 'CLOSED'] as const;
+
+export type IncidentStatus = (typeof INCIDENT_STATUSES)[number];
+
 export interface CreateIncidentRequest {
   title: string;
   description?: string | null;
@@ -18,11 +22,15 @@ export interface UpdateIncidentRequest {
   startedAt?: string | null;
 }
 
+export interface UpdateIncidentLifecycleRequest {
+  status: IncidentStatus;
+}
+
 export interface IncidentResponse {
   id: string;
   title: string;
   description: string | null;
-  status: string;
+  status: IncidentStatus;
   severity: IncidentSeverity;
   priority: number;
   startedAt: string | null;
@@ -33,7 +41,7 @@ export interface IncidentResponse {
 }
 
 export interface ListIncidentsQuery {
-  status?: string;
+  status?: IncidentStatus;
   severity?: IncidentSeverity;
   page: number;
   limit: number;

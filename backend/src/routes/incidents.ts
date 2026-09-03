@@ -6,6 +6,7 @@ import {
   createIncidentRequestSchema,
   listIncidentsQuerySchema,
   parseRequest,
+  updateIncidentLifecycleRequestSchema,
   updateIncidentRequestSchema,
 } from '../validation';
 
@@ -49,6 +50,42 @@ export async function incidentRoutes(app: FastifyInstance) {
       };
     },
   );
+
+  app.patch(
+    '/api/v1/incidents/:id/lifecycle',
+    async (request): Promise<ApiSuccessResponse<IncidentResponse>> => {
+      const { id } = request.params as { id?: string };
+
+      if (!id || id.trim().length === 0) {
+        throw new AppError(400, 'BAD_REQUEST', 'Incident ID is required.');
+      }
+
+      const input = parseRequest(updateIncidentLifecycleRequestSchema, request.body);
+
+      try {
+        const incident = await incidentService.updateIncidentLifecycle(id, input);
+
+        if (!incident) {
+          throw new AppError(404, 'NOT_FOUND', 'Incident not found.');
+        }
+
+        return {
+          status: 'ok',
+          data: incident,
+        };
+      } catch (error) {
+        if (
+          error instanceof Error &&
+          error.message.startsWith('Invalid incident lifecycle transition:')
+        ) {
+          throw new AppError(400, 'BAD_REQUEST', error.message);
+        }
+
+        throw error;
+      }
+    },
+  );
+
   app.get(
     '/api/v1/incidents',
     async (request): Promise<ApiSuccessResponse<IncidentListResponse>> => {

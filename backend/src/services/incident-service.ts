@@ -2,10 +2,19 @@ import type {
   CreateIncidentRequest,
   IncidentListResponse,
   IncidentResponse,
+  IncidentStatus,
   ListIncidentsQuery,
+  UpdateIncidentLifecycleRequest,
   UpdateIncidentRequest,
 } from '../contracts/incident';
 import type { IncidentDataAccess, IncidentRecord } from '../data-access/incident-data-access';
+
+const LIFECYCLE_TRANSITIONS: Record<IncidentStatus, IncidentStatus | null> = {
+  IDENTIFIED: 'INVESTIGATING',
+  INVESTIGATING: 'RESOLVED',
+  RESOLVED: 'CLOSED',
+  CLOSED: null,
+};
 
 export class IncidentService {
   constructor(private readonly incidentDataAccess: IncidentDataAccess) {}
@@ -25,6 +34,30 @@ export class IncidentService {
 
     return incident ? this.toResponse(incident) : null;
   }
+
+  async updateIncidentLifecycle(
+    id: string,
+    input: UpdateIncidentLifecycleRequest,
+  ): Promise<IncidentResponse | null> {
+    const incident = await this.incidentDataAccess.findById(id);
+
+    if (!incident) {
+      return null;
+    }
+
+    const expectedNextStatus = LIFECYCLE_TRANSITIONS[incident.status];
+
+    if (expectedNextStatus !== input.status) {
+      throw new Error(
+        `Invalid incident lifecycle transition: ${incident.status} -> ${input.status}`,
+      );
+    }
+
+    const updated = await this.incidentDataAccess.updateLifecycle(id, input);
+
+    return updated ? this.toResponse(updated) : null;
+  }
+
   async listIncidents(query: ListIncidentsQuery): Promise<IncidentListResponse> {
     const result = await this.incidentDataAccess.list(query);
 

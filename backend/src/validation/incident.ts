@@ -64,9 +64,19 @@ export const updateIncidentRequestSchema = z
 
 export type UpdateIncidentRequestInput = z.infer<typeof updateIncidentRequestSchema>;
 
+export const updateIncidentLifecycleRequestSchema = z
+  .object({
+    status: z.enum(['IDENTIFIED', 'INVESTIGATING', 'RESOLVED', 'CLOSED']),
+  })
+  .strict();
+
+export type UpdateIncidentLifecycleRequestInput = z.infer<
+  typeof updateIncidentLifecycleRequestSchema
+>;
+
 export const listIncidentsQuerySchema = z
   .object({
-    status: z.string().trim().min(1).optional(),
+    status: z.enum(['IDENTIFIED', 'INVESTIGATING', 'RESOLVED', 'CLOSED']).optional(),
     severity: z.enum(['LOW', 'MEDIUM', 'HIGH', 'CRITICAL']).optional(),
     page: z.coerce.number().int().min(1).default(1),
     limit: z.coerce.number().int().min(1).max(100).default(20),
