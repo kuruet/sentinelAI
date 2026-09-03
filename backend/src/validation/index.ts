@@ -19,3 +19,8 @@ export {
 export { parseRequest } from './parse-request';
 export { createIncidentEventRequestSchema } from './incident-event';
 export { createEvidenceRequestSchema } from './evidence';
+
+export {
+  createInvestigationRequestSchema,
+  updateInvestigationRequestSchema,
+} from './investigation';

@@ -4,6 +4,7 @@ import type {
   EvidenceListResponse,
   EvidenceResponse,
   IncidentEventListResponse,
+  InvestigationResponse,
   IncidentEventResponse,
   IncidentListResponse,
   IncidentResponse,
@@ -11,12 +12,15 @@ import type {
 import {
   evidenceService,
   incidentEventService,
+  investigationService,
   incidentParticipantService,
   incidentService,
 } from '../application';
 import { AppError } from '../errors/app-error';
 import {
   createEvidenceRequestSchema,
+  createInvestigationRequestSchema,
+  updateInvestigationRequestSchema,
   addIncidentParticipantRequestSchema,
   createIncidentEventRequestSchema,
   createIncidentRequestSchema,
@@ -454,6 +458,116 @@ export async function incidentRoutes(app: FastifyInstance) {
         status: 'ok',
         data: {
           message: 'Evidence deleted successfully.',
+        },
+      };
+    },
+  );
+  app.post(
+    '/api/v1/incidents/:id/investigation',
+    async (request, reply): Promise<ApiSuccessResponse<InvestigationResponse>> => {
+      const { id } = request.params as { id?: string };
+
+      if (!id || id.trim().length === 0) {
+        throw new AppError(400, 'BAD_REQUEST', 'Incident ID is required.');
+      }
+
+      const input = parseRequest(createInvestigationRequestSchema, request.body);
+
+      try {
+        const investigation = await investigationService.createInvestigation(id, input);
+
+        if (!investigation) {
+          throw new AppError(404, 'NOT_FOUND', 'Incident not found.');
+        }
+
+        reply.code(201);
+
+        return {
+          status: 'ok',
+          data: investigation,
+        };
+      } catch (error) {
+        if (
+          error instanceof Error &&
+          error.message.startsWith('Investigation already exists for incident:')
+        ) {
+          throw new AppError(400, 'BAD_REQUEST', error.message);
+        }
+
+        throw error;
+      }
+    },
+  );
+
+  app.get(
+    '/api/v1/incidents/:id/investigation',
+    async (request): Promise<ApiSuccessResponse<InvestigationResponse>> => {
+      const { id } = request.params as { id?: string };
+
+      if (!id || id.trim().length === 0) {
+        throw new AppError(400, 'BAD_REQUEST', 'Incident ID is required.');
+      }
+
+      const investigation = await investigationService.getInvestigation(id);
+
+      if (!investigation) {
+        throw new AppError(404, 'NOT_FOUND', 'Investigation not found.');
+      }
+
+      return {
+        status: 'ok',
+        data: investigation,
+      };
+    },
+  );
+
+  app.patch(
+    '/api/v1/incidents/:id/investigation',
+    async (request): Promise<ApiSuccessResponse<InvestigationResponse>> => {
+      const { id } = request.params as { id?: string };
+
+      if (!id || id.trim().length === 0) {
+        throw new AppError(400, 'BAD_REQUEST', 'Incident ID is required.');
+      }
+
+      const input = parseRequest(updateInvestigationRequestSchema, request.body);
+
+      const investigation = await investigationService.updateInvestigation(id, input);
+
+      if (!investigation) {
+        throw new AppError(404, 'NOT_FOUND', 'Investigation not found.');
+      }
+
+      return {
+        status: 'ok',
+        data: investigation,
+      };
+    },
+  );
+
+  app.delete(
+    '/api/v1/incidents/:id/investigation',
+    async (request): Promise<ApiSuccessResponse<{ message: string }>> => {
+      const { id } = request.params as { id?: string };
+
+      if (!id || id.trim().length === 0) {
+        throw new AppError(400, 'BAD_REQUEST', 'Incident ID is required.');
+      }
+
+      const removed = await investigationService.removeInvestigation(id);
+
+      if (removed === null) {
+        throw new AppError(404, 'NOT_FOUND', 'Incident not found.');
+      }
+
+      if (!removed) {
+        throw new AppError(404, 'NOT_FOUND', 'Investigation not found.');
+      }
+
+      return {
+        status: 'ok',
+        data: {
+          message: 'Investigation deleted successfully.',
         },
       };
     },

@@ -36,3 +36,9 @@ export {
   type EvidenceResponse,
   type EvidenceListResponse,
 } from './evidence';
+
+export {
+  type CreateInvestigationRequest,
+  type UpdateInvestigationRequest,
+  type InvestigationResponse,
+} from './investigation';
