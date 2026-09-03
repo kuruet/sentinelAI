@@ -63,6 +63,24 @@ export const updateIncidentRequestSchema = z
   });
 
 export type UpdateIncidentRequestInput = z.infer<typeof updateIncidentRequestSchema>;
+export const updateIncidentSeverityPriorityRequestSchema = z
+  .object({
+    severity: z.enum(['LOW', 'MEDIUM', 'HIGH', 'CRITICAL']).optional(),
+    priority: z
+      .number()
+      .int('priority must be an integer')
+      .min(0, 'priority must be at least 0')
+      .max(1000, 'priority must be at most 1000')
+      .optional(),
+  })
+  .strict()
+  .refine((value) => Object.keys(value).length > 0, {
+    message: 'At least one severity or priority field must be provided',
+  });
+
+export type UpdateIncidentSeverityPriorityRequestInput = z.infer<
+  typeof updateIncidentSeverityPriorityRequestSchema
+>;
 
 export const updateIncidentLifecycleRequestSchema = z
   .object({

@@ -21,6 +21,10 @@ export interface UpdateIncidentRequest {
   priority?: number;
   startedAt?: string | null;
 }
+export interface UpdateIncidentSeverityPriorityRequest {
+  severity?: IncidentSeverity;
+  priority?: number;
+}
 
 export interface UpdateIncidentLifecycleRequest {
   status: IncidentStatus;

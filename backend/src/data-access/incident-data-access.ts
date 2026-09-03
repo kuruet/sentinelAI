@@ -4,6 +4,7 @@ import type {
   IncidentStatus,
   ListIncidentsQuery,
   UpdateIncidentLifecycleRequest,
+  UpdateIncidentSeverityPriorityRequest,
   UpdateIncidentRequest,
 } from '../contracts/incident';
 
@@ -33,6 +34,10 @@ export interface IncidentDataAccess {
   updateLifecycle(
     id: string,
     input: UpdateIncidentLifecycleRequest,
+  ): Promise<IncidentRecord | null>;
+  updateSeverityPriority(
+    id: string,
+    input: UpdateIncidentSeverityPriorityRequest,
   ): Promise<IncidentRecord | null>;
   list(query: ListIncidentsQuery): Promise<IncidentListResult>;
 }

@@ -5,6 +5,7 @@ import type {
   IncidentStatus,
   ListIncidentsQuery,
   UpdateIncidentLifecycleRequest,
+  UpdateIncidentSeverityPriorityRequest,
   UpdateIncidentRequest,
 } from '../contracts/incident';
 import type { IncidentDataAccess, IncidentRecord } from '../data-access/incident-data-access';
@@ -35,6 +36,14 @@ export class IncidentService {
     return incident ? this.toResponse(incident) : null;
   }
 
+  async updateIncidentSeverityPriority(
+    id: string,
+    input: UpdateIncidentSeverityPriorityRequest,
+  ): Promise<IncidentResponse | null> {
+    const incident = await this.incidentDataAccess.updateSeverityPriority(id, input);
+
+    return incident ? this.toResponse(incident) : null;
+  }
   async updateIncidentLifecycle(
     id: string,
     input: UpdateIncidentLifecycleRequest,

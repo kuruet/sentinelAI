@@ -13,5 +13,6 @@ export {
   type IncidentStatus,
   type ListIncidentsQuery,
   type UpdateIncidentLifecycleRequest,
+  type UpdateIncidentSeverityPriorityRequest,
   type UpdateIncidentRequest,
 } from './incident';

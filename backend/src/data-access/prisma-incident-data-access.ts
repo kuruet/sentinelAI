@@ -3,6 +3,7 @@ import type {
   CreateIncidentRequest,
   ListIncidentsQuery,
   UpdateIncidentLifecycleRequest,
+  UpdateIncidentSeverityPriorityRequest,
   UpdateIncidentRequest,
 } from '../contracts/incident';
 import type {
@@ -61,6 +62,28 @@ export class PrismaIncidentDataAccess implements IncidentDataAccess {
     return this.toRecord(incident);
   }
 
+  async updateSeverityPriority(
+    id: string,
+    input: UpdateIncidentSeverityPriorityRequest,
+  ): Promise<IncidentRecord | null> {
+    const existing = await prisma.incident.findUnique({
+      where: { id },
+    });
+
+    if (!existing) {
+      return null;
+    }
+
+    const incident = await prisma.incident.update({
+      where: { id },
+      data: {
+        ...(input.severity !== undefined ? { severity: input.severity } : {}),
+        ...(input.priority !== undefined ? { priority: input.priority } : {}),
+      },
+    });
+
+    return this.toRecord(incident);
+  }
   async updateLifecycle(
     id: string,
     input: UpdateIncidentLifecycleRequest,
