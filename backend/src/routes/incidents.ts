@@ -1,8 +1,9 @@
 import type { FastifyInstance } from 'fastify';
 import type { ApiSuccessResponse, IncidentListResponse, IncidentResponse } from '../contracts';
-import { incidentService } from '../application';
+import { incidentParticipantService, incidentService } from '../application';
 import { AppError } from '../errors/app-error';
 import {
+  addIncidentParticipantRequestSchema,
   createIncidentRequestSchema,
   listIncidentsQuerySchema,
   parseRequest,
@@ -154,6 +155,102 @@ export async function incidentRoutes(app: FastifyInstance) {
           createdAt: incident.createdAt.toISOString(),
           updatedAt: incident.updatedAt.toISOString(),
         },
+      };
+    },
+  );
+  app.post(
+    '/api/v1/incidents/:id/participants',
+    async (
+      request,
+      reply,
+    ): Promise<ApiSuccessResponse<import('../contracts').IncidentParticipantResponse>> => {
+      const { id } = request.params as { id?: string };
+
+      if (!id || id.trim().length === 0) {
+        throw new AppError(400, 'BAD_REQUEST', 'Incident ID is required.');
+      }
+
+      const input = parseRequest(addIncidentParticipantRequestSchema, request.body);
+
+      try {
+        const participant = await incidentParticipantService.addParticipant(id, input);
+
+        if (!participant) {
+          throw new AppError(404, 'NOT_FOUND', 'Incident not found.');
+        }
+
+        reply.code(201);
+
+        return {
+          status: 'ok',
+          data: participant,
+        };
+      } catch (error) {
+        if (
+          error instanceof Error &&
+          error.message.startsWith('Participant already exists for user:')
+        ) {
+          throw new AppError(400, 'BAD_REQUEST', error.message);
+        }
+
+        throw error;
+      }
+    },
+  );
+
+  app.get(
+    '/api/v1/incidents/:id/participants',
+    async (
+      request,
+    ): Promise<ApiSuccessResponse<import('../contracts').IncidentParticipantListResponse>> => {
+      const { id } = request.params as { id?: string };
+
+      if (!id || id.trim().length === 0) {
+        throw new AppError(400, 'BAD_REQUEST', 'Incident ID is required.');
+      }
+
+      const participants = await incidentParticipantService.listParticipants(id);
+
+      if (!participants) {
+        throw new AppError(404, 'NOT_FOUND', 'Incident not found.');
+      }
+
+      return {
+        status: 'ok',
+        data: participants,
+      };
+    },
+  );
+
+  app.delete(
+    '/api/v1/incidents/:id/participants/:participantId',
+    async (request): Promise<import('../contracts').ApiMessageResponse> => {
+      const { id, participantId } = request.params as {
+        id?: string;
+        participantId?: string;
+      };
+
+      if (!id || id.trim().length === 0) {
+        throw new AppError(400, 'BAD_REQUEST', 'Incident ID is required.');
+      }
+
+      if (!participantId || participantId.trim().length === 0) {
+        throw new AppError(400, 'BAD_REQUEST', 'Participant ID is required.');
+      }
+
+      const deleted = await incidentParticipantService.removeParticipant(id, participantId);
+
+      if (deleted === null) {
+        throw new AppError(404, 'NOT_FOUND', 'Incident not found.');
+      }
+
+      if (!deleted) {
+        throw new AppError(404, 'NOT_FOUND', 'Participant not found.');
+      }
+
+      return {
+        status: 'ok',
+        message: 'Incident participant removed.',
       };
     },
   );

@@ -16,3 +16,9 @@ export {
   type UpdateIncidentSeverityPriorityRequest,
   type UpdateIncidentRequest,
 } from './incident';
+export type {
+  AddIncidentParticipantRequest,
+  IncidentParticipantListResponse,
+  IncidentParticipantResponse,
+  ParticipantRole,
+} from './participant';

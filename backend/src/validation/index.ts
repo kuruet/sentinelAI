@@ -11,4 +11,9 @@ export {
   type UpdateIncidentSeverityPriorityRequestInput,
 } from './incident';
 
+export {
+  addIncidentParticipantRequestSchema,
+  type AddIncidentParticipantRequestInput,
+} from './participant';
+
 export { parseRequest } from './parse-request';
