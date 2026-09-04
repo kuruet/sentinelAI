@@ -3,5 +3,6 @@ export { incidentParticipantService } from './incident-participant';
 export { incidentEventService } from './incident-event';
 export { evidenceService } from './evidence';
 export { investigationService } from './investigation';
+export { intelligenceContextService } from './intelligence-context';
 export { incidentAuthorizationService } from './incident-authorization';
 export { auditLogService } from './audit-log';
