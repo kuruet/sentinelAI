@@ -9,3 +9,5 @@ export * from './explainability';
 export * from './safety';
 export * from './auditability';
 export * from './ai-auditability-service';
+
+export * from './intelligence-api';

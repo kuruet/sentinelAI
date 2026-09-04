@@ -1,23 +1,30 @@
-import Fastify from 'fastify';
+import Fastify, { type FastifyInstance } from 'fastify';
 import { env } from './config/env';
 import { prisma } from './infrastructure/database';
 import { redis } from './infrastructure/redis';
-import { infrastructureTestQueue, queueRedisConnection } from './infrastructure/queue';
-import { infrastructureTestWorker, workerRedisConnection } from './infrastructure/worker';
+import {
+  infrastructureTestQueue,
+  queueRedisConnection,
+} from './infrastructure/queue';
+import {
+  infrastructureTestWorker,
+  workerRedisConnection,
+} from './infrastructure/worker';
 import { registerErrorHandling } from './errors/error-handler';
 import { registerRoutes } from './routes';
 import { registerAuthentication, registerSecurity } from './security';
 
-export function buildApp() {
+export async function buildApp(): Promise<FastifyInstance> {
   const app = Fastify({
     logger: true,
   });
 
-  void registerSecurity(app);
-  void registerAuthentication(app);
-  void registerRoutes(app);
+  await registerSecurity(app);
+  await registerAuthentication(app);
 
   registerErrorHandling(app);
+
+  await registerRoutes(app);
 
   app.addHook('onClose', async () => {
     await infrastructureTestWorker.close();
@@ -37,7 +44,7 @@ export function buildApp() {
 }
 
 export async function start() {
-  const app = buildApp();
+  const app = await buildApp();
 
   try {
     await app.listen({
@@ -47,8 +54,10 @@ export async function start() {
   } catch (error) {
     app.log.error(error);
     await app.close();
-    process.exit(1);
+    process.exitCode = 1;
   }
 }
 
-void start();
+if (require.main === module) {
+  void start();
+}

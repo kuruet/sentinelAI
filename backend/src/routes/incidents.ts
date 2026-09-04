@@ -18,8 +18,24 @@ import {
   incidentParticipantService,
   incidentService,
   auditLogService,
+  intelligenceContextService,
 } from '../application';
 import { AppError } from '../errors/app-error';
+import {
+  IntelligenceApiService,
+  IntelligenceExplainabilityService,
+  intelligenceAssistantRequestSchema,
+  intelligenceSummaryRequestSchema,
+  intelligenceRcaRequestSchema,
+  intelligenceRecommendationsRequestSchema,
+  intelligenceExplainRequestSchema,
+  type IntelligenceFinding,
+  type IntelligenceHypothesis,
+  type IntelligenceRecommendation,
+} from '../intelligence';
+import { OpenAIProvider } from '../intelligence/providers';
+import { AuditLogAIAuditRecorder } from '../intelligence';
+import { env } from '../config/env';
 import { authenticate, getAuthenticatedIdentity } from '../security';
 import {
   createEvidenceRequestSchema,
@@ -35,6 +51,14 @@ import {
   updateIncidentRequestSchema,
 } from '../validation';
 export async function incidentRoutes(app: FastifyInstance) {
+  const intelligenceApi = env.OPENAI_API_KEY
+    ? new IntelligenceApiService({
+        provider: new OpenAIProvider({
+          apiKey: env.OPENAI_API_KEY,
+        }),
+        auditRecorder: new AuditLogAIAuditRecorder(auditLogService),
+      })
+    : null;
   app.addHook('onRequest', authenticate);
   app.post(
     '/api/v1/incidents',
@@ -765,4 +789,271 @@ export async function incidentRoutes(app: FastifyInstance) {
       };
     },
   );
+
+  app.get(
+    '/api/v1/incidents/:id/intelligence/context',
+    async (request): Promise<ApiSuccessResponse<unknown>> => {
+      const { id } = request.params as { id?: string };
+
+      if (!id || id.trim().length === 0) {
+        throw new AppError(400, 'BAD_REQUEST', 'Incident ID is required.');
+      }
+
+      const identity = getAuthenticatedIdentity(request);
+      await incidentAuthorizationService.requireReadAccess(
+        id,
+        identity.userId,
+      );
+
+      const snapshot = await intelligenceContextService.buildContext(id);
+
+      if (!snapshot) {
+        throw new AppError(404, 'NOT_FOUND', 'Incident not found.');
+      }
+
+      return {
+        status: 'ok',
+        data: snapshot,
+      };
+    },
+  );
+
+  app.post(
+    '/api/v1/incidents/:id/intelligence/assistant',
+    async (request): Promise<ApiSuccessResponse<unknown>> => {
+      const { id } = request.params as { id?: string };
+
+      if (!id || id.trim().length === 0) {
+        throw new AppError(400, 'BAD_REQUEST', 'Incident ID is required.');
+      }
+
+      const identity = getAuthenticatedIdentity(request);
+
+      await incidentAuthorizationService.requireReadAccess(
+        id,
+        identity.userId,
+      );
+
+      if (!intelligenceApi) {
+        throw new AppError(
+          500,
+          'INTERNAL_SERVER_ERROR',
+          'AI intelligence provider is not configured.',
+        );
+      }
+
+      const parsed = parseRequest(intelligenceAssistantRequestSchema,
+        request.body,
+      );
+
+      const snapshot =
+        await intelligenceContextService.buildContext(id);
+
+      if (!snapshot) {
+        throw new AppError(404, 'NOT_FOUND', 'Incident not found.');
+      }
+
+      const result = await intelligenceApi.answer(
+        id,
+        parsed,
+        snapshot,
+      );
+
+      return {
+        status: 'ok',
+        data: result,
+      };
+    },
+  );
+
+  app.post(
+    '/api/v1/incidents/:id/intelligence/summary',
+    async (request): Promise<ApiSuccessResponse<unknown>> => {
+      const { id } = request.params as { id?: string };
+
+      if (!id || id.trim().length === 0) {
+        throw new AppError(400, 'BAD_REQUEST', 'Incident ID is required.');
+      }
+
+      const identity = getAuthenticatedIdentity(request);
+
+      await incidentAuthorizationService.requireReadAccess(
+        id,
+        identity.userId,
+      );
+
+      if (!intelligenceApi) {
+        throw new AppError(
+          500,
+          'INTERNAL_SERVER_ERROR',
+          'AI intelligence provider is not configured.',
+        );
+      }
+
+      const parsed = parseRequest(intelligenceSummaryRequestSchema,
+        request.body,
+      );
+
+      const snapshot =
+        await intelligenceContextService.buildContext(id);
+
+      if (!snapshot) {
+        throw new AppError(404, 'NOT_FOUND', 'Incident not found.');
+      }
+
+      const result = await intelligenceApi.summarize(
+        id,
+        parsed,
+        snapshot,
+      );
+
+      return {
+        status: 'ok',
+        data: result,
+      };
+    },
+  );
+
+  app.post(
+    '/api/v1/incidents/:id/intelligence/root-cause',
+    async (request): Promise<ApiSuccessResponse<unknown>> => {
+      const { id } = request.params as { id?: string };
+
+      if (!id || id.trim().length === 0) {
+        throw new AppError(400, 'BAD_REQUEST', 'Incident ID is required.');
+      }
+
+      const identity = getAuthenticatedIdentity(request);
+
+      await incidentAuthorizationService.requireReadAccess(
+        id,
+        identity.userId,
+      );
+
+      if (!intelligenceApi) {
+        throw new AppError(
+          500,
+          'INTERNAL_SERVER_ERROR',
+          'AI intelligence provider is not configured.',
+        );
+      }
+
+      const parsed = parseRequest(intelligenceRcaRequestSchema,
+        request.body,
+      );
+
+      const snapshot =
+        await intelligenceContextService.buildContext(id);
+
+      if (!snapshot) {
+        throw new AppError(404, 'NOT_FOUND', 'Incident not found.');
+      }
+
+      const result = await intelligenceApi.rootCause(
+        id,
+        parsed,
+        snapshot,
+      );
+
+      return {
+        status: 'ok',
+        data: result,
+      };
+    },
+  );
+
+  app.post(
+    '/api/v1/incidents/:id/intelligence/recommendations',
+    async (request): Promise<ApiSuccessResponse<unknown>> => {
+      const { id } = request.params as { id?: string };
+
+      if (!id || id.trim().length === 0) {
+        throw new AppError(400, 'BAD_REQUEST', 'Incident ID is required.');
+      }
+
+      const identity = getAuthenticatedIdentity(request);
+
+      await incidentAuthorizationService.requireReadAccess(
+        id,
+        identity.userId,
+      );
+
+      if (!intelligenceApi) {
+        throw new AppError(
+          500,
+          'INTERNAL_SERVER_ERROR',
+          'AI intelligence provider is not configured.',
+        );
+      }
+
+      const parsed =
+        parseRequest(intelligenceRecommendationsRequestSchema,
+          request.body,
+        );
+
+      const snapshot =
+        await intelligenceContextService.buildContext(id);
+
+      if (!snapshot) {
+        throw new AppError(404, 'NOT_FOUND', 'Incident not found.');
+      }
+
+      const result = await intelligenceApi.recommendations(
+        id,
+        parsed,
+        snapshot,
+      );
+
+      return {
+        status: 'ok',
+        data: result,
+      };
+    },
+  );
+
+  app.post(
+    '/api/v1/incidents/:id/intelligence/explain',
+    async (request): Promise<ApiSuccessResponse<unknown>> => {
+      const { id } = request.params as { id?: string };
+
+      if (!id || id.trim().length === 0) {
+        throw new AppError(400, 'BAD_REQUEST', 'Incident ID is required.');
+      }
+
+      const identity = getAuthenticatedIdentity(request);
+      await incidentAuthorizationService.requireReadAccess(id, identity.userId);
+
+      const parsed = parseRequest(
+        intelligenceExplainRequestSchema,
+        request.body,
+      );
+
+      const targetCount = [
+        parsed.finding,
+        parsed.hypothesis,
+        parsed.recommendation,
+      ].filter((value) => value !== undefined).length;
+
+      if (targetCount !== 1) {
+        throw new AppError(
+          400,
+          'VALIDATION_ERROR',
+          'Exactly one intelligence target is required.',
+        );
+      }
+
+      const explainability = new IntelligenceExplainabilityService();
+      const result = explainability.explain({
+        finding: parsed.finding as IntelligenceFinding | undefined,
+        hypothesis: parsed.hypothesis as IntelligenceHypothesis | undefined,
+        recommendation: parsed.recommendation as IntelligenceRecommendation | undefined,
+      });
+
+      return {
+        status: 'ok',
+        data: result,
+      };
+    },
+  );
+
 }
