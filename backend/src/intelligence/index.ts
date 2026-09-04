@@ -4,3 +4,4 @@ export * from './grounding';
 export * from './assistant';
 export * from './summarization';
 export * from './root-cause-analysis';
+export * from './recommendations/recommendation-service';
