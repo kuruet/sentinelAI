@@ -9,3 +9,5 @@ export { IntelligenceContextService } from './intelligence-context-service';
 export { EventEvidenceCorrelationService } from './event-evidence-correlation-service';
 
 export { DeterministicSignalAnalysisService } from './deterministic-signal-analysis-service';
+
+export { IntelligenceFindingsHypothesisService } from './intelligence-findings-hypothesis-service';
