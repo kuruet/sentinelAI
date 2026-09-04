@@ -1,9 +1,5 @@
-import type {
-  IntelligenceContextSnapshot,
-} from '../contracts/context';
-import type {
-  IntelligenceFinding,
-} from '../contracts/finding';
+import type { IntelligenceContextSnapshot } from '../contracts/context';
+import type { IntelligenceFinding } from '../contracts/finding';
 import type {
   AIContextBuilderOptions,
   AIContextItem,
@@ -17,18 +13,11 @@ const DEFAULT_MAX_EVIDENCE = 50;
 const DEFAULT_MAX_FINDINGS = 25;
 const DEFAULT_MAX_CONTENT_LENGTH = 4000;
 
-function reference(
-  type: AIContextItemType,
-  id: string,
-  reason: string,
-): AIContextReference {
+function reference(type: AIContextItemType, id: string, reason: string): AIContextReference {
   return { type, id, reason };
 }
 
-function boundedContent(
-  value: string | null | undefined,
-  maxLength: number,
-): string {
+function boundedContent(value: string | null | undefined, maxLength: number): string {
   const normalized = (value ?? '').trim();
 
   if (normalized.length <= maxLength) {
@@ -38,22 +27,12 @@ function boundedContent(
   return `${normalized.slice(0, maxLength)}\n[content truncated]`;
 }
 
-function findingItem(
-  finding: IntelligenceFinding,
-  maxContentLength: number,
-): AIContextItem {
+function findingItem(finding: IntelligenceFinding, maxContentLength: number): AIContextItem {
   return {
     type: 'FINDING',
     id: finding.id,
-    content: boundedContent(
-      `${finding.title}\n${finding.description}`,
-      maxContentLength,
-    ),
-    reference: reference(
-      'FINDING',
-      finding.id,
-      'Derived deterministic intelligence finding.',
-    ),
+    content: boundedContent(`${finding.title}\n${finding.description}`, maxContentLength),
+    reference: reference('FINDING', finding.id, 'Derived deterministic intelligence finding.'),
   };
 }
 
@@ -65,8 +44,7 @@ export class AIContextBuilder {
       maxEvents: options.maxEvents ?? DEFAULT_MAX_EVENTS,
       maxEvidence: options.maxEvidence ?? DEFAULT_MAX_EVIDENCE,
       maxFindings: options.maxFindings ?? DEFAULT_MAX_FINDINGS,
-      maxContentLength:
-        options.maxContentLength ?? DEFAULT_MAX_CONTENT_LENGTH,
+      maxContentLength: options.maxContentLength ?? DEFAULT_MAX_CONTENT_LENGTH,
     };
   }
 
@@ -92,62 +70,47 @@ export class AIContextBuilder {
         ].join('\n'),
         this.options.maxContentLength,
       ),
-      reference: reference(
-        'INCIDENT',
-        incident.id,
-        'Primary incident context.',
-      ),
+      reference: reference('INCIDENT', incident.id, 'Primary incident context.'),
     });
 
-    const events = snapshot.context.events
-      .slice()
-      .sort((a, b) => {
-        const time =
-          a.occurredAt.localeCompare(b.occurredAt);
+    const events = snapshot.context.events.slice().sort((a, b) => {
+      const time = a.occurredAt.localeCompare(b.occurredAt);
 
-        if (time !== 0) {
-          return time;
-        }
+      if (time !== 0) {
+        return time;
+      }
 
+      return a.id.localeCompare(b.id);
+    });
+
+    const evidence = snapshot.context.evidence.slice().sort((a, b) => {
+      const aTime = a.occurredAt ?? a.collectedAt;
+      const bTime = b.occurredAt ?? b.collectedAt;
+
+      if (aTime === null && bTime === null) {
         return a.id.localeCompare(b.id);
-      });
+      }
 
-    const evidence = snapshot.context.evidence
-      .slice()
-      .sort((a, b) => {
-        const aTime = a.occurredAt ?? a.collectedAt;
-        const bTime = b.occurredAt ?? b.collectedAt;
+      if (aTime === null) {
+        return 1;
+      }
 
-        if (aTime === null && bTime === null) {
-          return a.id.localeCompare(b.id);
-        }
+      if (bTime === null) {
+        return -1;
+      }
 
-        if (aTime === null) {
-          return 1;
-        }
+      const time = aTime.localeCompare(bTime);
 
-        if (bTime === null) {
-          return -1;
-        }
+      if (time !== 0) {
+        return time;
+      }
 
-        const time = aTime.localeCompare(bTime);
+      return a.id.localeCompare(b.id);
+    });
 
-        if (time !== 0) {
-          return time;
-        }
+    const selectedEvents = events.slice(0, this.options.maxEvents);
 
-        return a.id.localeCompare(b.id);
-      });
-
-    const selectedEvents = events.slice(
-      0,
-      this.options.maxEvents,
-    );
-
-    const selectedEvidence = evidence.slice(
-      0,
-      this.options.maxEvidence,
-    );
+    const selectedEvidence = evidence.slice(0, this.options.maxEvidence);
 
     for (const event of selectedEvents) {
       items.push({
@@ -166,11 +129,7 @@ export class AIContextBuilder {
         ),
         occurredAt: event.occurredAt,
         source: event.source,
-        reference: reference(
-          'EVENT',
-          event.id,
-          'Incident event selected for analysis context.',
-        ),
+        reference: reference('EVENT', event.id, 'Incident event selected for analysis context.'),
       });
     }
 
@@ -216,11 +175,7 @@ export class AIContextBuilder {
           ].join('\n'),
           this.options.maxContentLength,
         ),
-        reference: reference(
-          'INVESTIGATION',
-          investigation.id,
-          'Current investigation context.',
-        ),
+        reference: reference('INVESTIGATION', investigation.id, 'Current investigation context.'),
       });
     }
 
@@ -230,10 +185,7 @@ export class AIContextBuilder {
       .slice(0, this.options.maxFindings);
 
     for (const finding of selectedFindings) {
-      items.push(findingItem(
-        finding,
-        this.options.maxContentLength,
-      ));
+      items.push(findingItem(finding, this.options.maxContentLength));
     }
 
     const references = items

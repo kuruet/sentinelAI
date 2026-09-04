@@ -10,8 +10,7 @@ export const INTELLIGENCE_FINDING_TYPES = [
   'PATTERN',
 ] as const;
 
-export type IntelligenceFindingType =
-  (typeof INTELLIGENCE_FINDING_TYPES)[number];
+export type IntelligenceFindingType = (typeof INTELLIGENCE_FINDING_TYPES)[number];
 
 export interface IntelligenceFinding {
   id: string;

@@ -1,22 +1,12 @@
-import {
-  FakeAIProvider,
-} from '../src/intelligence/providers';
+import { FakeAIProvider } from '../src/intelligence/providers';
 
-import {
-  AIContextBuilder,
-} from '../src/intelligence/grounding';
+import { AIContextBuilder } from '../src/intelligence/grounding';
 
-import {
-  InvestigationAssistantService,
-} from '../src/intelligence/assistant';
+import { InvestigationAssistantService } from '../src/intelligence/assistant';
 
-import type {
-  IntelligenceContextSnapshot,
-} from '../src/intelligence/contracts/context';
+import type { IntelligenceContextSnapshot } from '../src/intelligence/contracts/context';
 
-import type {
-  IntelligenceFinding,
-} from '../src/intelligence/contracts/finding';
+import type { IntelligenceFinding } from '../src/intelligence/contracts/finding';
 
 function assert(condition: boolean, message: string): void {
   if (!condition) {
@@ -141,54 +131,30 @@ async function main(): Promise<void> {
     model: 'test-model',
   };
 
-  const result = await service.answer(
-    request,
-    snapshot,
-    findings,
-  );
+  const result = await service.answer(request, snapshot, findings);
 
-  assert(
-    result.incidentId === 'incident-4-9',
-    'Response must preserve incident identity.',
-  );
+  assert(result.incidentId === 'incident-4-9', 'Response must preserve incident identity.');
 
   assert(
     result.answer.includes('database timeout'),
     'Assistant response must contain provider output.',
   );
 
-  assert(
-    result.provider === 'fake',
-    'Response must expose provider identity.',
-  );
+  assert(result.provider === 'fake', 'Response must expose provider identity.');
+
+  assert(result.model === 'test-model', 'Response must expose model identity.');
 
   assert(
-    result.model === 'test-model',
-    'Response must expose model identity.',
-  );
-
-  assert(
-    result.references.some(
-      (item) =>
-        item.type === 'EVIDENCE' &&
-        item.id === 'evidence-4-9-1',
-    ),
+    result.references.some((item) => item.type === 'EVIDENCE' && item.id === 'evidence-4-9-1'),
     'Response must preserve evidence provenance.',
   );
 
   assert(
-    result.references.some(
-      (item) =>
-        item.type === 'FINDING' &&
-        item.id === 'finding-4-9-1',
-    ),
+    result.references.some((item) => item.type === 'FINDING' && item.id === 'finding-4-9-1'),
     'Response must preserve finding provenance.',
   );
 
-  assert(
-    result.limitations.length >= 3,
-    'Assistant response must expose advisory limitations.',
-  );
+  assert(result.limitations.length >= 3, 'Assistant response must expose advisory limitations.');
 
   let mismatchRejected = false;
 
@@ -205,10 +171,7 @@ async function main(): Promise<void> {
     mismatchRejected = true;
   }
 
-  assert(
-    mismatchRejected,
-    'Mismatched incident context must be rejected.',
-  );
+  assert(mismatchRejected, 'Mismatched incident context must be rejected.');
 
   let emptyQuestionRejected = false;
 
@@ -225,37 +188,21 @@ async function main(): Promise<void> {
     emptyQuestionRejected = true;
   }
 
-  assert(
-    emptyQuestionRejected,
-    'Empty investigator questions must be rejected.',
-  );
+  assert(emptyQuestionRejected, 'Empty investigator questions must be rejected.');
 
   const before = JSON.stringify(snapshot);
 
-  await service.answer(
-    request,
-    snapshot,
-    findings,
-  );
+  await service.answer(request, snapshot, findings);
 
   const after = JSON.stringify(snapshot);
 
-  assert(
-    before === after,
-    'Assistant execution must not mutate source context.',
-  );
+  assert(before === after, 'Assistant execution must not mutate source context.');
 
-  const intelligenceIndexPath = new URL(
-    '../src/intelligence/index.ts',
-    import.meta.url,
-  );
+  const intelligenceIndexPath = new URL('../src/intelligence/index.ts', import.meta.url);
 
   const { readFile } = await import('node:fs/promises');
 
-  const intelligenceIndex = await readFile(
-    intelligenceIndexPath,
-    'utf8',
-  );
+  const intelligenceIndex = await readFile(intelligenceIndexPath, 'utf8');
 
   assert(
     intelligenceIndex.includes("export * from './assistant';"),

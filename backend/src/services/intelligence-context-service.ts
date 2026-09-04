@@ -1,15 +1,7 @@
-import type {
-  EvidenceDataAccess,
-} from '../data-access/evidence-data-access';
-import type {
-  IncidentDataAccess,
-} from '../data-access/incident-data-access';
-import type {
-  IncidentEventDataAccess,
-} from '../data-access/incident-event-data-access';
-import type {
-  InvestigationDataAccess,
-} from '../data-access/investigation-data-access';
+import type { EvidenceDataAccess } from '../data-access/evidence-data-access';
+import type { IncidentDataAccess } from '../data-access/incident-data-access';
+import type { IncidentEventDataAccess } from '../data-access/incident-event-data-access';
+import type { InvestigationDataAccess } from '../data-access/investigation-data-access';
 import type {
   IntelligenceContext,
   IntelligenceContextMetadata,
@@ -24,9 +16,7 @@ export class IntelligenceContextService {
     private readonly investigationDataAccess: InvestigationDataAccess,
   ) {}
 
-  async buildContext(
-    incidentId: string,
-  ): Promise<IntelligenceContextSnapshot | null> {
+  async buildContext(incidentId: string): Promise<IntelligenceContextSnapshot | null> {
     const incident = await this.incidentDataAccess.findById(incidentId);
 
     if (!incident) {
@@ -62,9 +52,7 @@ export class IntelligenceContextService {
     };
   }
 
-  private orderEvents(
-    events: Awaited<ReturnType<IncidentEventDataAccess['listByIncident']>>,
-  ) {
+  private orderEvents(events: Awaited<ReturnType<IncidentEventDataAccess['listByIncident']>>) {
     return [...events].sort((left, right) => {
       const occurredAtComparison = left.occurredAt.localeCompare(right.occurredAt);
 
@@ -82,9 +70,7 @@ export class IntelligenceContextService {
     });
   }
 
-  private orderEvidence(
-    evidence: Awaited<ReturnType<EvidenceDataAccess['listByIncident']>>,
-  ) {
+  private orderEvidence(evidence: Awaited<ReturnType<EvidenceDataAccess['listByIncident']>>) {
     return [...evidence].sort((left, right) => {
       if (left.occurredAt === null && right.occurredAt !== null) {
         return 1;

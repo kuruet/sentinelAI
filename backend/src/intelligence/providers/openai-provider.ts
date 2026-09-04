@@ -127,10 +127,7 @@ export class OpenAIProvider implements AIProvider {
       });
     }
 
-    if (
-      error instanceof Error &&
-      error.name === 'APIConnectionTimeoutError'
-    ) {
+    if (error instanceof Error && error.name === 'APIConnectionTimeoutError') {
       return new AIProviderError({
         code: 'TIMEOUT',
         provider: this.name,
@@ -159,4 +156,3 @@ export class OpenAIProvider implements AIProvider {
     });
   }
 }
-

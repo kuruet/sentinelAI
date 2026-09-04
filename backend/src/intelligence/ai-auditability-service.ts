@@ -1,10 +1,6 @@
 import { randomUUID } from 'node:crypto';
 
-import type {
-  AIProvider,
-  AIProviderError,
-  AIProviderRequest,
-} from './providers/ai-provider';
+import type { AIProvider, AIProviderError, AIProviderRequest } from './providers/ai-provider';
 
 import type {
   AIAuditMetadata,
@@ -13,25 +9,17 @@ import type {
   AIExecutionResult,
 } from './auditability';
 
-import {
-  AI_AUDIT_RESOURCE_TYPE,
-  isAIProviderError,
-} from './auditability';
+import { AI_AUDIT_RESOURCE_TYPE, isAIProviderError } from './auditability';
 
 export class AIAuditabilityService {
-  constructor(
-    private readonly auditRecorder: AIAuditRecorder,
-  ) {}
+  constructor(private readonly auditRecorder: AIAuditRecorder) {}
 
   async execute(
     provider: AIProvider,
     request: AIProviderRequest,
     options: AIExecutionOptions,
   ): Promise<AIExecutionResult> {
-    const correlationId =
-      request.correlationId ??
-      options.correlationId ??
-      randomUUID();
+    const correlationId = request.correlationId ?? options.correlationId ?? randomUUID();
 
     const normalizedRequest: AIProviderRequest = {
       ...request,
@@ -64,9 +52,7 @@ export class AIAuditabilityService {
 
       const latencyMs = Math.max(
         0,
-        Number.isFinite(response.latencyMs)
-          ? response.latencyMs
-          : Date.now() - startedAt,
+        Number.isFinite(response.latencyMs) ? response.latencyMs : Date.now() - startedAt,
       );
 
       await this.recordBestEffort({
@@ -94,10 +80,7 @@ export class AIAuditabilityService {
         correlationId,
       };
     } catch (error: unknown) {
-      const normalizedError = this.normalizeProviderError(
-        error,
-        provider.name,
-      );
+      const normalizedError = this.normalizeProviderError(error, provider.name);
 
       await this.recordBestEffort({
         action: 'AI_ANALYSIS_FAILED',
@@ -165,10 +148,7 @@ export class AIAuditabilityService {
   }
 
   private async recordBestEffort(input: {
-    action:
-      | 'AI_ANALYSIS_REQUESTED'
-      | 'AI_ANALYSIS_COMPLETED'
-      | 'AI_ANALYSIS_FAILED';
+    action: 'AI_ANALYSIS_REQUESTED' | 'AI_ANALYSIS_COMPLETED' | 'AI_ANALYSIS_FAILED';
     incidentId: string;
     resourceId: string;
     metadata: AIAuditMetadata;
@@ -202,10 +182,7 @@ export class AuditLogAIAuditRecorder implements AIAuditRecorder {
   ) {}
 
   async record(input: {
-    action:
-      | 'AI_ANALYSIS_REQUESTED'
-      | 'AI_ANALYSIS_COMPLETED'
-      | 'AI_ANALYSIS_FAILED';
+    action: 'AI_ANALYSIS_REQUESTED' | 'AI_ANALYSIS_COMPLETED' | 'AI_ANALYSIS_FAILED';
     incidentId: string;
     resourceId: string;
     metadata: AIAuditMetadata;

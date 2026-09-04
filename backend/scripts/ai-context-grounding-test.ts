@@ -196,10 +196,7 @@ async function main(): Promise<void> {
     instructions: 'Analyze the incident.',
   });
 
-  assert(
-    request.model === 'test-model',
-    'AI request model must be preserved.',
-  );
+  assert(request.model === 'test-model', 'AI request model must be preserved.');
 
   assert(
     request.input.includes('Incident ID: incident-1'),

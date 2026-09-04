@@ -1,10 +1,6 @@
 import assert from 'node:assert/strict';
 
-import {
-  AIContextBuilder,
-  FakeAIProvider,
-  RootCauseAnalysisService,
-} from '../src/intelligence';
+import { AIContextBuilder, FakeAIProvider, RootCauseAnalysisService } from '../src/intelligence';
 
 const incident = {
   id: 'incident-4-11',
@@ -81,8 +77,7 @@ const findings = [
     id: 'finding-1',
     type: 'CORRELATION' as const,
     title: 'Deployment and latency alert are temporally correlated',
-    description:
-      'The deployment occurred shortly before the latency alert.',
+    description: 'The deployment occurred shortly before the latency alert.',
     confidence: {
       level: 'MEDIUM' as const,
       rationale: 'Deterministic temporal relationship.',
@@ -161,10 +156,7 @@ const structuredOutput = JSON.stringify({
 
 async function main() {
   const provider = new FakeAIProvider(structuredOutput);
-  const service = new RootCauseAnalysisService(
-    provider,
-    new AIContextBuilder(),
-  );
+  const service = new RootCauseAnalysisService(provider, new AIContextBuilder());
 
   const originalSnapshot = structuredClone(snapshot);
 
@@ -188,60 +180,29 @@ async function main() {
   const hypothesis = result.hypotheses[0];
 
   assert.ok(hypothesis);
-  assert.match(
-    hypothesis.id,
-    /^hypothesis-[a-f0-9]{24}$/,
-  );
+  assert.match(hypothesis.id, /^hypothesis-[a-f0-9]{24}$/);
 
-  assert.equal(
-    hypothesis.title,
-    'Deployment may have contributed to checkout latency',
-  );
+  assert.equal(hypothesis.title, 'Deployment may have contributed to checkout latency');
 
-  assert.equal(
-    hypothesis.confidence.level,
-    'MEDIUM',
-  );
+  assert.equal(hypothesis.confidence.level, 'MEDIUM');
 
-  assert.equal(
-    hypothesis.confidence.score,
-    0.68,
-  );
+  assert.equal(hypothesis.confidence.score, 0.68);
 
-  assert.equal(
-    hypothesis.supportingReferences.length,
-    2,
-  );
+  assert.equal(hypothesis.supportingReferences.length, 2);
 
   assert.deepEqual(
-    hypothesis.supportingReferences.map(
-      (reference) => `${reference.type}:${reference.id}`,
-    ),
-    [
-      'EVENT:event-1',
-      'EVIDENCE:evidence-1',
-    ],
+    hypothesis.supportingReferences.map((reference) => `${reference.type}:${reference.id}`),
+    ['EVENT:event-1', 'EVIDENCE:evidence-1'],
   );
 
-  assert.equal(
-    hypothesis.contradictingReferences.length,
-    1,
-  );
+  assert.equal(hypothesis.contradictingReferences.length, 1);
+
+  assert.ok(result.analysis.includes('causation remains unconfirmed'));
+
+  assert.equal(result.limitations.length, 5);
 
   assert.ok(
-    result.analysis.includes('causation remains unconfirmed'),
-  );
-
-  assert.equal(
-    result.limitations.length,
-    5,
-  );
-
-  assert.ok(
-    result.limitations.some(
-      (limitation) =>
-        limitation.includes('not a confirmed root cause'),
-    ),
+    result.limitations.some((limitation) => limitation.includes('not a confirmed root cause')),
   );
 
   assert.deepEqual(snapshot, originalSnapshot);
@@ -276,10 +237,7 @@ async function main() {
     '{"analysis":"broken","hypotheses":[{"title":"invalid"}]}',
   );
 
-  const malformedService = new RootCauseAnalysisService(
-    malformedProvider,
-    new AIContextBuilder(),
-  );
+  const malformedService = new RootCauseAnalysisService(malformedProvider, new AIContextBuilder());
 
   await assert.rejects(
     malformedService.analyze(
@@ -318,11 +276,10 @@ async function main() {
     }),
   );
 
-  const hallucinatedReferenceService =
-    new RootCauseAnalysisService(
-      hallucinatedReferenceProvider,
-      new AIContextBuilder(),
-    );
+  const hallucinatedReferenceService = new RootCauseAnalysisService(
+    hallucinatedReferenceProvider,
+    new AIContextBuilder(),
+  );
 
   await assert.rejects(
     hallucinatedReferenceService.analyze(
@@ -337,9 +294,7 @@ async function main() {
     /outside the grounded context/,
   );
 
-  console.log(
-    'AI ROOT CAUSE ANALYSIS TEST: PASS',
-  );
+  console.log('AI ROOT CAUSE ANALYSIS TEST: PASS');
 }
 
 main().catch((error) => {

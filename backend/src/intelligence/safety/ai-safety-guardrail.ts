@@ -1,10 +1,6 @@
-export const AI_SAFETY_DECISIONS = [
-  'ALLOW',
-  'BLOCK',
-] as const;
+export const AI_SAFETY_DECISIONS = ['ALLOW', 'BLOCK'] as const;
 
-export type AISafetyDecision =
-  (typeof AI_SAFETY_DECISIONS)[number];
+export type AISafetyDecision = (typeof AI_SAFETY_DECISIONS)[number];
 
 export const AI_SAFETY_FINDINGS = [
   'PROMPT_INJECTION',
@@ -16,8 +12,7 @@ export const AI_SAFETY_FINDINGS = [
   'UNSAFE_OUTPUT',
 ] as const;
 
-export type AISafetyFinding =
-  (typeof AI_SAFETY_FINDINGS)[number];
+export type AISafetyFinding = (typeof AI_SAFETY_FINDINGS)[number];
 
 export interface AISafetyAssessment {
   decision: AISafetyDecision;
@@ -45,12 +40,14 @@ const INJECTION_PATTERNS: ReadonlyArray<{
   reason: string;
 }> = [
   {
-    pattern: /\b(ignore|disregard|forget|override)\b.{0,80}\b(previous|prior|above|system|developer|assistant|instructions?|rules?)\b/i,
+    pattern:
+      /\b(ignore|disregard|forget|override)\b.{0,80}\b(previous|prior|above|system|developer|assistant|instructions?|rules?)\b/i,
     finding: 'INSTRUCTION_OVERRIDE',
     reason: 'Content attempts to override or disregard higher-priority instructions.',
   },
   {
-    pattern: /\b(system prompt|developer message|hidden prompt|secret instructions?|internal instructions?)\b/i,
+    pattern:
+      /\b(system prompt|developer message|hidden prompt|secret instructions?|internal instructions?)\b/i,
     finding: 'SYSTEM_PROMPT_EXTRACTION',
     reason: 'Content attempts to obtain protected AI instructions.',
   },
@@ -60,17 +57,20 @@ const INJECTION_PATTERNS: ReadonlyArray<{
     reason: 'Content attempts to manipulate the AI role or operating context.',
   },
   {
-    pattern: /\b(reveal|show|print|output|provide|expose)\b.{0,80}\b(system prompt|developer prompt|hidden instructions?|chain[- ]of[- ]thought|private reasoning)\b/i,
+    pattern:
+      /\b(reveal|show|print|output|provide|expose)\b.{0,80}\b(system prompt|developer prompt|hidden instructions?|chain[- ]of[- ]thought|private reasoning)\b/i,
     finding: 'SYSTEM_PROMPT_EXTRACTION',
     reason: 'Content requests protected prompts or private reasoning.',
   },
   {
-    pattern: /\b(execute|run|invoke|call)\b.{0,80}\b(command|shell|powershell|bash|terminal|tool|function|api)\b/i,
+    pattern:
+      /\b(execute|run|invoke|call)\b.{0,80}\b(command|shell|powershell|bash|terminal|tool|function|api)\b/i,
     finding: 'TOOL_EXECUTION_REQUEST',
     reason: 'Content attempts to make the AI execute an operational command or tool.',
   },
   {
-    pattern: /\b(reveal|show|print|output|send|provide)\b.{0,80}\b(password|secret|token|api key|credential|access key)\b/i,
+    pattern:
+      /\b(reveal|show|print|output|send|provide)\b.{0,80}\b(password|secret|token|api key|credential|access key)\b/i,
     finding: 'SECRET_REQUEST',
     reason: 'Content requests credentials, secrets, or authentication material.',
   },
@@ -110,9 +110,11 @@ function assessContent(
   ) {
     findings.add('PROMPT_INJECTION');
 
-    if (!reasons.includes(
-      'Untrusted content contains an instruction-like pattern that must not be treated as an operational instruction.',
-    )) {
+    if (
+      !reasons.includes(
+        'Untrusted content contains an instruction-like pattern that must not be treated as an operational instruction.',
+      )
+    ) {
       reasons.push(
         'Untrusted content contains an instruction-like pattern that must not be treated as an operational instruction.',
       );
@@ -120,10 +122,7 @@ function assessContent(
   }
 
   const decision =
-    options.blockOnPromptInjection &&
-    findings.has('PROMPT_INJECTION')
-      ? 'BLOCK'
-      : 'ALLOW';
+    options.blockOnPromptInjection && findings.has('PROMPT_INJECTION') ? 'BLOCK' : 'ALLOW';
 
   return {
     decision,
@@ -137,12 +136,9 @@ export class AISafetyGuardrail {
 
   constructor(options: AISafetyGuardrailOptions = {}) {
     this.options = {
-      blockOnPromptInjection:
-        options.blockOnPromptInjection ?? true,
-      maxInputLength:
-        options.maxInputLength ?? DEFAULT_MAX_INPUT_LENGTH,
-      maxOutputLength:
-        options.maxOutputLength ?? DEFAULT_MAX_OUTPUT_LENGTH,
+      blockOnPromptInjection: options.blockOnPromptInjection ?? true,
+      maxInputLength: options.maxInputLength ?? DEFAULT_MAX_INPUT_LENGTH,
+      maxOutputLength: options.maxOutputLength ?? DEFAULT_MAX_OUTPUT_LENGTH,
     };
   }
 
@@ -175,9 +171,7 @@ export class AISafetyGuardrail {
       /\bchain[- ]of[- ]thought\b/i,
     ];
 
-    if (
-      protectedOutputPatterns.some((pattern) => pattern.test(output))
-    ) {
+    if (protectedOutputPatterns.some((pattern) => pattern.test(output))) {
       throw new Error(
         'AI safety guardrail blocked provider output containing protected prompt or private-reasoning material.',
       );

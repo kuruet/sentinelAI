@@ -1,6 +1,4 @@
-export {
-  INCIDENT_SUMMARY_MODES,
-} from './incident-summarization';
+export { INCIDENT_SUMMARY_MODES } from './incident-summarization';
 
 export type {
   IncidentSummaryMode,
@@ -9,6 +7,4 @@ export type {
   IncidentSummaryResponse,
 } from './incident-summarization';
 
-export {
-  IncidentSummarizationService,
-} from './incident-summarization-service';
+export { IncidentSummarizationService } from './incident-summarization-service';

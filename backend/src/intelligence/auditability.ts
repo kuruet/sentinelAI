@@ -2,7 +2,6 @@ import {
   AI_PROVIDER_ERROR_CODES,
   type AIProviderError,
   type AIProviderErrorCode,
-  type AIProviderRequest,
   type AIProviderResponse,
 } from './providers/ai-provider';
 
@@ -68,13 +67,9 @@ export interface AIFailedExecutionResult {
   correlationId: string;
 }
 
-export type AIExecutionResult =
-  | AISafeExecutionResult
-  | AIFailedExecutionResult;
+export type AIExecutionResult = AISafeExecutionResult | AIFailedExecutionResult;
 
-export function isAIProviderError(
-  error: unknown,
-): error is AIProviderError {
+export function isAIProviderError(error: unknown): error is AIProviderError {
   if (!(error instanceof Error)) {
     return false;
   }
@@ -83,9 +78,7 @@ export function isAIProviderError(
 
   const isKnownErrorCode =
     typeof candidate.code === 'string' &&
-    (AI_PROVIDER_ERROR_CODES as readonly string[]).includes(
-      candidate.code,
-    );
+    (AI_PROVIDER_ERROR_CODES as readonly string[]).includes(candidate.code);
 
   return (
     isKnownErrorCode &&

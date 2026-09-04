@@ -172,26 +172,18 @@ async function main(): Promise<void> {
   }
 
   if (unknownFailure.error.code !== 'UNKNOWN') {
-    throw new Error(
-      'Unknown runtime error code must normalize to UNKNOWN.',
-    );
+    throw new Error('Unknown runtime error code must normalize to UNKNOWN.');
   }
 
   if (unknownFailure.error.retryable) {
-    throw new Error(
-      'Unknown runtime errors must not inherit untrusted retryability.',
-    );
+    throw new Error('Unknown runtime errors must not inherit untrusted retryability.');
   }
 
   if (unknownAudit.records[1].metadata.errorCode !== 'UNKNOWN') {
-    throw new Error(
-      'Unknown runtime error audit classification is incorrect.',
-    );
+    throw new Error('Unknown runtime error audit classification is incorrect.');
   }
 
-  const auditFailureService = new AIAuditabilityService(
-    new FailingAuditRecorder(),
-  );
+  const auditFailureService = new AIAuditabilityService(new FailingAuditRecorder());
 
   const auditFailureResult = await auditFailureService.execute(
     new SuccessProvider(),
@@ -219,9 +211,7 @@ async function main(): Promise<void> {
       serialized.includes('grounded incident context') ||
       serialized.includes('{"status":"ok"}')
     ) {
-      throw new Error(
-        'Audit metadata must not contain AI input or AI output payloads.',
-      );
+      throw new Error('Audit metadata must not contain AI input or AI output payloads.');
     }
 
     if (
@@ -229,16 +219,11 @@ async function main(): Promise<void> {
       serialized.toLowerCase().includes('secret') ||
       serialized.toLowerCase().includes('token')
     ) {
-      throw new Error(
-        'Audit metadata contains a forbidden secret-like field.',
-      );
+      throw new Error('Audit metadata contains a forbidden secret-like field.');
     }
   }
 
-  if (
-    success.correlationId !==
-    successAudit.records[0].metadata.correlationId
-  ) {
+  if (success.correlationId !== successAudit.records[0].metadata.correlationId) {
     throw new Error('Correlation ID was not preserved.');
   }
 

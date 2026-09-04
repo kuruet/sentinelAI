@@ -1,32 +1,14 @@
 import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
 
-import type {
-  AIProvider,
-  AIProviderRequest,
-  AIProviderResponse,
-} from './providers';
-import {
-  AIProviderError,
-} from './providers';
-import {
-  AIContextBuilder,
-} from './grounding';
-import {
-  InvestigationAssistantService,
-} from './assistant';
-import {
-  IncidentSummarizationService,
-} from './summarization';
-import {
-  RootCauseAnalysisService,
-} from './root-cause-analysis';
-import {
-  AIRecommendationsService,
-} from './recommendations/recommendation-service';
-import {
-  IntelligenceExplainabilityService,
-} from './explainability';
+import type { AIProvider, AIProviderRequest, AIProviderResponse } from './providers';
+import { AIProviderError } from './providers';
+import { AIContextBuilder } from './grounding';
+import { InvestigationAssistantService } from './assistant';
+import { IncidentSummarizationService } from './summarization';
+import { RootCauseAnalysisService } from './root-cause-analysis';
+import { AIRecommendationsService } from './recommendations/recommendation-service';
+import { IntelligenceExplainabilityService } from './explainability';
 import { AIAuditabilityService } from './ai-auditability-service';
 import type { AIAuditRecorder } from './auditability';
 import type {
@@ -35,15 +17,9 @@ import type {
   IntelligenceHypothesis,
   IntelligenceRecommendation,
 } from './contracts';
-import {
-  EventEvidenceCorrelationService,
-} from '../services/event-evidence-correlation-service';
-import {
-  DeterministicSignalAnalysisService,
-} from '../services/deterministic-signal-analysis-service';
-import {
-  IntelligenceFindingsHypothesisService,
-} from '../services/intelligence-findings-hypothesis-service';
+import { EventEvidenceCorrelationService } from '../services/event-evidence-correlation-service';
+import { DeterministicSignalAnalysisService } from '../services/deterministic-signal-analysis-service';
+import { IntelligenceFindingsHypothesisService } from '../services/intelligence-findings-hypothesis-service';
 
 const assistantIntentSchema = z.enum([
   'INVESTIGATION_SUMMARY',
@@ -53,44 +29,47 @@ const assistantIntentSchema = z.enum([
   'HYPOTHESIS_REVIEW',
 ]);
 
-const summaryModeSchema = z.enum([
-  'EXECUTIVE',
-  'INVESTIGATION',
-  'TIMELINE',
-]);
+const summaryModeSchema = z.enum(['EXECUTIVE', 'INVESTIGATION', 'TIMELINE']);
 
-const rcaModeSchema = z.enum([
-  'PRIMARY',
-  'ALTERNATIVE',
-]);
+const rcaModeSchema = z.enum(['PRIMARY', 'ALTERNATIVE']);
 
 const modelSchema = z.string().trim().min(1).max(200);
 
-export const intelligenceAssistantRequestSchema = z.object({
-  question: z.string().trim().min(1).max(20_000),
-  intent: assistantIntentSchema,
-  model: modelSchema,
-}).strict();
+export const intelligenceAssistantRequestSchema = z
+  .object({
+    question: z.string().trim().min(1).max(20_000),
+    intent: assistantIntentSchema,
+    model: modelSchema,
+  })
+  .strict();
 
-export const intelligenceSummaryRequestSchema = z.object({
-  mode: summaryModeSchema,
-  model: modelSchema,
-}).strict();
+export const intelligenceSummaryRequestSchema = z
+  .object({
+    mode: summaryModeSchema,
+    model: modelSchema,
+  })
+  .strict();
 
-export const intelligenceRcaRequestSchema = z.object({
-  mode: rcaModeSchema,
-  model: modelSchema,
-}).strict();
+export const intelligenceRcaRequestSchema = z
+  .object({
+    mode: rcaModeSchema,
+    model: modelSchema,
+  })
+  .strict();
 
-export const intelligenceRecommendationsRequestSchema = z.object({
-  model: modelSchema,
-}).strict();
+export const intelligenceRecommendationsRequestSchema = z
+  .object({
+    model: modelSchema,
+  })
+  .strict();
 
-export const intelligenceExplainRequestSchema = z.object({
-  finding: z.unknown().optional(),
-  hypothesis: z.unknown().optional(),
-  recommendation: z.unknown().optional(),
-}).strict();
+export const intelligenceExplainRequestSchema = z
+  .object({
+    finding: z.unknown().optional(),
+    hypothesis: z.unknown().optional(),
+    recommendation: z.unknown().optional(),
+  })
+  .strict();
 
 export interface IntelligenceApiDependencies {
   provider: AIProvider;
@@ -114,19 +93,13 @@ class AuditedAIProvider implements AIProvider {
     this.name = provider.name;
   }
 
-  async generate(
-    request: AIProviderRequest,
-  ): Promise<AIProviderResponse> {
-    const result = await this.auditability.execute(
-      this.provider,
-      request,
-      {
-        incidentId: this.execution.incidentId,
-        resourceId: this.execution.resourceId,
-        correlationId: this.execution.correlationId,
-        groundedContextId: this.execution.groundedContextId,
-      },
-    );
+  async generate(request: AIProviderRequest): Promise<AIProviderResponse> {
+    const result = await this.auditability.execute(this.provider, request, {
+      incidentId: this.execution.incidentId,
+      resourceId: this.execution.resourceId,
+      correlationId: this.execution.correlationId,
+      groundedContextId: this.execution.groundedContextId,
+    });
 
     if (result.success) {
       return result.response;
@@ -149,18 +122,14 @@ export class IntelligenceApiService {
   private readonly auditability: AIAuditabilityService | null;
   private readonly explainability: IntelligenceExplainabilityService;
 
-  private readonly correlationService:
-    EventEvidenceCorrelationService;
+  private readonly correlationService: EventEvidenceCorrelationService;
 
-  private readonly deterministicAnalysisService:
-    DeterministicSignalAnalysisService;
+  private readonly deterministicAnalysisService: DeterministicSignalAnalysisService;
 
-  private readonly findingsHypothesisService:
-    IntelligenceFindingsHypothesisService;
+  private readonly findingsHypothesisService: IntelligenceFindingsHypothesisService;
 
   constructor(dependencies: IntelligenceApiDependencies) {
-    this.contextBuilder =
-      dependencies.contextBuilder ?? new AIContextBuilder();
+    this.contextBuilder = dependencies.contextBuilder ?? new AIContextBuilder();
 
     this.auditability = dependencies.auditRecorder
       ? new AIAuditabilityService(dependencies.auditRecorder)
@@ -168,17 +137,13 @@ export class IntelligenceApiService {
 
     this.provider = dependencies.provider;
 
-    this.explainability =
-      new IntelligenceExplainabilityService();
+    this.explainability = new IntelligenceExplainabilityService();
 
-    this.correlationService =
-      new EventEvidenceCorrelationService();
+    this.correlationService = new EventEvidenceCorrelationService();
 
-    this.deterministicAnalysisService =
-      new DeterministicSignalAnalysisService();
+    this.deterministicAnalysisService = new DeterministicSignalAnalysisService();
 
-    this.findingsHypothesisService =
-      new IntelligenceFindingsHypothesisService();
+    this.findingsHypothesisService = new IntelligenceFindingsHypothesisService();
   }
 
   private createExecutionProvider(
@@ -192,16 +157,12 @@ export class IntelligenceApiService {
 
     const correlationId = randomUUID();
 
-    return new AuditedAIProvider(
-      this.provider,
-      this.auditability,
-      {
-        incidentId,
-        resourceId: `${incidentId}:${operation}:${correlationId}`,
-        correlationId,
-        groundedContextId: snapshot.context.incident.id,
-      },
-    );
+    return new AuditedAIProvider(this.provider, this.auditability, {
+      incidentId,
+      resourceId: `${incidentId}:${operation}:${correlationId}`,
+      correlationId,
+      groundedContextId: snapshot.context.incident.id,
+    });
   }
 
   private createAssistant(
@@ -209,11 +170,7 @@ export class IntelligenceApiService {
     snapshot: IntelligenceContextSnapshot,
   ): InvestigationAssistantService {
     return new InvestigationAssistantService(
-      this.createExecutionProvider(
-        incidentId,
-        'INVESTIGATION_ASSISTANT',
-        snapshot,
-      ),
+      this.createExecutionProvider(incidentId, 'INVESTIGATION_ASSISTANT', snapshot),
       this.contextBuilder,
     );
   }
@@ -223,11 +180,7 @@ export class IntelligenceApiService {
     snapshot: IntelligenceContextSnapshot,
   ): IncidentSummarizationService {
     return new IncidentSummarizationService(
-      this.createExecutionProvider(
-        incidentId,
-        'INCIDENT_SUMMARIZATION',
-        snapshot,
-      ),
+      this.createExecutionProvider(incidentId, 'INCIDENT_SUMMARIZATION', snapshot),
       this.contextBuilder,
     );
   }
@@ -237,11 +190,7 @@ export class IntelligenceApiService {
     snapshot: IntelligenceContextSnapshot,
   ): RootCauseAnalysisService {
     return new RootCauseAnalysisService(
-      this.createExecutionProvider(
-        incidentId,
-        'ROOT_CAUSE_ANALYSIS',
-        snapshot,
-      ),
+      this.createExecutionProvider(incidentId, 'ROOT_CAUSE_ANALYSIS', snapshot),
       this.contextBuilder,
     );
   }
@@ -251,35 +200,21 @@ export class IntelligenceApiService {
     snapshot: IntelligenceContextSnapshot,
   ): AIRecommendationsService {
     return new AIRecommendationsService(
-      this.createExecutionProvider(
-        incidentId,
-        'RECOMMENDATIONS',
-        snapshot,
-      ),
+      this.createExecutionProvider(incidentId, 'RECOMMENDATIONS', snapshot),
       this.contextBuilder,
     );
   }
 
-  private buildDeterministicAnalysis(
-    snapshot: IntelligenceContextSnapshot,
-  ): {
+  private buildDeterministicAnalysis(snapshot: IntelligenceContextSnapshot): {
     correlations: ReturnType<EventEvidenceCorrelationService['correlate']>;
     findings: IntelligenceFinding[];
     hypotheses: IntelligenceHypothesis[];
   } {
-    const correlations =
-      this.correlationService.correlate(snapshot);
+    const correlations = this.correlationService.correlate(snapshot);
 
-    const signalAnalysis =
-      this.deterministicAnalysisService.analyze(
-        snapshot,
-        correlations,
-      );
+    const signalAnalysis = this.deterministicAnalysisService.analyze(snapshot, correlations);
 
-    const intelligenceAnalysis =
-      this.findingsHypothesisService.build(
-        signalAnalysis.findings,
-      );
+    const intelligenceAnalysis = this.findingsHypothesisService.build(signalAnalysis.findings);
 
     return {
       correlations,
@@ -297,8 +232,7 @@ export class IntelligenceApiService {
     input: z.infer<typeof intelligenceAssistantRequestSchema>,
     snapshot: IntelligenceContextSnapshot,
   ) {
-    const deterministic =
-      this.buildDeterministicAnalysis(snapshot);
+    const deterministic = this.buildDeterministicAnalysis(snapshot);
 
     return this.createAssistant(incidentId, snapshot).answer(
       {
@@ -317,13 +251,9 @@ export class IntelligenceApiService {
     input: z.infer<typeof intelligenceSummaryRequestSchema>,
     snapshot: IntelligenceContextSnapshot,
   ) {
-    const deterministic =
-      this.buildDeterministicAnalysis(snapshot);
+    const deterministic = this.buildDeterministicAnalysis(snapshot);
 
-    return this.createSummarization(
-      incidentId,
-      snapshot,
-    ).summarize(
+    return this.createSummarization(incidentId, snapshot).summarize(
       {
         incidentId,
         mode: input.mode,
@@ -339,8 +269,7 @@ export class IntelligenceApiService {
     input: z.infer<typeof intelligenceRcaRequestSchema>,
     snapshot: IntelligenceContextSnapshot,
   ) {
-    const deterministic =
-      this.buildDeterministicAnalysis(snapshot);
+    const deterministic = this.buildDeterministicAnalysis(snapshot);
 
     return this.createRca(incidentId, snapshot).analyze(
       {
@@ -358,13 +287,9 @@ export class IntelligenceApiService {
     input: z.infer<typeof intelligenceRecommendationsRequestSchema>,
     snapshot: IntelligenceContextSnapshot,
   ) {
-    const deterministic =
-      this.buildDeterministicAnalysis(snapshot);
+    const deterministic = this.buildDeterministicAnalysis(snapshot);
 
-    return this.createRecommendations(
-      incidentId,
-      snapshot,
-    ).analyze(
+    return this.createRecommendations(incidentId, snapshot).analyze(
       {
         snapshot,
         findings: deterministic.findings,

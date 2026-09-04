@@ -1,18 +1,10 @@
 import assert from 'node:assert/strict';
 
-import {
-  DeterministicSignalAnalysisService,
-} from '../src/services/deterministic-signal-analysis-service';
+import { DeterministicSignalAnalysisService } from '../src/services/deterministic-signal-analysis-service';
 
-import type {
-  EvidenceResponse,
-  IncidentEventResponse,
-} from '../src/contracts';
+import type { EvidenceResponse, IncidentEventResponse } from '../src/contracts';
 
-import type {
-  IntelligenceContextSnapshot,
-  IntelligenceCorrelation,
-} from '../src/intelligence';
+import type { IntelligenceContextSnapshot, IntelligenceCorrelation } from '../src/intelligence';
 
 const incident = {
   id: 'incident-1',
@@ -48,11 +40,7 @@ function event(
   };
 }
 
-function evidence(
-  id: string,
-  occurredAt: string,
-  source: string,
-): EvidenceResponse {
+function evidence(id: string, occurredAt: string, source: string): EvidenceResponse {
   return {
     id,
     incidentId: incident.id,
@@ -177,35 +165,17 @@ assert.deepEqual(snapshot.context.evidence, originalEvidence);
 
 assert.ok(first.findings.length >= 4);
 
-assert.ok(
-  first.findings.some((finding) =>
-    finding.title.includes('Event burst detected'),
-  ),
-);
+assert.ok(first.findings.some((finding) => finding.title.includes('Event burst detected')));
 
 assert.ok(
-  first.findings.some((finding) =>
-    finding.title.includes('Repeated ALERT events detected'),
-  ),
+  first.findings.some((finding) => finding.title.includes('Repeated ALERT events detected')),
 );
 
-assert.ok(
-  first.findings.some((finding) =>
-    finding.title.includes('source concentration'),
-  ),
-);
+assert.ok(first.findings.some((finding) => finding.title.includes('source concentration')));
 
-assert.ok(
-  first.findings.some((finding) =>
-    finding.title.includes('Evidence cluster detected'),
-  ),
-);
+assert.ok(first.findings.some((finding) => finding.title.includes('Evidence cluster detected')));
 
-assert.ok(
-  first.findings.some((finding) =>
-    finding.title.includes('correlation density'),
-  ),
-);
+assert.ok(first.findings.some((finding) => finding.title.includes('correlation density')));
 
 for (const finding of first.findings) {
   assert.equal(finding.type, 'ANOMALY');
@@ -234,14 +204,7 @@ assert.deepEqual(service.analyze(emptySnapshot, []), {
 const sparseSnapshot: IntelligenceContextSnapshot = {
   context: {
     ...snapshot.context,
-    events: [
-      event(
-        'event-sparse',
-        'SYSTEM',
-        '2026-09-04T15:00:00.000Z',
-        'single-source',
-      ),
-    ],
+    events: [event('event-sparse', 'SYSTEM', '2026-09-04T15:00:00.000Z', 'single-source')],
     evidence: [],
   },
   metadata: {

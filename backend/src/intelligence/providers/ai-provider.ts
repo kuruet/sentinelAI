@@ -9,8 +9,7 @@ export const AI_PROVIDER_ERROR_CODES = [
   'UNKNOWN',
 ] as const;
 
-export type AIProviderErrorCode =
-  (typeof AI_PROVIDER_ERROR_CODES)[number];
+export type AIProviderErrorCode = (typeof AI_PROVIDER_ERROR_CODES)[number];
 
 export interface AIProviderRequest {
   model: string;

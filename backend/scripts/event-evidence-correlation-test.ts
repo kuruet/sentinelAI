@@ -1,14 +1,8 @@
 import assert from 'node:assert/strict';
 
-import {
-  EventEvidenceCorrelationService,
-} from '../src/services/event-evidence-correlation-service';
+import { EventEvidenceCorrelationService } from '../src/services/event-evidence-correlation-service';
 
-import type {
-  EvidenceResponse,
-  IncidentEventResponse,
-  IncidentResponse,
-} from '../src/contracts';
+import type { EvidenceResponse, IncidentEventResponse, IncidentResponse } from '../src/contracts';
 
 import type { IntelligenceContextSnapshot } from '../src/intelligence';
 
@@ -26,11 +20,7 @@ const incident: IncidentResponse = {
   updatedAt: '2026-09-04T10:05:00.000Z',
 };
 
-function event(
-  id: string,
-  occurredAt: string,
-  source: string,
-): IncidentEventResponse {
+function event(id: string, occurredAt: string, source: string): IncidentEventResponse {
   return {
     id,
     incidentId: incident.id,
@@ -69,23 +59,11 @@ function evidence(
   };
 }
 
-const firstEvent = event(
-  'event-1',
-  '2026-09-04T10:00:00.000Z',
-  'api-service',
-);
+const firstEvent = event('event-1', '2026-09-04T10:00:00.000Z', 'api-service');
 
-const secondEvent = event(
-  'event-2',
-  '2026-09-04T10:03:00.000Z',
-  'api-service',
-);
+const secondEvent = event('event-2', '2026-09-04T10:03:00.000Z', 'api-service');
 
-const unrelatedEvent = event(
-  'event-3',
-  '2026-09-04T11:00:00.000Z',
-  'database-service',
-);
+const unrelatedEvent = event('event-3', '2026-09-04T11:00:00.000Z', 'database-service');
 
 const relatedEvidence = evidence(
   'evidence-1',
@@ -109,11 +87,7 @@ const missingTimestampEvidence = evidence(
 );
 
 const events = [unrelatedEvent, secondEvent, firstEvent];
-const evidenceItems = [
-  distantEvidence,
-  missingTimestampEvidence,
-  relatedEvidence,
-];
+const evidenceItems = [distantEvidence, missingTimestampEvidence, relatedEvidence];
 
 const snapshot: IntelligenceContextSnapshot = {
   context: {

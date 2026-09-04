@@ -800,10 +800,7 @@ export async function incidentRoutes(app: FastifyInstance) {
       }
 
       const identity = getAuthenticatedIdentity(request);
-      await incidentAuthorizationService.requireReadAccess(
-        id,
-        identity.userId,
-      );
+      await incidentAuthorizationService.requireReadAccess(id, identity.userId);
 
       const snapshot = await intelligenceContextService.buildContext(id);
 
@@ -829,10 +826,7 @@ export async function incidentRoutes(app: FastifyInstance) {
 
       const identity = getAuthenticatedIdentity(request);
 
-      await incidentAuthorizationService.requireReadAccess(
-        id,
-        identity.userId,
-      );
+      await incidentAuthorizationService.requireReadAccess(id, identity.userId);
 
       if (!intelligenceApi) {
         throw new AppError(
@@ -842,22 +836,15 @@ export async function incidentRoutes(app: FastifyInstance) {
         );
       }
 
-      const parsed = parseRequest(intelligenceAssistantRequestSchema,
-        request.body,
-      );
+      const parsed = parseRequest(intelligenceAssistantRequestSchema, request.body);
 
-      const snapshot =
-        await intelligenceContextService.buildContext(id);
+      const snapshot = await intelligenceContextService.buildContext(id);
 
       if (!snapshot) {
         throw new AppError(404, 'NOT_FOUND', 'Incident not found.');
       }
 
-      const result = await intelligenceApi.answer(
-        id,
-        parsed,
-        snapshot,
-      );
+      const result = await intelligenceApi.answer(id, parsed, snapshot);
 
       return {
         status: 'ok',
@@ -877,10 +864,7 @@ export async function incidentRoutes(app: FastifyInstance) {
 
       const identity = getAuthenticatedIdentity(request);
 
-      await incidentAuthorizationService.requireReadAccess(
-        id,
-        identity.userId,
-      );
+      await incidentAuthorizationService.requireReadAccess(id, identity.userId);
 
       if (!intelligenceApi) {
         throw new AppError(
@@ -890,22 +874,15 @@ export async function incidentRoutes(app: FastifyInstance) {
         );
       }
 
-      const parsed = parseRequest(intelligenceSummaryRequestSchema,
-        request.body,
-      );
+      const parsed = parseRequest(intelligenceSummaryRequestSchema, request.body);
 
-      const snapshot =
-        await intelligenceContextService.buildContext(id);
+      const snapshot = await intelligenceContextService.buildContext(id);
 
       if (!snapshot) {
         throw new AppError(404, 'NOT_FOUND', 'Incident not found.');
       }
 
-      const result = await intelligenceApi.summarize(
-        id,
-        parsed,
-        snapshot,
-      );
+      const result = await intelligenceApi.summarize(id, parsed, snapshot);
 
       return {
         status: 'ok',
@@ -925,10 +902,7 @@ export async function incidentRoutes(app: FastifyInstance) {
 
       const identity = getAuthenticatedIdentity(request);
 
-      await incidentAuthorizationService.requireReadAccess(
-        id,
-        identity.userId,
-      );
+      await incidentAuthorizationService.requireReadAccess(id, identity.userId);
 
       if (!intelligenceApi) {
         throw new AppError(
@@ -938,22 +912,15 @@ export async function incidentRoutes(app: FastifyInstance) {
         );
       }
 
-      const parsed = parseRequest(intelligenceRcaRequestSchema,
-        request.body,
-      );
+      const parsed = parseRequest(intelligenceRcaRequestSchema, request.body);
 
-      const snapshot =
-        await intelligenceContextService.buildContext(id);
+      const snapshot = await intelligenceContextService.buildContext(id);
 
       if (!snapshot) {
         throw new AppError(404, 'NOT_FOUND', 'Incident not found.');
       }
 
-      const result = await intelligenceApi.rootCause(
-        id,
-        parsed,
-        snapshot,
-      );
+      const result = await intelligenceApi.rootCause(id, parsed, snapshot);
 
       return {
         status: 'ok',
@@ -973,10 +940,7 @@ export async function incidentRoutes(app: FastifyInstance) {
 
       const identity = getAuthenticatedIdentity(request);
 
-      await incidentAuthorizationService.requireReadAccess(
-        id,
-        identity.userId,
-      );
+      await incidentAuthorizationService.requireReadAccess(id, identity.userId);
 
       if (!intelligenceApi) {
         throw new AppError(
@@ -986,23 +950,15 @@ export async function incidentRoutes(app: FastifyInstance) {
         );
       }
 
-      const parsed =
-        parseRequest(intelligenceRecommendationsRequestSchema,
-          request.body,
-        );
+      const parsed = parseRequest(intelligenceRecommendationsRequestSchema, request.body);
 
-      const snapshot =
-        await intelligenceContextService.buildContext(id);
+      const snapshot = await intelligenceContextService.buildContext(id);
 
       if (!snapshot) {
         throw new AppError(404, 'NOT_FOUND', 'Incident not found.');
       }
 
-      const result = await intelligenceApi.recommendations(
-        id,
-        parsed,
-        snapshot,
-      );
+      const result = await intelligenceApi.recommendations(id, parsed, snapshot);
 
       return {
         status: 'ok',
@@ -1023,23 +979,14 @@ export async function incidentRoutes(app: FastifyInstance) {
       const identity = getAuthenticatedIdentity(request);
       await incidentAuthorizationService.requireReadAccess(id, identity.userId);
 
-      const parsed = parseRequest(
-        intelligenceExplainRequestSchema,
-        request.body,
-      );
+      const parsed = parseRequest(intelligenceExplainRequestSchema, request.body);
 
-      const targetCount = [
-        parsed.finding,
-        parsed.hypothesis,
-        parsed.recommendation,
-      ].filter((value) => value !== undefined).length;
+      const targetCount = [parsed.finding, parsed.hypothesis, parsed.recommendation].filter(
+        (value) => value !== undefined,
+      ).length;
 
       if (targetCount !== 1) {
-        throw new AppError(
-          400,
-          'VALIDATION_ERROR',
-          'Exactly one intelligence target is required.',
-        );
+        throw new AppError(400, 'VALIDATION_ERROR', 'Exactly one intelligence target is required.');
       }
 
       const explainability = new IntelligenceExplainabilityService();
@@ -1055,5 +1002,4 @@ export async function incidentRoutes(app: FastifyInstance) {
       };
     },
   );
-
 }

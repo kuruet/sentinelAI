@@ -6,8 +6,7 @@ export const AI_CONTEXT_ITEM_TYPES = [
   'FINDING',
 ] as const;
 
-export type AIContextItemType =
-  (typeof AI_CONTEXT_ITEM_TYPES)[number];
+export type AIContextItemType = (typeof AI_CONTEXT_ITEM_TYPES)[number];
 
 export interface AIContextReference {
   type: AIContextItemType;

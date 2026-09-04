@@ -1,19 +1,11 @@
-import type {
-  AIProvider,
-  AIProviderRequest,
-  AIProviderResponse,
-} from './ai-provider';
+import type { AIProvider, AIProviderRequest, AIProviderResponse } from './ai-provider';
 
 export class FakeAIProvider implements AIProvider {
   readonly name = 'fake';
 
-  constructor(
-    private readonly responseText = 'fake provider response',
-  ) {}
+  constructor(private readonly responseText = 'fake provider response') {}
 
-  async generate(
-    request: AIProviderRequest,
-  ): Promise<AIProviderResponse> {
+  async generate(request: AIProviderRequest): Promise<AIProviderResponse> {
     return {
       provider: this.name,
       model: request.model,

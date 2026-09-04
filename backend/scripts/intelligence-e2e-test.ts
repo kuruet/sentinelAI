@@ -53,8 +53,7 @@ async function main(): Promise<void> {
           id: 'evidence-001',
           type: 'LOG',
           title: 'Application error log',
-          description:
-            'Database timeout errors increased immediately after deployment.',
+          description: 'Database timeout errors increased immediately after deployment.',
           source: 'application',
           sourceRef: 'logs/api-20260904',
           occurredAt: '2026-09-04T10:03:00.000Z',
@@ -65,8 +64,7 @@ async function main(): Promise<void> {
       ],
       investigation: {
         id: 'investigation-001',
-        summary:
-          'Investigating whether the deployment caused the latency increase.',
+        summary: 'Investigating whether the deployment caused the latency increase.',
         startedAt: '2026-09-04T10:04:00.000Z',
         updatedAt: '2026-09-04T10:05:00.000Z',
       },
@@ -80,9 +78,7 @@ async function main(): Promise<void> {
   class CapturingProvider extends FakeAIProvider {
     public lastInput = '';
 
-    override async generate(
-      request: Parameters<FakeAIProvider['generate']>[0],
-    ) {
+    override async generate(request: Parameters<FakeAIProvider['generate']>[0]) {
       this.lastInput = `${request.input}\n${request.instructions}`;
       return super.generate(request);
     }
@@ -97,49 +93,27 @@ async function main(): Promise<void> {
 
   const correlations = correlationService.correlate(snapshot);
 
-  assert.ok(
-    correlations.length > 0,
-    'Correlation stage produced no correlations',
-  );
+  assert.ok(correlations.length > 0, 'Correlation stage produced no correlations');
 
-  const deterministic = deterministicService.analyze(
-    snapshot,
-    correlations,
-  );
+  const deterministic = deterministicService.analyze(snapshot, correlations);
 
-  assert.ok(
-    deterministic.findings.length > 0,
-    'Deterministic analysis produced no findings',
-  );
+  assert.ok(deterministic.findings.length > 0, 'Deterministic analysis produced no findings');
 
   const normalized = findingsService.build(deterministic.findings);
 
-  assert.ok(
-    normalized.findings.length > 0,
-    'Finding normalization produced no findings',
-  );
+  assert.ok(normalized.findings.length > 0, 'Finding normalization produced no findings');
 
-  assert.ok(
-    normalized.hypotheses.length > 0,
-    'Hypothesis normalization produced no hypotheses',
-  );
+  assert.ok(normalized.hypotheses.length > 0, 'Hypothesis normalization produced no hypotheses');
 
-  const groundedContext = contextBuilder.build(
-    snapshot,
-    normalized.findings,
-  );
+  const groundedContext = contextBuilder.build(snapshot, normalized.findings);
 
-  assert.ok(
-    groundedContext.items.length > 0,
-    'Grounded context contains no items',
-  );
+  assert.ok(groundedContext.items.length > 0, 'Grounded context contains no items');
 
   for (const finding of normalized.findings) {
     assert.ok(
       groundedContext.items.some(
         (item) =>
-          item.content.includes(finding.title) ||
-          item.content.includes(finding.description),
+          item.content.includes(finding.title) || item.content.includes(finding.description),
       ),
       `Deterministic finding ${finding.id} was not included in grounded AI context`,
     );
@@ -147,10 +121,7 @@ async function main(): Promise<void> {
 
   const contextBeforeAI = JSON.stringify(snapshot);
 
-  const assistant = new InvestigationAssistantService(
-    provider,
-    contextBuilder,
-  );
+  const assistant = new InvestigationAssistantService(provider, contextBuilder);
 
   const assistantResponse = await assistant.answer(
     {
@@ -175,10 +146,7 @@ async function main(): Promise<void> {
 
   const summarizationProvider = new CapturingProvider();
 
-  const summarizer = new IncidentSummarizationService(
-    summarizationProvider,
-    contextBuilder,
-  );
+  const summarizer = new IncidentSummarizationService(summarizationProvider, contextBuilder);
 
   const summaryResponse = await summarizer.summarize(
     {
@@ -190,10 +158,7 @@ async function main(): Promise<void> {
     normalized.findings,
   );
 
-  assert.ok(
-    summaryResponse.summary.length > 0,
-    'Incident summary returned empty output',
-  );
+  assert.ok(summaryResponse.summary.length > 0, 'Incident summary returned empty output');
 
   const rcaFindingReference = normalized.findings[0]?.references[0];
 
@@ -203,9 +168,7 @@ async function main(): Promise<void> {
   );
 
   const rcaGroundedReference = groundedContext.items.find(
-    (item) =>
-      item.type === rcaFindingReference.type &&
-      item.id === rcaFindingReference.id,
+    (item) => item.type === rcaFindingReference.type && item.id === rcaFindingReference.id,
   )?.reference;
 
   assert.ok(
@@ -242,10 +205,7 @@ async function main(): Promise<void> {
 
   const rcaProvider = new CapturingProvider(rcaStructuredOutput);
 
-  const rca = new RootCauseAnalysisService(
-    rcaProvider,
-    contextBuilder,
-  );
+  const rca = new RootCauseAnalysisService(rcaProvider, contextBuilder);
 
   const rcaResponse = await rca.analyze(
     {
@@ -257,65 +217,53 @@ async function main(): Promise<void> {
     normalized.findings,
   );
 
-  assert.ok(
-    rcaResponse.hypotheses.length > 0,
-    'RCA returned no hypotheses',
-  );
+  assert.ok(rcaResponse.hypotheses.length > 0, 'RCA returned no hypotheses');
 
   assert.ok(
     rcaResponse.hypotheses[0]?.supportingReferences.some(
       (reference) =>
-        reference.type === rcaGroundedReference.type &&
-        reference.id === rcaGroundedReference.id,
+        reference.type === rcaGroundedReference.type && reference.id === rcaGroundedReference.id,
     ),
     'RCA did not preserve the valid grounded reference',
   );
 
   const recommendationReference = groundedContext.references.find(
-  (reference) =>
-    reference.type === 'EVENT' ||
-    reference.type === 'EVIDENCE' ||
-    reference.type === 'FINDING',
-);
-
-assert.ok(
-  recommendationReference,
-  'No valid grounded context reference was available for recommendation E2E output',
-);
-
-const recommendationProviderOutput = JSON.stringify({
-  recommendations: [
-    {
-      title: 'Inspect the strongest deterministic signal',
-      action:
-        'Review the referenced incident evidence and validate the observed signal before taking remediation action.',
-      priority: 'HIGH',
-      confidence: {
-        level: 'MEDIUM',
-        score: 0.78,
-        rationale:
-          'The recommendation is grounded in deterministic intelligence context, but human validation is still required.',
-      },
-      references: [
-        {
-          type: recommendationReference.type,
-          id: recommendationReference.id,
-          reason:
-            'Reference was supplied directly by the bounded grounded intelligence context.',
-        },
-      ],
-    },
-  ],
-});
-
-const recommendationsProvider = new CapturingProvider(
-  recommendationProviderOutput,
-);
-
-  const recommendations = new AIRecommendationsService(
-    recommendationsProvider,
-    contextBuilder,
+    (reference) =>
+      reference.type === 'EVENT' || reference.type === 'EVIDENCE' || reference.type === 'FINDING',
   );
+
+  assert.ok(
+    recommendationReference,
+    'No valid grounded context reference was available for recommendation E2E output',
+  );
+
+  const recommendationProviderOutput = JSON.stringify({
+    recommendations: [
+      {
+        title: 'Inspect the strongest deterministic signal',
+        action:
+          'Review the referenced incident evidence and validate the observed signal before taking remediation action.',
+        priority: 'HIGH',
+        confidence: {
+          level: 'MEDIUM',
+          score: 0.78,
+          rationale:
+            'The recommendation is grounded in deterministic intelligence context, but human validation is still required.',
+        },
+        references: [
+          {
+            type: recommendationReference.type,
+            id: recommendationReference.id,
+            reason: 'Reference was supplied directly by the bounded grounded intelligence context.',
+          },
+        ],
+      },
+    ],
+  });
+
+  const recommendationsProvider = new CapturingProvider(recommendationProviderOutput);
+
+  const recommendations = new AIRecommendationsService(recommendationsProvider, contextBuilder);
 
   const recommendationsResponse = await recommendations.analyze(
     {

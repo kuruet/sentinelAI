@@ -1,7 +1,4 @@
-export {
-  AI_PROVIDER_ERROR_CODES,
-  AIProviderError,
-} from './ai-provider';
+export { AI_PROVIDER_ERROR_CODES, AIProviderError } from './ai-provider';
 
 export type {
   AIProvider,

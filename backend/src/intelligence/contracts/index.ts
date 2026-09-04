@@ -4,11 +4,7 @@ export {
   type IntelligenceCorrelationType,
 } from './correlation';
 
-export {
-  CONFIDENCE_LEVELS,
-  type ConfidenceAssessment,
-  type ConfidenceLevel,
-} from './confidence';
+export { CONFIDENCE_LEVELS, type ConfidenceAssessment, type ConfidenceLevel } from './confidence';
 
 export {
   INTELLIGENCE_REFERENCE_TYPES,
@@ -28,9 +24,7 @@ export {
   type IntelligenceFindingType,
 } from './finding';
 
-export {
-  type IntelligenceHypothesis,
-} from './hypothesis';
+export { type IntelligenceHypothesis } from './hypothesis';
 
 export {
   RECOMMENDATION_PRIORITIES,

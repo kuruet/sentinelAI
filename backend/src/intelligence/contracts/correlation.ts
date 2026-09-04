@@ -6,8 +6,7 @@ export const INTELLIGENCE_CORRELATION_TYPES = [
   'EVENT_EVIDENCE',
 ] as const;
 
-export type IntelligenceCorrelationType =
-  (typeof INTELLIGENCE_CORRELATION_TYPES)[number];
+export type IntelligenceCorrelationType = (typeof INTELLIGENCE_CORRELATION_TYPES)[number];
 
 export interface IntelligenceCorrelation {
   id: string;

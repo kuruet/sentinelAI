@@ -6,8 +6,7 @@ export const DETERMINISTIC_SIGNAL_TYPES = [
   'CORRELATION_DENSITY',
 ] as const;
 
-export type DeterministicSignalType =
-  (typeof DETERMINISTIC_SIGNAL_TYPES)[number];
+export type DeterministicSignalType = (typeof DETERMINISTIC_SIGNAL_TYPES)[number];
 
 export interface DeterministicSignal {
   type: DeterministicSignalType;

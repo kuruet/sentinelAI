@@ -1,11 +1,6 @@
-export const INCIDENT_SUMMARY_MODES = [
-  'EXECUTIVE',
-  'INVESTIGATION',
-  'TIMELINE',
-] as const;
+export const INCIDENT_SUMMARY_MODES = ['EXECUTIVE', 'INVESTIGATION', 'TIMELINE'] as const;
 
-export type IncidentSummaryMode =
-  (typeof INCIDENT_SUMMARY_MODES)[number];
+export type IncidentSummaryMode = (typeof INCIDENT_SUMMARY_MODES)[number];
 
 export interface IncidentSummaryRequest {
   incidentId: string;

@@ -1,12 +1,8 @@
 import type { IntelligenceHypothesis } from '../contracts/hypothesis';
 
-export const ROOT_CAUSE_ANALYSIS_MODES = [
-  'PRIMARY',
-  'ALTERNATIVE',
-] as const;
+export const ROOT_CAUSE_ANALYSIS_MODES = ['PRIMARY', 'ALTERNATIVE'] as const;
 
-export type RootCauseAnalysisMode =
-  (typeof ROOT_CAUSE_ANALYSIS_MODES)[number];
+export type RootCauseAnalysisMode = (typeof ROOT_CAUSE_ANALYSIS_MODES)[number];
 
 export interface RootCauseAnalysisRequest {
   incidentId: string;

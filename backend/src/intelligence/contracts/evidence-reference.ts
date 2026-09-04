@@ -5,8 +5,7 @@ export const INTELLIGENCE_REFERENCE_TYPES = [
   'INVESTIGATION',
 ] as const;
 
-export type IntelligenceReferenceType =
-  (typeof INTELLIGENCE_REFERENCE_TYPES)[number];
+export type IntelligenceReferenceType = (typeof INTELLIGENCE_REFERENCE_TYPES)[number];
 
 export interface IntelligenceReference {
   type: IntelligenceReferenceType;

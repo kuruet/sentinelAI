@@ -1,8 +1,6 @@
 import assert from 'node:assert/strict';
 
-import {
-  IntelligenceFindingsHypothesisService,
-} from '../src/services/intelligence-findings-hypothesis-service';
+import { IntelligenceFindingsHypothesisService } from '../src/services/intelligence-findings-hypothesis-service';
 
 import type { IntelligenceFinding } from '../src/intelligence';
 
@@ -13,8 +11,7 @@ const findings: IntelligenceFinding[] = [
     id: 'finding-b',
     type: 'ANOMALY',
     title: 'Event burst detected',
-    description:
-      'A high-density temporal window was observed.',
+    description: 'A high-density temporal window was observed.',
     confidence: {
       level: 'HIGH',
       rationale: 'Deterministic temporal signal.',
@@ -41,8 +38,7 @@ const findings: IntelligenceFinding[] = [
     id: 'finding-a',
     type: 'CORRELATION',
     title: 'Events are correlated',
-    description:
-      'Events occur within a deterministic temporal relationship.',
+    description: 'Events occur within a deterministic temporal relationship.',
     confidence: {
       level: 'MEDIUM',
       rationale: 'Temporal correlation.',
@@ -64,8 +60,7 @@ const findings: IntelligenceFinding[] = [
     id: 'finding-c',
     type: 'PATTERN',
     title: 'Low-confidence pattern',
-    description:
-      'A weak recurring pattern was observed.',
+    description: 'A weak recurring pattern was observed.',
     confidence: {
       level: 'LOW',
       rationale: 'Limited deterministic support.',
@@ -101,22 +96,15 @@ assert.deepEqual(
 );
 
 // Duplicate references removed
-const normalizedBurst = first.findings.find(
-  (finding) => finding.id === 'finding-b',
-);
+const normalizedBurst = first.findings.find((finding) => finding.id === 'finding-b');
 
 assert.ok(normalizedBurst);
 assert.equal(normalizedBurst.references.length, 2);
 
 // Reference ordering deterministic
 assert.deepEqual(
-  normalizedBurst.references.map(
-    (reference) => `${reference.type}:${reference.id}`,
-  ),
-  [
-    'EVENT:event-1',
-    'EVENT:event-2',
-  ],
+  normalizedBurst.references.map((reference) => `${reference.type}:${reference.id}`),
+  ['EVENT:event-1', 'EVENT:event-2'],
 );
 
 // One hypothesis per finding
@@ -124,55 +112,43 @@ assert.equal(first.hypotheses.length, first.findings.length);
 
 // Hypothesis IDs deterministic
 for (const hypothesis of first.hypotheses) {
-  assert.match(
-    hypothesis.id,
-    /^hypothesis-[a-f0-9]{24}$/,
-  );
+  assert.match(hypothesis.id, /^hypothesis-[a-f0-9]{24}$/);
 
   assert.ok(hypothesis.title.startsWith('Possible explanation:'));
   assert.ok(hypothesis.description.includes('not a confirmed root cause'));
 
   assert.ok(hypothesis.supportingReferences.length > 0);
 
-  assert.deepEqual(
-    hypothesis.contradictingReferences,
-    [],
-  );
+  assert.deepEqual(hypothesis.contradictingReferences, []);
 }
 
 // Confidence propagation
 const highHypothesis = first.hypotheses.find(
-  (hypothesis) =>
-    hypothesis.title === 'Possible explanation: Event burst detected',
+  (hypothesis) => hypothesis.title === 'Possible explanation: Event burst detected',
 );
 
 assert.ok(highHypothesis);
 assert.equal(highHypothesis.confidence.level, 'HIGH');
 
 const mediumHypothesis = first.hypotheses.find(
-  (hypothesis) =>
-    hypothesis.title === 'Possible explanation: Events are correlated',
+  (hypothesis) => hypothesis.title === 'Possible explanation: Events are correlated',
 );
 
 assert.ok(mediumHypothesis);
 assert.equal(mediumHypothesis.confidence.level, 'MEDIUM');
 
 const lowHypothesis = first.hypotheses.find(
-  (hypothesis) =>
-    hypothesis.title === 'Possible explanation: Low-confidence pattern',
+  (hypothesis) => hypothesis.title === 'Possible explanation: Low-confidence pattern',
 );
 
 assert.ok(lowHypothesis);
 assert.equal(lowHypothesis.confidence.level, 'LOW');
 
 // Empty input
-assert.deepEqual(
-  service.build([]),
-  {
-    findings: [],
-    hypotheses: [],
-  },
-);
+assert.deepEqual(service.build([]), {
+  findings: [],
+  hypotheses: [],
+});
 
 // No mutation through returned finding references
 first.findings[0].references.push({
@@ -182,16 +158,8 @@ first.findings[0].references.push({
 });
 
 assert.equal(
-  findings.some((finding) =>
-    finding.references.some(
-      (reference) =>
-        reference.id === 'incident-1',
-    ),
-  ),
+  findings.some((finding) => finding.references.some((reference) => reference.id === 'incident-1')),
   false,
 );
 
-console.log(
-  'STEP 4.6 FINDINGS & HYPOTHESIS MODEL TEST: PASS',
-);
-
+console.log('STEP 4.6 FINDINGS & HYPOTHESIS MODEL TEST: PASS');

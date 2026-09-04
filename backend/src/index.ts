@@ -2,14 +2,8 @@ import Fastify, { type FastifyInstance } from 'fastify';
 import { env } from './config/env';
 import { prisma } from './infrastructure/database';
 import { redis } from './infrastructure/redis';
-import {
-  infrastructureTestQueue,
-  queueRedisConnection,
-} from './infrastructure/queue';
-import {
-  infrastructureTestWorker,
-  workerRedisConnection,
-} from './infrastructure/worker';
+import { infrastructureTestQueue, queueRedisConnection } from './infrastructure/queue';
+import { infrastructureTestWorker, workerRedisConnection } from './infrastructure/worker';
 import { registerErrorHandling } from './errors/error-handler';
 import { registerRoutes } from './routes';
 import { registerAuthentication, registerSecurity } from './security';

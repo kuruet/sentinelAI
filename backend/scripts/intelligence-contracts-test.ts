@@ -15,12 +15,7 @@ import {
 
 assert.deepEqual(CONFIDENCE_LEVELS, ['HIGH', 'MEDIUM', 'LOW']);
 
-assert.deepEqual(INTELLIGENCE_REFERENCE_TYPES, [
-  'INCIDENT',
-  'EVENT',
-  'EVIDENCE',
-  'INVESTIGATION',
-]);
+assert.deepEqual(INTELLIGENCE_REFERENCE_TYPES, ['INCIDENT', 'EVENT', 'EVIDENCE', 'INVESTIGATION']);
 
 assert.deepEqual(INTELLIGENCE_FINDING_TYPES, [
   'TEMPORAL',
@@ -31,12 +26,7 @@ assert.deepEqual(INTELLIGENCE_FINDING_TYPES, [
   'PATTERN',
 ]);
 
-assert.deepEqual(RECOMMENDATION_PRIORITIES, [
-  'IMMEDIATE',
-  'HIGH',
-  'NORMAL',
-  'LOW',
-]);
+assert.deepEqual(RECOMMENDATION_PRIORITIES, ['IMMEDIATE', 'HIGH', 'NORMAL', 'LOW']);
 
 const confidence: ConfidenceAssessment = {
   level: 'HIGH',

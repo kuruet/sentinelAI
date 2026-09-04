@@ -1,22 +1,12 @@
-import {
-  FakeAIProvider,
-} from '../src/intelligence/providers';
+import { FakeAIProvider } from '../src/intelligence/providers';
 
-import {
-  AIContextBuilder,
-} from '../src/intelligence/grounding';
+import { AIContextBuilder } from '../src/intelligence/grounding';
 
-import {
-  IncidentSummarizationService,
-} from '../src/intelligence/summarization';
+import { IncidentSummarizationService } from '../src/intelligence/summarization';
 
-import type {
-  IntelligenceContextSnapshot,
-} from '../src/intelligence/contracts/context';
+import type { IntelligenceContextSnapshot } from '../src/intelligence/contracts/context';
 
-import type {
-  IntelligenceFinding,
-} from '../src/intelligence/contracts/finding';
+import type { IntelligenceFinding } from '../src/intelligence/contracts/finding';
 
 function assert(condition: boolean, message: string): void {
   if (!condition) {
@@ -154,68 +144,34 @@ async function main(): Promise<void> {
 
   const before = JSON.stringify(snapshot);
 
-  const result = await service.summarize(
-    request,
-    snapshot,
-    findings,
-  );
+  const result = await service.summarize(request, snapshot, findings);
+
+  assert(result.incidentId === 'incident-4-10', 'Summary must preserve incident identity.');
+
+  assert(result.mode === 'INVESTIGATION', 'Summary must preserve requested mode.');
+
+  assert(result.summary.includes('database timeout'), 'Summary must contain provider output.');
+
+  assert(result.provider === 'fake', 'Summary must expose provider identity.');
+
+  assert(result.model === 'test-model', 'Summary must expose model identity.');
 
   assert(
-    result.incidentId === 'incident-4-10',
-    'Summary must preserve incident identity.',
-  );
-
-  assert(
-    result.mode === 'INVESTIGATION',
-    'Summary must preserve requested mode.',
-  );
-
-  assert(
-    result.summary.includes('database timeout'),
-    'Summary must contain provider output.',
-  );
-
-  assert(
-    result.provider === 'fake',
-    'Summary must expose provider identity.',
-  );
-
-  assert(
-    result.model === 'test-model',
-    'Summary must expose model identity.',
-  );
-
-  assert(
-    result.references.some(
-      (item) =>
-        item.type === 'EVENT' &&
-        item.id === 'event-4-10-1',
-    ),
+    result.references.some((item) => item.type === 'EVENT' && item.id === 'event-4-10-1'),
     'Summary must preserve event provenance.',
   );
 
   assert(
-    result.references.some(
-      (item) =>
-        item.type === 'EVIDENCE' &&
-        item.id === 'evidence-4-10-1',
-    ),
+    result.references.some((item) => item.type === 'EVIDENCE' && item.id === 'evidence-4-10-1'),
     'Summary must preserve evidence provenance.',
   );
 
   assert(
-    result.references.some(
-      (item) =>
-        item.type === 'FINDING' &&
-        item.id === 'finding-4-10-1',
-    ),
+    result.references.some((item) => item.type === 'FINDING' && item.id === 'finding-4-10-1'),
     'Summary must preserve finding provenance.',
   );
 
-  assert(
-    result.limitations.length >= 4,
-    'Summary must expose advisory limitations.',
-  );
+  assert(result.limitations.length >= 4, 'Summary must expose advisory limitations.');
 
   let mismatchRejected = false;
 
@@ -232,21 +188,13 @@ async function main(): Promise<void> {
     mismatchRejected = true;
   }
 
-  assert(
-    mismatchRejected,
-    'Mismatched incident context must be rejected.',
-  );
+  assert(mismatchRejected, 'Mismatched incident context must be rejected.');
 
   const after = JSON.stringify(snapshot);
 
-  assert(
-    before === after,
-    'Summarization must not mutate source context.',
-  );
+  assert(before === after, 'Summarization must not mutate source context.');
 
-  console.log(
-    'STEP 4.10 AI INCIDENT SUMMARIZATION TEST: PASS',
-  );
+  console.log('STEP 4.10 AI INCIDENT SUMMARIZATION TEST: PASS');
 }
 
 main().catch((error) => {

@@ -6,8 +6,7 @@ export const INVESTIGATION_ASSISTANT_INTENTS = [
   'HYPOTHESIS_REVIEW',
 ] as const;
 
-export type InvestigationAssistantIntent =
-  (typeof INVESTIGATION_ASSISTANT_INTENTS)[number];
+export type InvestigationAssistantIntent = (typeof INVESTIGATION_ASSISTANT_INTENTS)[number];
 
 export interface InvestigationAssistantRequest {
   incidentId: string;

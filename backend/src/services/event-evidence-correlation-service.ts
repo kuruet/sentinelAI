@@ -1,14 +1,8 @@
 import { createHash } from 'node:crypto';
 
-import type {
-  EvidenceResponse,
-  IncidentEventResponse,
-} from '../contracts';
+import type { EvidenceResponse, IncidentEventResponse } from '../contracts';
 
-import type {
-  IntelligenceContextSnapshot,
-  IntelligenceCorrelation,
-} from '../intelligence';
+import type { IntelligenceContextSnapshot, IntelligenceCorrelation } from '../intelligence';
 
 const DEFAULT_TEMPORAL_WINDOW_MS = 5 * 60 * 1000;
 
@@ -28,10 +22,7 @@ function stableId(
 ): string {
   const input = `${type}:${firstId}:${secondId}`;
 
-  return `correlation-${createHash('sha256')
-    .update(input)
-    .digest('hex')
-    .slice(0, 24)}`;
+  return `correlation-${createHash('sha256').update(input).digest('hex').slice(0, 24)}`;
 }
 
 function timestamp(value: string | null | undefined): number | null {
@@ -88,13 +79,10 @@ function temporalOccurredAt(
     return first ?? null;
   }
 
-  return firstTimestamp <= secondTimestamp ? first ?? null : second ?? null;
+  return firstTimestamp <= secondTimestamp ? (first ?? null) : (second ?? null);
 }
 
-function eventReference(
-  event: IncidentEventResponse,
-  reason: string,
-) {
+function eventReference(event: IncidentEventResponse, reason: string) {
   return {
     type: 'EVENT' as const,
     id: event.id,
@@ -102,10 +90,7 @@ function eventReference(
   };
 }
 
-function evidenceReference(
-  evidence: EvidenceResponse,
-  reason: string,
-) {
+function evidenceReference(evidence: EvidenceResponse, reason: string) {
   return {
     type: 'EVIDENCE' as const,
     id: evidence.id,
@@ -121,8 +106,7 @@ function buildEventEventCandidate(
   const distance = temporalDistance(first.occurredAt, second.occurredAt);
   const sharedSource = sourceMatches(first, second);
 
-  const temporallyRelated =
-    distance !== null && distance <= temporalWindowMs;
+  const temporallyRelated = distance !== null && distance <= temporalWindowMs;
 
   if (!temporallyRelated && !sharedSource) {
     return null;
@@ -190,8 +174,7 @@ function buildEventEvidenceCandidate(
   const distance = temporalDistance(event.occurredAt, evidence.occurredAt);
   const sharedSource = sourceMatches(event, evidence);
 
-  const temporallyRelated =
-    distance !== null && distance <= temporalWindowMs;
+  const temporallyRelated = distance !== null && distance <= temporalWindowMs;
 
   if (!temporallyRelated && !sharedSource) {
     return null;
@@ -222,10 +205,7 @@ function buildEventEvidenceCandidate(
         'deterministic relationship, not causation.',
       confidence: 'HIGH',
       references,
-      occurredAt: temporalOccurredAt(
-        event.occurredAt,
-        evidence.occurredAt,
-      ),
+      occurredAt: temporalOccurredAt(event.occurredAt, evidence.occurredAt),
     };
   }
 
@@ -239,10 +219,7 @@ function buildEventEvidenceCandidate(
         'not causation.',
       confidence: 'MEDIUM',
       references,
-      occurredAt: temporalOccurredAt(
-        event.occurredAt,
-        evidence.occurredAt,
-      ),
+      occurredAt: temporalOccurredAt(event.occurredAt, evidence.occurredAt),
     };
   }
 
@@ -255,10 +232,7 @@ function buildEventEvidenceCandidate(
       'not causation.',
     confidence: 'LOW',
     references,
-    occurredAt: temporalOccurredAt(
-      event.occurredAt,
-      evidence.occurredAt,
-    ),
+    occurredAt: temporalOccurredAt(event.occurredAt, evidence.occurredAt),
   };
 }
 
@@ -279,22 +253,15 @@ function toCorrelation(
 }
 
 export class EventEvidenceCorrelationService {
-  constructor(
-    private readonly temporalWindowMs: number = DEFAULT_TEMPORAL_WINDOW_MS,
-  ) {
+  constructor(private readonly temporalWindowMs: number = DEFAULT_TEMPORAL_WINDOW_MS) {
     if (!Number.isFinite(temporalWindowMs) || temporalWindowMs < 0) {
-      throw new Error(
-        'Correlation temporal window must be a finite non-negative number.',
-      );
+      throw new Error('Correlation temporal window must be a finite non-negative number.');
     }
   }
 
-  correlate(
-    snapshot: IntelligenceContextSnapshot,
-  ): IntelligenceCorrelation[] {
+  correlate(snapshot: IntelligenceContextSnapshot): IntelligenceCorrelation[] {
     const events = [...snapshot.context.events].sort((a, b) => {
-      const timeDifference =
-        Date.parse(a.occurredAt) - Date.parse(b.occurredAt);
+      const timeDifference = Date.parse(a.occurredAt) - Date.parse(b.occurredAt);
 
       if (timeDifference !== 0) {
         return timeDifference;
@@ -319,8 +286,7 @@ export class EventEvidenceCorrelationService {
         return aTime - bTime;
       }
 
-      const createdDifference =
-        Date.parse(a.createdAt) - Date.parse(b.createdAt);
+      const createdDifference = Date.parse(a.createdAt) - Date.parse(b.createdAt);
 
       if (createdDifference !== 0) {
         return createdDifference;
@@ -332,44 +298,24 @@ export class EventEvidenceCorrelationService {
     const correlations: IntelligenceCorrelation[] = [];
 
     for (let firstIndex = 0; firstIndex < events.length; firstIndex += 1) {
-      for (
-        let secondIndex = firstIndex + 1;
-        secondIndex < events.length;
-        secondIndex += 1
-      ) {
+      for (let secondIndex = firstIndex + 1; secondIndex < events.length; secondIndex += 1) {
         const first = events[firstIndex];
         const second = events[secondIndex];
 
-        const candidate = buildEventEventCandidate(
-          first,
-          second,
-          this.temporalWindowMs,
-        );
+        const candidate = buildEventEventCandidate(first, second, this.temporalWindowMs);
 
         if (candidate) {
-          correlations.push(
-            toCorrelation(candidate, first.id, second.id),
-          );
+          correlations.push(toCorrelation(candidate, first.id, second.id));
         }
       }
     }
 
     for (const event of events) {
       for (const evidenceItem of evidence) {
-        const candidate = buildEventEvidenceCandidate(
-          event,
-          evidenceItem,
-          this.temporalWindowMs,
-        );
+        const candidate = buildEventEvidenceCandidate(event, evidenceItem, this.temporalWindowMs);
 
         if (candidate) {
-          correlations.push(
-            toCorrelation(
-              candidate,
-              event.id,
-              evidenceItem.id,
-            ),
-          );
+          correlations.push(toCorrelation(candidate, event.id, evidenceItem.id));
         }
       }
     }

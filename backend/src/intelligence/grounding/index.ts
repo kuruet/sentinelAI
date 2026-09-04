@@ -1,6 +1,4 @@
-export {
-  AI_CONTEXT_ITEM_TYPES,
-} from './ai-context';
+export { AI_CONTEXT_ITEM_TYPES } from './ai-context';
 
 export type {
   AIContextItemType,
@@ -12,10 +10,6 @@ export type {
 
 export { AIContextBuilder } from './ai-context-builder';
 
-export {
-  buildGroundedAIRequest,
-} from './grounded-ai-request';
+export { buildGroundedAIRequest } from './grounded-ai-request';
 
-export type {
-  GroundedAIRequestOptions,
-} from './grounded-ai-request';
+export type { GroundedAIRequestOptions } from './grounded-ai-request';

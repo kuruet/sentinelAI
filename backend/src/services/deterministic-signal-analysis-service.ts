@@ -27,10 +27,7 @@ function timestamp(value: string | null | undefined): number | null {
   return Number.isNaN(parsed) ? null : parsed;
 }
 
-function stableFindingId(
-  signalType: string,
-  referenceIds: string[],
-): string {
+function stableFindingId(signalType: string, referenceIds: string[]): string {
   const normalized = [...referenceIds].sort().join('|');
 
   return `finding-${createHash('sha256')
@@ -39,10 +36,7 @@ function stableFindingId(
     .slice(0, 24)}`;
 }
 
-function eventReference(
-  event: IncidentEventResponse,
-  reason: string,
-) {
+function eventReference(event: IncidentEventResponse, reason: string) {
   return {
     type: 'EVENT' as const,
     id: event.id,
@@ -50,10 +44,7 @@ function eventReference(
   };
 }
 
-function evidenceReference(
-  evidence: EvidenceResponse,
-  reason: string,
-) {
+function evidenceReference(evidence: EvidenceResponse, reason: string) {
   return {
     type: 'EVIDENCE' as const,
     id: evidence.id,
@@ -81,16 +72,10 @@ function toFinding(signal: DeterministicSignal): IntelligenceFinding {
   };
 }
 
-function detectTemporalBursts(
-  events: IncidentEventResponse[],
-): DeterministicSignal[] {
+function detectTemporalBursts(events: IncidentEventResponse[]): DeterministicSignal[] {
   const sorted = [...events]
     .filter((event) => timestamp(event.occurredAt) !== null)
-    .sort(
-      (a, b) =>
-        (timestamp(a.occurredAt) ?? 0) -
-        (timestamp(b.occurredAt) ?? 0),
-    );
+    .sort((a, b) => (timestamp(a.occurredAt) ?? 0) - (timestamp(b.occurredAt) ?? 0));
 
   const signals: DeterministicSignal[] = [];
 
@@ -106,10 +91,7 @@ function detectTemporalBursts(
     for (let index = start; index < sorted.length; index += 1) {
       const currentTime = timestamp(sorted[index].occurredAt);
 
-      if (
-        currentTime !== null &&
-        currentTime - startTime <= BURST_WINDOW_MS
-      ) {
+      if (currentTime !== null && currentTime - startTime <= BURST_WINDOW_MS) {
         windowEvents.push(sorted[index]);
       } else {
         break;
@@ -121,10 +103,7 @@ function detectTemporalBursts(
     }
 
     const references = windowEvents.map((event) =>
-      eventReference(
-        event,
-        'Event participates in a deterministic high-density temporal window.',
-      ),
+      eventReference(event, 'Event participates in a deterministic high-density temporal window.'),
     );
 
     signals.push({
@@ -133,10 +112,7 @@ function detectTemporalBursts(
       description:
         `${windowEvents.length} events occurred within a five-minute window. ` +
         'This is a deterministic temporal anomaly and does not establish causation.',
-      confidence:
-        windowEvents.length >= BURST_EVENT_COUNT + 2
-          ? 'HIGH'
-          : 'MEDIUM',
+      confidence: windowEvents.length >= BURST_EVENT_COUNT + 2 ? 'HIGH' : 'MEDIUM',
       references,
     });
 
@@ -146,9 +122,7 @@ function detectTemporalBursts(
   return signals;
 }
 
-function detectRepeatedEventTypes(
-  events: IncidentEventResponse[],
-): DeterministicSignal[] {
+function detectRepeatedEventTypes(events: IncidentEventResponse[]): DeterministicSignal[] {
   const counts = new Map<string, IncidentEventResponse[]>();
 
   for (const event of events) {
@@ -170,10 +144,7 @@ function detectRepeatedEventTypes(
       description:
         `${matchingEvents.length} events of type ${eventType} were recorded. ` +
         'The repetition is an observable signal requiring investigation.',
-      confidence:
-        matchingEvents.length >= REPEATED_EVENT_TYPE_COUNT + 2
-          ? 'HIGH'
-          : 'MEDIUM',
+      confidence: matchingEvents.length >= REPEATED_EVENT_TYPE_COUNT + 2 ? 'HIGH' : 'MEDIUM',
       references: matchingEvents.map((event) =>
         eventReference(
           event,
@@ -186,9 +157,7 @@ function detectRepeatedEventTypes(
   return signals;
 }
 
-function detectSourceConcentration(
-  events: IncidentEventResponse[],
-): DeterministicSignal[] {
+function detectSourceConcentration(events: IncidentEventResponse[]): DeterministicSignal[] {
   if (events.length < 3) {
     return [];
   }
@@ -225,10 +194,7 @@ function detectSourceConcentration(
         'The concentration is an observable signal, not a causal conclusion.',
       confidence: ratio >= 0.9 ? 'HIGH' : 'MEDIUM',
       references: matchingEvents.map((event) =>
-        eventReference(
-          event,
-          'Event contributes to the detected source concentration.',
-        ),
+        eventReference(event, 'Event contributes to the detected source concentration.'),
       ),
     });
   }
@@ -236,16 +202,10 @@ function detectSourceConcentration(
   return signals;
 }
 
-function detectEvidenceClusters(
-  evidence: EvidenceResponse[],
-): DeterministicSignal[] {
+function detectEvidenceClusters(evidence: EvidenceResponse[]): DeterministicSignal[] {
   const timestamped = evidence
     .filter((item) => timestamp(item.occurredAt) !== null)
-    .sort(
-      (a, b) =>
-        (timestamp(a.occurredAt) ?? 0) -
-        (timestamp(b.occurredAt) ?? 0),
-    );
+    .sort((a, b) => (timestamp(a.occurredAt) ?? 0) - (timestamp(b.occurredAt) ?? 0));
 
   if (timestamped.length < EVIDENCE_CLUSTER_COUNT) {
     return [];
@@ -265,10 +225,7 @@ function detectEvidenceClusters(
     for (let index = start; index < timestamped.length; index += 1) {
       const currentTime = timestamp(timestamped[index].occurredAt);
 
-      if (
-        currentTime !== null &&
-        currentTime - startTime <= BURST_WINDOW_MS
-      ) {
+      if (currentTime !== null && currentTime - startTime <= BURST_WINDOW_MS) {
         cluster.push(timestamped[index]);
       } else {
         break;
@@ -287,10 +244,7 @@ function detectEvidenceClusters(
         'The cluster indicates concentrated observations and requires contextual investigation.',
       confidence: cluster.length >= 5 ? 'HIGH' : 'MEDIUM',
       references: cluster.map((item) =>
-        evidenceReference(
-          item,
-          'Evidence participates in the detected temporal cluster.',
-        ),
+        evidenceReference(item, 'Evidence participates in the detected temporal cluster.'),
       ),
     });
 
@@ -300,22 +254,15 @@ function detectEvidenceClusters(
   return signals;
 }
 
-function detectCorrelationDensity(
-  correlations: IntelligenceCorrelation[],
-): DeterministicSignal[] {
+function detectCorrelationDensity(correlations: IntelligenceCorrelation[]): DeterministicSignal[] {
   if (correlations.length < CORRELATION_DENSITY_COUNT) {
     return [];
   }
 
-  const references = correlations.flatMap((correlation) =>
-    correlation.references,
-  );
+  const references = correlations.flatMap((correlation) => correlation.references);
 
   const uniqueReferences = new Map(
-    references.map((reference) => [
-      `${reference.type}:${reference.id}`,
-      reference,
-    ]),
+    references.map((reference) => [`${reference.type}:${reference.id}`, reference]),
   );
 
   return [
@@ -326,10 +273,7 @@ function detectCorrelationDensity(
         `${correlations.length} deterministic correlations were identified ` +
         'within the incident context. This indicates a dense relationship pattern ' +
         'and does not establish causation.',
-      confidence:
-        correlations.length >= CORRELATION_DENSITY_COUNT + 3
-          ? 'HIGH'
-          : 'MEDIUM',
+      confidence: correlations.length >= CORRELATION_DENSITY_COUNT + 3 ? 'HIGH' : 'MEDIUM',
       references: [...uniqueReferences.values()],
     },
   ];
@@ -351,9 +295,7 @@ export class DeterministicSignalAnalysisService {
       ...detectCorrelationDensity(correlations),
     ];
 
-    const findings = signals
-      .map(toFinding)
-      .sort((a, b) => a.id.localeCompare(b.id));
+    const findings = signals.map(toFinding).sort((a, b) => a.id.localeCompare(b.id));
 
     return {
       findings,

@@ -1,63 +1,54 @@
 import { createHash } from 'node:crypto';
 import { z } from 'zod';
 
-import type {
-  AIProvider,
-  AIProviderResponse,
-} from '../providers';
-import {
-  AIContextBuilder,
-  buildGroundedAIRequest,
-} from '../grounding';
-import type {
-  GroundedAIContext,
-} from '../grounding';
-import type {
-  IntelligenceContextSnapshot,
-} from '../contracts/context';
-import {
-  CONFIDENCE_LEVELS,
-  type ConfidenceAssessment,
-} from '../contracts/confidence';
+import type { AIProvider, AIProviderResponse } from '../providers';
+import { AIContextBuilder, buildGroundedAIRequest } from '../grounding';
+import type { GroundedAIContext } from '../grounding';
+import type { IntelligenceContextSnapshot } from '../contracts/context';
+import { CONFIDENCE_LEVELS, type ConfidenceAssessment } from '../contracts/confidence';
 import {
   INTELLIGENCE_REFERENCE_TYPES,
   type IntelligenceReference,
 } from '../contracts/evidence-reference';
-import type {
-  IntelligenceFinding,
-} from '../contracts/finding';
-import type {
-  IntelligenceHypothesis,
-} from '../contracts/hypothesis';
+import type { IntelligenceFinding } from '../contracts/finding';
+import type { IntelligenceHypothesis } from '../contracts/hypothesis';
 import {
   RECOMMENDATION_PRIORITIES,
   type IntelligenceRecommendation,
   type RecommendationPriority,
 } from '../contracts/recommendation';
 
-const confidenceSchema = z.object({
-  level: z.enum(CONFIDENCE_LEVELS),
-  score: z.number().min(0).max(1).nullable().optional(),
-  rationale: z.string().min(1),
-}).strict();
+const confidenceSchema = z
+  .object({
+    level: z.enum(CONFIDENCE_LEVELS),
+    score: z.number().min(0).max(1).nullable().optional(),
+    rationale: z.string().min(1),
+  })
+  .strict();
 
-const referenceSchema = z.object({
-  type: z.enum(INTELLIGENCE_REFERENCE_TYPES),
-  id: z.string().min(1),
-  reason: z.string().min(1),
-}).strict();
+const referenceSchema = z
+  .object({
+    type: z.enum(INTELLIGENCE_REFERENCE_TYPES),
+    id: z.string().min(1),
+    reason: z.string().min(1),
+  })
+  .strict();
 
-const recommendationSchema = z.object({
-  title: z.string().min(1),
-  action: z.string().min(1),
-  priority: z.enum(RECOMMENDATION_PRIORITIES),
-  confidence: confidenceSchema,
-  references: z.array(referenceSchema),
-}).strict();
+const recommendationSchema = z
+  .object({
+    title: z.string().min(1),
+    action: z.string().min(1),
+    priority: z.enum(RECOMMENDATION_PRIORITIES),
+    confidence: confidenceSchema,
+    references: z.array(referenceSchema),
+  })
+  .strict();
 
-const structuredRecommendationsSchema = z.object({
-  recommendations: z.array(recommendationSchema),
-}).strict();
+const structuredRecommendationsSchema = z
+  .object({
+    recommendations: z.array(recommendationSchema),
+  })
+  .strict();
 
 const PRIORITY_ORDER: Record<RecommendationPriority, number> = {
   IMMEDIATE: 0,
@@ -114,15 +105,10 @@ export class AIRecommendationsService {
     }
 
     if (input.snapshot.context.incident?.id !== incidentId) {
-      throw new Error(
-        'Recommendation analysis incidentId does not match the supplied context.',
-      );
+      throw new Error('Recommendation analysis incidentId does not match the supplied context.');
     }
 
-    const groundedContext = this.contextBuilder.build(
-      input.snapshot,
-      input.findings ?? [],
-    );
+    const groundedContext = this.contextBuilder.build(input.snapshot, input.findings ?? []);
 
     const instructions = [
       'Generate operational recommendations and next investigation actions using only the supplied intelligence context.',
@@ -144,32 +130,21 @@ export class AIRecommendationsService {
       'Limit recommendations to the most useful actions; do not produce generic filler.',
     ].join('\n');
 
-    const groundedRequest = buildGroundedAIRequest(
-      groundedContext,
-      {
-        model,
-        instructions,
-      },
-    );
+    const groundedRequest = buildGroundedAIRequest(groundedContext, {
+      model,
+      instructions,
+    });
 
-    const providerResponse = await this.provider.generate(
-      groundedRequest,
-    );
+    const providerResponse = await this.provider.generate(groundedRequest);
 
-    const recommendations = this.parseProviderOutput(
-      providerResponse,
-      groundedContext,
-      incidentId,
-    );
+    const recommendations = this.parseProviderOutput(providerResponse, groundedContext, incidentId);
 
     return {
       incidentId,
       recommendations,
       provider: providerResponse.provider,
       model: providerResponse.model,
-      ...(providerResponse.requestId
-        ? { requestId: providerResponse.requestId }
-        : {}),
+      ...(providerResponse.requestId ? { requestId: providerResponse.requestId } : {}),
       ...(providerResponse.latencyMs !== undefined
         ? { latencyMs: providerResponse.latencyMs }
         : {}),
@@ -186,64 +161,46 @@ export class AIRecommendationsService {
     try {
       raw = JSON.parse(response.outputText);
     } catch {
-      throw new Error(
-        'Recommendation provider returned invalid structured output.',
-      );
+      throw new Error('Recommendation provider returned invalid structured output.');
     }
 
     const parsed = structuredRecommendationsSchema.safeParse(raw);
 
     if (!parsed.success) {
-      throw new Error(
-        'Recommendation provider returned structured output that failed validation.',
-      );
+      throw new Error('Recommendation provider returned structured output that failed validation.');
     }
 
     const contextReferenceKeys = new Set(
-      groundedContext.references.map(
-        (reference) => `${reference.type}:${reference.id}`,
-      ),
+      groundedContext.references.map((reference) => `${reference.type}:${reference.id}`),
     );
 
-    const recommendations = parsed.data.recommendations.map(
-      (recommendation) => {
-        const references = this.normalizeReferences(
-          recommendation.references,
-        );
+    const recommendations = parsed.data.recommendations.map((recommendation) => {
+      const references = this.normalizeReferences(recommendation.references);
 
-        for (const reference of references) {
-          const key = `${reference.type}:${reference.id}`;
+      for (const reference of references) {
+        const key = `${reference.type}:${reference.id}`;
 
-          if (!contextReferenceKeys.has(key)) {
-            throw new Error(
-              `Recommendation output contains a reference outside the grounded context: ${key}`,
-            );
-          }
+        if (!contextReferenceKeys.has(key)) {
+          throw new Error(
+            `Recommendation output contains a reference outside the grounded context: ${key}`,
+          );
         }
+      }
 
-        const confidence = this.normalizeConfidence(
-          recommendation.confidence,
-        );
+      const confidence = this.normalizeConfidence(recommendation.confidence);
 
-        return {
-          id: this.createRecommendationId(
-            incidentId,
-            recommendation,
-            confidence,
-            references,
-          ),
-          title: recommendation.title.trim(),
-          action: recommendation.action.trim(),
-          priority: recommendation.priority,
-          confidence,
-          references,
-        };
-      },
-    );
+      return {
+        id: this.createRecommendationId(incidentId, recommendation, confidence, references),
+        title: recommendation.title.trim(),
+        action: recommendation.action.trim(),
+        priority: recommendation.priority,
+        confidence,
+        references,
+      };
+    });
 
     return recommendations.sort((a, b) => {
-      const priorityDifference =
-        PRIORITY_ORDER[a.priority] - PRIORITY_ORDER[b.priority];
+      const priorityDifference = PRIORITY_ORDER[a.priority] - PRIORITY_ORDER[b.priority];
 
       if (priorityDifference !== 0) {
         return priorityDifference;
@@ -253,9 +210,7 @@ export class AIRecommendationsService {
     });
   }
 
-  private normalizeReferences(
-    references: IntelligenceReference[],
-  ): IntelligenceReference[] {
+  private normalizeReferences(references: IntelligenceReference[]): IntelligenceReference[] {
     const unique = new Map<string, IntelligenceReference>();
 
     for (const reference of references) {
@@ -265,10 +220,7 @@ export class AIRecommendationsService {
         reason: reference.reason.trim(),
       };
 
-      unique.set(
-        `${normalized.type}:${normalized.id}`,
-        normalized,
-      );
+      unique.set(`${normalized.type}:${normalized.id}`, normalized);
     }
 
     return [...unique.values()].sort((a, b) => {
@@ -282,14 +234,10 @@ export class AIRecommendationsService {
     });
   }
 
-  private normalizeConfidence(
-    confidence: ConfidenceAssessment,
-  ): ConfidenceAssessment {
+  private normalizeConfidence(confidence: ConfidenceAssessment): ConfidenceAssessment {
     return {
       level: confidence.level,
-      ...(confidence.score !== undefined
-        ? { score: confidence.score }
-        : {}),
+      ...(confidence.score !== undefined ? { score: confidence.score } : {}),
       rationale: confidence.rationale.trim(),
     };
   }
@@ -313,10 +261,7 @@ export class AIRecommendationsService {
       references,
     });
 
-    return `recommendation-${createHash('sha256')
-      .update(canonical)
-      .digest('hex')
-      .slice(0, 24)}`;
+    return `recommendation-${createHash('sha256').update(canonical).digest('hex').slice(0, 24)}`;
   }
 
   public static readonly limitations = RECOMMENDATION_LIMITATIONS;

@@ -6,11 +6,7 @@ import type {
   IntelligenceReference,
 } from '../intelligence';
 
-function stableId(
-  prefix: string,
-  type: string,
-  referenceIds: string[],
-): string {
+function stableId(prefix: string, type: string, referenceIds: string[]): string {
   const normalized = [...referenceIds].sort().join('|');
 
   return `${prefix}-${createHash('sha256')
@@ -19,9 +15,7 @@ function stableId(
     .slice(0, 24)}`;
 }
 
-function uniqueReferences(
-  references: IntelligenceReference[],
-): IntelligenceReference[] {
+function uniqueReferences(references: IntelligenceReference[]): IntelligenceReference[] {
   const seen = new Set<string>();
   const result: IntelligenceReference[] = [];
 
@@ -47,9 +41,7 @@ function uniqueReferences(
   });
 }
 
-function hypothesisConfidence(
-  finding: IntelligenceFinding,
-): IntelligenceFinding['confidence'] {
+function hypothesisConfidence(finding: IntelligenceFinding): IntelligenceFinding['confidence'] {
   if (finding.confidence.level === 'HIGH') {
     return {
       level: 'HIGH',
@@ -73,17 +65,14 @@ function hypothesisConfidence(
   };
 }
 
-function buildHypothesis(
-  finding: IntelligenceFinding,
-): IntelligenceHypothesis {
+function buildHypothesis(finding: IntelligenceFinding): IntelligenceHypothesis {
   const supportingReferences = uniqueReferences(finding.references);
 
   return {
-    id: stableId(
-      'hypothesis',
-      finding.type,
-      [finding.id, ...supportingReferences.map((reference) => reference.id)],
-    ),
+    id: stableId('hypothesis', finding.type, [
+      finding.id,
+      ...supportingReferences.map((reference) => reference.id),
+    ]),
     title: `Possible explanation: ${finding.title}`,
     description:
       `The observed finding "${finding.title}" may indicate a contributing ` +
@@ -96,9 +85,7 @@ function buildHypothesis(
 }
 
 export class IntelligenceFindingsHypothesisService {
-  buildFindings(
-    findings: IntelligenceFinding[],
-  ): IntelligenceFinding[] {
+  buildFindings(findings: IntelligenceFinding[]): IntelligenceFinding[] {
     return [...findings]
       .map((finding) => ({
         ...finding,
@@ -107,17 +94,13 @@ export class IntelligenceFindingsHypothesisService {
       .sort((a, b) => a.id.localeCompare(b.id));
   }
 
-  buildHypotheses(
-    findings: IntelligenceFinding[],
-  ): IntelligenceHypothesis[] {
+  buildHypotheses(findings: IntelligenceFinding[]): IntelligenceHypothesis[] {
     const hypotheses = findings.map(buildHypothesis);
 
     return hypotheses.sort((a, b) => a.id.localeCompare(b.id));
   }
 
-  build(
-    findings: IntelligenceFinding[],
-  ): {
+  build(findings: IntelligenceFinding[]): {
     findings: IntelligenceFinding[];
     hypotheses: IntelligenceHypothesis[];
   } {

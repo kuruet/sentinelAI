@@ -1,18 +1,9 @@
 import assert from 'node:assert/strict';
 
-import type {
-  EvidenceDataAccess,
-} from '../src/data-access/evidence-data-access';
-import type {
-  IncidentDataAccess,
-  IncidentRecord,
-} from '../src/data-access/incident-data-access';
-import type {
-  IncidentEventDataAccess,
-} from '../src/data-access/incident-event-data-access';
-import type {
-  InvestigationDataAccess,
-} from '../src/data-access/investigation-data-access';
+import type { EvidenceDataAccess } from '../src/data-access/evidence-data-access';
+import type { IncidentDataAccess, IncidentRecord } from '../src/data-access/incident-data-access';
+import type { IncidentEventDataAccess } from '../src/data-access/incident-event-data-access';
+import type { InvestigationDataAccess } from '../src/data-access/investigation-data-access';
 import type {
   EvidenceResponse,
   IncidentEventResponse,

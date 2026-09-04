@@ -1,6 +1,4 @@
-export {
-  INVESTIGATION_ASSISTANT_INTENTS,
-} from './investigation-assistant';
+export { INVESTIGATION_ASSISTANT_INTENTS } from './investigation-assistant';
 
 export type {
   InvestigationAssistantIntent,
@@ -9,6 +7,4 @@ export type {
   InvestigationAssistantResponse,
 } from './investigation-assistant';
 
-export {
-  InvestigationAssistantService,
-} from './investigation-assistant-service';
+export { InvestigationAssistantService } from './investigation-assistant-service';

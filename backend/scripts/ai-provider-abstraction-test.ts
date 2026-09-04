@@ -12,9 +12,7 @@ function assert(condition: boolean, message: string): void {
 }
 
 async function main(): Promise<void> {
-  const provider: AIProvider = new FakeAIProvider(
-    'controlled fake response',
-  );
+  const provider: AIProvider = new FakeAIProvider('controlled fake response');
 
   const result = await provider.generate({
     model: 'test-model',
@@ -24,26 +22,14 @@ async function main(): Promise<void> {
   });
 
   assert(provider.name === 'fake', 'Provider name must be exposed.');
-  assert(
-    result.provider === 'fake',
-    'Provider response must identify the provider.',
-  );
-  assert(
-    result.model === 'test-model',
-    'Provider response must preserve the requested model.',
-  );
+  assert(result.provider === 'fake', 'Provider response must identify the provider.');
+  assert(result.model === 'test-model', 'Provider response must preserve the requested model.');
   assert(
     result.outputText === 'controlled fake response',
     'Fake provider output must be deterministic.',
   );
-  assert(
-    result.requestId === 'fake-request-id',
-    'Provider request ID must be preserved.',
-  );
-  assert(
-    result.latencyMs >= 0,
-    'Provider latency must be non-negative.',
-  );
+  assert(result.requestId === 'fake-request-id', 'Provider request ID must be preserved.');
+  assert(result.latencyMs >= 0, 'Provider latency must be non-negative.');
 
   const error = new AIProviderError({
     code: 'RATE_LIMIT',
@@ -71,10 +57,7 @@ async function main(): Promise<void> {
     missingKeyRejected = true;
   }
 
-  assert(
-    missingKeyRejected,
-    'OpenAI provider must reject a missing API key.',
-  );
+  assert(missingKeyRejected, 'OpenAI provider must reject a missing API key.');
 
   console.log('STEP 4.7 AI PROVIDER ABSTRACTION TEST: PASS');
 }
