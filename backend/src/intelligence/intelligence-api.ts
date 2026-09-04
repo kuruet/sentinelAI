@@ -35,6 +35,15 @@ import type {
   IntelligenceHypothesis,
   IntelligenceRecommendation,
 } from './contracts';
+import {
+  EventEvidenceCorrelationService,
+} from '../services/event-evidence-correlation-service';
+import {
+  DeterministicSignalAnalysisService,
+} from '../services/deterministic-signal-analysis-service';
+import {
+  IntelligenceFindingsHypothesisService,
+} from '../services/intelligence-findings-hypothesis-service';
 
 const assistantIntentSchema = z.enum([
   'INVESTIGATION_SUMMARY',
@@ -140,6 +149,15 @@ export class IntelligenceApiService {
   private readonly auditability: AIAuditabilityService | null;
   private readonly explainability: IntelligenceExplainabilityService;
 
+  private readonly correlationService:
+    EventEvidenceCorrelationService;
+
+  private readonly deterministicAnalysisService:
+    DeterministicSignalAnalysisService;
+
+  private readonly findingsHypothesisService:
+    IntelligenceFindingsHypothesisService;
+
   constructor(dependencies: IntelligenceApiDependencies) {
     this.contextBuilder =
       dependencies.contextBuilder ?? new AIContextBuilder();
@@ -149,8 +167,18 @@ export class IntelligenceApiService {
       : null;
 
     this.provider = dependencies.provider;
+
     this.explainability =
       new IntelligenceExplainabilityService();
+
+    this.correlationService =
+      new EventEvidenceCorrelationService();
+
+    this.deterministicAnalysisService =
+      new DeterministicSignalAnalysisService();
+
+    this.findingsHypothesisService =
+      new IntelligenceFindingsHypothesisService();
   }
 
   private createExecutionProvider(
@@ -232,6 +260,34 @@ export class IntelligenceApiService {
     );
   }
 
+  private buildDeterministicAnalysis(
+    snapshot: IntelligenceContextSnapshot,
+  ): {
+    correlations: ReturnType<EventEvidenceCorrelationService['correlate']>;
+    findings: IntelligenceFinding[];
+    hypotheses: IntelligenceHypothesis[];
+  } {
+    const correlations =
+      this.correlationService.correlate(snapshot);
+
+    const signalAnalysis =
+      this.deterministicAnalysisService.analyze(
+        snapshot,
+        correlations,
+      );
+
+    const intelligenceAnalysis =
+      this.findingsHypothesisService.build(
+        signalAnalysis.findings,
+      );
+
+    return {
+      correlations,
+      findings: intelligenceAnalysis.findings,
+      hypotheses: intelligenceAnalysis.hypotheses,
+    };
+  }
+
   buildContext(snapshot: IntelligenceContextSnapshot) {
     return this.contextBuilder.build(snapshot);
   }
@@ -241,6 +297,9 @@ export class IntelligenceApiService {
     input: z.infer<typeof intelligenceAssistantRequestSchema>,
     snapshot: IntelligenceContextSnapshot,
   ) {
+    const deterministic =
+      this.buildDeterministicAnalysis(snapshot);
+
     return this.createAssistant(incidentId, snapshot).answer(
       {
         incidentId,
@@ -249,6 +308,7 @@ export class IntelligenceApiService {
         model: input.model,
       },
       snapshot,
+      deterministic.findings,
     );
   }
 
@@ -257,13 +317,20 @@ export class IntelligenceApiService {
     input: z.infer<typeof intelligenceSummaryRequestSchema>,
     snapshot: IntelligenceContextSnapshot,
   ) {
-    return this.createSummarization(incidentId, snapshot).summarize(
+    const deterministic =
+      this.buildDeterministicAnalysis(snapshot);
+
+    return this.createSummarization(
+      incidentId,
+      snapshot,
+    ).summarize(
       {
         incidentId,
         mode: input.mode,
         model: input.model,
       },
       snapshot,
+      deterministic.findings,
     );
   }
 
@@ -272,6 +339,9 @@ export class IntelligenceApiService {
     input: z.infer<typeof intelligenceRcaRequestSchema>,
     snapshot: IntelligenceContextSnapshot,
   ) {
+    const deterministic =
+      this.buildDeterministicAnalysis(snapshot);
+
     return this.createRca(incidentId, snapshot).analyze(
       {
         incidentId,
@@ -279,6 +349,7 @@ export class IntelligenceApiService {
         model: input.model,
       },
       snapshot,
+      deterministic.findings,
     );
   }
 
@@ -287,12 +358,17 @@ export class IntelligenceApiService {
     input: z.infer<typeof intelligenceRecommendationsRequestSchema>,
     snapshot: IntelligenceContextSnapshot,
   ) {
+    const deterministic =
+      this.buildDeterministicAnalysis(snapshot);
+
     return this.createRecommendations(
       incidentId,
       snapshot,
     ).analyze(
       {
         snapshot,
+        findings: deterministic.findings,
+        hypotheses: deterministic.hypotheses,
       },
       {
         incidentId,
@@ -309,5 +385,3 @@ export class IntelligenceApiService {
     return this.explainability.explain(input);
   }
 }
-
-
