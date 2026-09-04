@@ -7,3 +7,5 @@ export { IncidentService } from './incident-service';
 export { InvestigationService } from './investigation-service';
 export { IntelligenceContextService } from './intelligence-context-service';
 export { EventEvidenceCorrelationService } from './event-evidence-correlation-service';
+
+export { DeterministicSignalAnalysisService } from './deterministic-signal-analysis-service';
