@@ -6,3 +6,4 @@ export { IncidentParticipantService } from './incident-participant-service';
 export { IncidentService } from './incident-service';
 export { InvestigationService } from './investigation-service';
 export { IntelligenceContextService } from './intelligence-context-service';
+export { EventEvidenceCorrelationService } from './event-evidence-correlation-service';

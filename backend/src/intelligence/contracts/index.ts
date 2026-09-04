@@ -1,4 +1,10 @@
 export {
+  INTELLIGENCE_CORRELATION_TYPES,
+  type IntelligenceCorrelation,
+  type IntelligenceCorrelationType,
+} from './correlation';
+
+export {
   CONFIDENCE_LEVELS,
   type ConfidenceAssessment,
   type ConfidenceLevel,
