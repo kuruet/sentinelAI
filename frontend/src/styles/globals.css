@@ -6207,3 +6207,226 @@ a {
     flex: 1;
   }
 }
+
+.explainability-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.explainability-page__header,
+.explainability-page__result-header,
+.explainability-page__section-heading,
+.explainability-page__reference-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.explainability-page__header h1,
+.explainability-page__section-heading h2,
+.explainability-page__result-header h2 {
+  margin: 0.2rem 0 0;
+}
+
+.explainability-page__header p {
+  max-width: 760px;
+  margin: 0.65rem 0 0;
+  color: var(--text-secondary);
+}
+
+.explainability-page__eyebrow {
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.explainability-page__workspace-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.explainability-page__workspace-nav a,
+.explainability-page__workspace-nav-active {
+  padding: 0.45rem 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  color: var(--text-secondary);
+  text-decoration: none;
+}
+
+.explainability-page__workspace-nav a:hover {
+  color: var(--text-primary);
+  border-color: var(--border-strong);
+}
+
+.explainability-page__workspace-nav-active {
+  color: var(--text-primary);
+  background: var(--surface-elevated);
+}
+
+.explainability-page__layout {
+  display: grid;
+  grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);
+  gap: 1.25rem;
+}
+
+.explainability-page__sidebar,
+.explainability-page__main,
+.explainability-page__results {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.explainability-page__metadata {
+  display: grid;
+  gap: 0.8rem;
+  margin: 1rem 0 0;
+}
+
+.explainability-page__metadata div {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.explainability-page__metadata dt {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.explainability-page__metadata dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.explainability-page__boundary p,
+.explainability-page__target p {
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.explainability-page__target {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.explainability-page__explanation {
+  margin-top: 1.25rem;
+  color: var(--text-primary);
+  font-size: 1.05rem;
+  line-height: 1.75;
+  white-space: pre-wrap;
+}
+
+.explainability-page__confidence {
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.explainability-page__confidence p {
+  margin-bottom: 0;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.explainability-page__references,
+.explainability-page__uncertainty {
+  display: grid;
+  gap: 0.8rem;
+  margin: 1rem 0 0;
+  padding-left: 1.2rem;
+}
+
+.explainability-page__references li,
+.explainability-page__uncertainty li {
+  color: var(--text-secondary);
+}
+
+.explainability-page__references p {
+  margin: 0.45rem 0 0;
+  line-height: 1.5;
+}
+
+.explainability-page__reference-header {
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.explainability-page__reference-header code {
+  overflow-wrap: anywhere;
+}
+
+.explainability-page__muted {
+  color: var(--text-muted);
+}
+
+.explainability-page__empty,
+.explainability-page__loading,
+.explainability-page__error {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.explainability-page__empty p,
+.explainability-page__error p {
+  color: var(--text-secondary);
+}
+
+.explainability-page__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.explainability-page__footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.explainability-page__metadata-card code {
+  overflow-wrap: anywhere;
+}
+
+.rca-page__explain-action,
+.recommendations-page__explain-action {
+  margin-top: 0.75rem;
+}
+
+@media (max-width: 900px) {
+  .explainability-page__layout {
+    grid-template-columns: 1fr;
+  }
+
+  .explainability-page__header,
+  .explainability-page__result-header {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 600px) {
+  .explainability-page__workspace-nav {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .explainability-page__workspace-nav a,
+  .explainability-page__workspace-nav-active {
+    text-align: center;
+  }
+
+  .explainability-page__footer {
+    flex-direction: column;
+  }
+}

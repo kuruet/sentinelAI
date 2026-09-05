@@ -407,6 +407,12 @@ function IntelligencePage() {
               className="ui-button ui-button--secondary"
             >
               Open recommendations
+            </Link>{' '}
+            <Link
+              to={`/incidents/${encodeURIComponent(incidentId)}/intelligence/explainability`}
+              className="ui-button ui-button--secondary"
+            >
+              Open explainability
             </Link>
           </div>
         </Card>

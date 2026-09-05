@@ -40,6 +40,27 @@ async function parseResponseBody(response: Response): Promise<unknown> {
   }
 }
 
+export async function explainIntelligenceTarget(
+  token: string,
+  incidentId: string,
+  target: ExplainabilityTarget,
+): Promise<IntelligenceExplanation> {
+  const response = await apiRequest<{
+    status: string;
+    data: IntelligenceExplanation;
+  }>(
+    `/api/v1/incidents/${encodeURIComponent(incidentId)}/intelligence/explain`,
+    {
+      method: 'POST',
+      body: JSON.stringify({
+        [target.type === 'HYPOTHESIS' ? 'hypothesis' : 'recommendation']: target.value,
+      }),
+    },
+    token,
+  );
+
+  return response.data;
+}
 export async function apiRequest<T>(
   path: string,
   options: RequestInit = {},
@@ -538,6 +559,35 @@ export interface RecommendationsResponse {
   requestId?: string;
   latencyMs?: number;
 }
+
+export type ExplainabilityTargetType = 'FINDING' | 'HYPOTHESIS' | 'RECOMMENDATION';
+
+export interface ExplainabilityConfidence {
+  level: 'HIGH' | 'MEDIUM' | 'LOW';
+  score?: number | null;
+  rationale: string;
+}
+
+export interface ExplainabilityReference {
+  type: 'INCIDENT' | 'EVENT' | 'EVIDENCE' | 'INVESTIGATION';
+  id: string;
+  reason: string;
+}
+
+export interface IntelligenceExplanation {
+  targetType: ExplainabilityTargetType;
+  targetId: string;
+  explanation: string;
+  confidence: ExplainabilityConfidence;
+  supportingReferences: ExplainabilityReference[];
+  uncertainty: string[];
+}
+
+export interface ExplainabilityTarget {
+  type: 'HYPOTHESIS' | 'RECOMMENDATION';
+  value: RootCauseAnalysisHypothesis | IntelligenceRecommendation;
+}
+
 export interface RootCauseAnalysisResponse {
   incidentId: string;
   mode: RootCauseAnalysisMode;

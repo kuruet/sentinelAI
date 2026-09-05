@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../auth/AuthProvider';
 import Badge from '../components/ui/Badge';
 import Button from '../components/ui/Button';
@@ -109,9 +109,11 @@ function ReferenceList({ references }: { references: IntelligenceRecommendation[
 function RecommendationCard({
   recommendation,
   index,
+  onExplain,
 }: {
   recommendation: IntelligenceRecommendation;
   index: number;
+  onExplain: (recommendation: IntelligenceRecommendation) => void;
 }) {
   return (
     <Card
@@ -134,12 +136,10 @@ function RecommendationCard({
           <h3>{recommendation.title}</h3>
         </div>
       </div>
-
       <div className="recommendations-page__action">
         <span className="recommendations-page__eyebrow">Recommended action</span>
         <p>{recommendation.action}</p>
       </div>
-
       <div className="recommendations-page__confidence">
         <div>
           <span className="recommendations-page__eyebrow">Confidence</span>
@@ -156,22 +156,43 @@ function RecommendationCard({
           <p>{recommendation.confidence.rationale}</p>
         </div>
       </div>
-
       <details className="recommendations-page__references-panel">
         <summary>Supporting references ({recommendation.references.length})</summary>
         <ReferenceList references={recommendation.references} />
       </details>
-
       <div className="recommendations-page__recommendation-id">
         Recommendation ID: <code>{recommendation.id}</code>
+      </div>
+      <div className="recommendations-page__explain-action">
+        <Button variant="secondary" onClick={() => onExplain(recommendation)}>
+          Explain confidence
+        </Button>
       </div>
     </Card>
   );
 }
 
 export default function RecommendationsPage() {
+  const navigate = useNavigate();
   const { id: incidentId } = useParams<{ id: string }>();
   const { token } = useAuth();
+  const handleExplainRecommendation = useCallback(
+    (recommendation: IntelligenceRecommendation) => {
+      if (!incidentId) {
+        return;
+      }
+
+      navigate(`/incidents/${encodeURIComponent(incidentId)}/intelligence/explainability`, {
+        state: {
+          target: {
+            type: 'RECOMMENDATION',
+            value: recommendation,
+          },
+        },
+      });
+    },
+    [incidentId, navigate],
+  );
 
   const [incident, setIncident] = useState<IncidentResponse | null>(null);
   const [response, setResponse] = useState<RecommendationsResponse | null>(null);
@@ -512,6 +533,7 @@ export default function RecommendationsPage() {
                       key={recommendation.id}
                       recommendation={recommendation}
                       index={index}
+                      onExplain={handleExplainRecommendation}
                     />
                   ))}
                 </div>

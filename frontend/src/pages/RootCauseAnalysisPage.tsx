@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../auth/AuthProvider';
 import Badge from '../components/ui/Badge';
 import Button from '../components/ui/Button';
@@ -122,6 +122,7 @@ function ReferenceList({
 function RootCauseAnalysisPage() {
   const { id } = useParams<{ id: string }>();
   const incidentId = id ?? '';
+  const navigate = useNavigate();
   const { token, status: authStatus } = useAuth();
 
   const [incident, setIncident] = useState<IncidentResponse | null>(null);
@@ -405,14 +406,11 @@ function RootCauseAnalysisPage() {
                             {formatConfidenceScore(hypothesis.confidence.score)}
                           </Badge>
                         </div>
-
                         <p>{hypothesis.description}</p>
-
                         <div className="rca-page__confidence">
                           <strong>Confidence rationale</strong>
                           <span>{hypothesis.confidence.rationale}</span>
                         </div>
-
                         <div className="rca-page__reference-grid">
                           <ReferenceList
                             title="Supporting references"
@@ -423,9 +421,28 @@ function RootCauseAnalysisPage() {
                             references={hypothesis.contradictingReferences}
                           />
                         </div>
-
                         <div className="rca-page__hypothesis-id">
                           Hypothesis ID: {hypothesis.id}
+                        </div>{' '}
+                        <div className="rca-page__explain-action">
+                          <Button
+                            variant="secondary"
+                            onClick={() =>
+                              navigate(
+                                `/incidents/${encodeURIComponent(incidentId)}/intelligence/explainability`,
+                                {
+                                  state: {
+                                    target: {
+                                      type: 'HYPOTHESIS',
+                                      value: hypothesis,
+                                    },
+                                  },
+                                },
+                              )
+                            }
+                          >
+                            Explain confidence
+                          </Button>
                         </div>
                       </article>
                     ))}
