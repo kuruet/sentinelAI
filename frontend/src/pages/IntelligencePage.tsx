@@ -414,6 +414,12 @@ function IntelligencePage() {
             >
               Open explainability
             </Link>
+            <Link
+              to={`/incidents/${encodeURIComponent(incidentId)}/audit`}
+              className="ui-button ui-button--secondary"
+            >
+              Open audit trail
+            </Link>
           </div>
         </Card>
       </section>

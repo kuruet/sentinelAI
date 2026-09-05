@@ -16,6 +16,7 @@ import InvestigationPage from './pages/InvestigationPage';
 import LoginPage from './pages/LoginPage';
 import RecommendationsPage from './pages/RecommendationsPage';
 import ExplainabilityPage from './pages/ExplainabilityPage';
+import AuditTrailPage from './pages/AuditTrailPage';
 
 function ProtectedApplication() {
   return (
@@ -46,6 +47,7 @@ function ProtectedApplication() {
             path="/incidents/:id/intelligence/explainability"
             element={<ExplainabilityPage />}
           />
+          <Route path="/incidents/:id/audit" element={<AuditTrailPage />} />
           <Route path="/incidents/new" element={<CreateIncidentPage />} />
           <Route path="/investigation" element={<InvestigationPage />} />
           <Route path="/intelligence" element={<IntelligencePage />} />

@@ -765,3 +765,35 @@ export async function deleteIncidentInvestigation(
     token,
   );
 }
+export interface AuditLogResponse {
+  id: string;
+  actorUserId: string;
+  action: string;
+  resourceType: string;
+  resourceId: string;
+  incidentId: string | null;
+  metadata: unknown;
+  createdAt: string;
+}
+
+export interface AuditLogListResponse {
+  items: AuditLogResponse[];
+}
+
+export async function getAuditLogs(
+  token: string,
+  incidentId: string,
+): Promise<AuditLogListResponse> {
+  const response = await apiRequest<{
+    status: string;
+    data: AuditLogListResponse;
+  }>(
+    `/api/v1/incidents/${encodeURIComponent(incidentId)}/audit`,
+    {
+      method: 'GET',
+    },
+    token,
+  );
+
+  return response.data;
+}

@@ -235,6 +235,14 @@ export default function IncidentDetailPage() {
                 <strong>Intelligence</strong>
                 <span>Access grounded intelligence for this incident.</span>
               </Link>
+
+              <Link
+                className="incident-detail__workspace-link"
+                to={`/incidents/${encodeURIComponent(incident.id)}/audit`}
+              >
+                <strong>Audit Trail</strong>
+                <span>Review incident activity and AI execution provenance.</span>
+              </Link>
             </div>
           </Card>
         </main>
