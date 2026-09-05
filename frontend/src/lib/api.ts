@@ -113,3 +113,59 @@ export async function testProtectedRequest(token: string): Promise<{
 }> {
   return apiRequest('/api/v1/test-protected', {}, token);
 }
+
+export type IncidentSeverity = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+
+export type IncidentStatus = 'IDENTIFIED' | 'INVESTIGATING' | 'RESOLVED' | 'CLOSED';
+
+export interface IncidentResponse {
+  id: string;
+  title: string;
+  description: string | null;
+  status: IncidentStatus;
+  severity: IncidentSeverity;
+  priority: number;
+  startedAt: string | null;
+  resolvedAt: string | null;
+  closedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface IncidentListResponse {
+  items: IncidentResponse[];
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
+
+export async function listIncidents(
+  token: string,
+  options: {
+    page?: number;
+    limit?: number;
+    status?: IncidentStatus;
+    severity?: IncidentSeverity;
+  } = {},
+): Promise<IncidentListResponse> {
+  const params = new URLSearchParams();
+
+  params.set('page', String(options.page ?? 1));
+  params.set('limit', String(options.limit ?? 100));
+
+  if (options.status) {
+    params.set('status', options.status);
+  }
+
+  if (options.severity) {
+    params.set('severity', options.severity);
+  }
+
+  const response = await apiRequest<{
+    status: string;
+    data: IncidentListResponse;
+  }>('/api/v1/incidents?' + params.toString(), {}, token);
+
+  return response.data;
+}
