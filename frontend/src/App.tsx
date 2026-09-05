@@ -4,6 +4,7 @@ import AppShell from './components/layout/AppShell';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import DashboardPage from './pages/DashboardPage';
 import IncidentsPage from './pages/IncidentsPage';
+import IncidentDetailPage from './pages/IncidentDetailPage';
 import CreateIncidentPage from './pages/CreateIncidentPage';
 import IntelligencePage from './pages/IntelligencePage';
 import InvestigationPage from './pages/InvestigationPage';
@@ -16,6 +17,8 @@ function ProtectedApplication() {
         <Routes>
           <Route path="/" element={<DashboardPage />} />
           <Route path="/incidents" element={<IncidentsPage />} />
+
+          <Route path="/incidents/:id" element={<IncidentDetailPage />} />
           <Route path="/incidents/new" element={<CreateIncidentPage />} />
           <Route path="/investigation" element={<InvestigationPage />} />
           <Route path="/intelligence" element={<IntelligencePage />} />

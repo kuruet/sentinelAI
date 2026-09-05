@@ -66,7 +66,7 @@ function IncidentRow({ incident }: { incident: IncidentResponse }) {
   return (
     <Link
       className="incident-list__row"
-      to={'/incidents?incident=' + encodeURIComponent(incident.id)}
+      to={'/incidents/' + encodeURIComponent(incident.id)}
       aria-label={'Open incident ' + incident.title}
     >
       <div className="incident-list__primary">
