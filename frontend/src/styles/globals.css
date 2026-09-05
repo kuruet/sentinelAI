@@ -499,3 +499,203 @@ a {
   background: rgb(227 99 99 / 0.12);
   color: var(--color-danger);
 }
+
+/* -------------------------------------------------------------------------- */
+/* Authentication                                                              */
+/* -------------------------------------------------------------------------- */
+
+.auth-page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: var(--space-8);
+  background:
+    radial-gradient(circle at 50% 0%, rgba(79, 70, 229, 0.12), transparent 38rem), var(--color-bg);
+}
+
+.auth-page__panel {
+  width: min(100%, 28rem);
+}
+
+.auth-page__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  justify-content: center;
+  margin-bottom: var(--space-6);
+}
+
+.auth-page__mark {
+  width: 2.75rem;
+  height: 2.75rem;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-md);
+  background: var(--color-accent);
+  color: white;
+  font-weight: 800;
+  box-shadow: var(--shadow-md);
+}
+
+.auth-page__product {
+  font-size: 1.05rem;
+  font-weight: 750;
+  letter-spacing: -0.02em;
+}
+
+.auth-page__caption {
+  margin-top: 0.15rem;
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+}
+
+.auth-card {
+  padding: var(--space-6);
+}
+
+.auth-card__header h1 {
+  margin: 0.35rem 0 0;
+  font-size: var(--text-2xl);
+  line-height: var(--leading-tight);
+  letter-spacing: -0.03em;
+}
+
+.auth-card__header p:not(.eyebrow) {
+  margin: var(--space-3) 0 0;
+  color: var(--color-text-muted);
+  line-height: var(--leading-relaxed);
+}
+
+.auth-form {
+  display: grid;
+  gap: var(--space-3);
+  margin-top: var(--space-6);
+}
+
+.auth-form__label {
+  font-size: var(--text-sm);
+  font-weight: 650;
+}
+
+.auth-form input {
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-raised);
+  color: var(--color-text);
+  outline: none;
+  transition:
+    border-color 120ms ease,
+    box-shadow 120ms ease;
+}
+
+.auth-form input::placeholder {
+  color: var(--color-text-subtle);
+}
+
+.auth-form input:focus {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px var(--color-accent-soft);
+}
+
+.auth-form input:disabled {
+  opacity: 0.65;
+}
+
+.auth-form__error {
+  padding: 0.7rem 0.8rem;
+  border: 1px solid var(--color-danger-border);
+  border-radius: var(--radius-md);
+  background: var(--color-danger-soft);
+  color: var(--color-danger);
+  font-size: var(--text-sm);
+  line-height: var(--leading-relaxed);
+}
+
+.auth-card__notice {
+  display: grid;
+  gap: 0.25rem;
+  margin-top: var(--space-5);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+  line-height: var(--leading-relaxed);
+}
+
+.auth-card__notice strong {
+  color: var(--color-text);
+}
+
+.auth-loading {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  gap: var(--space-3);
+  align-content: center;
+  color: var(--color-text-muted);
+  background: var(--color-bg);
+}
+
+.auth-loading__indicator {
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 2px solid var(--color-border);
+  border-top-color: var(--color-accent);
+  border-radius: 999px;
+  animation: sentinelai-spin 700ms linear infinite;
+}
+
+.app-topbar__user {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.app-topbar__logout {
+  border: 0;
+  padding: 0.35rem 0.5rem;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-muted);
+  font: inherit;
+  font-size: var(--text-xs);
+  cursor: pointer;
+}
+
+.app-topbar__logout:hover {
+  color: var(--color-text);
+  background: var(--color-surface-hover);
+}
+
+@keyframes sentinelai-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-loading__indicator {
+    animation: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .auth-page {
+    padding: var(--space-4);
+  }
+
+  .auth-card {
+    padding: var(--space-5);
+  }
+
+  .app-topbar__user-name {
+    display: none;
+  }
+}
+
+.button--full-width {
+  width: 100%;
+}
