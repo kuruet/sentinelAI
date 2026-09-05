@@ -438,6 +438,7 @@ export async function incidentRoutes(app: FastifyInstance) {
       const entries = await auditLogService.listByIncident(id);
 
       return reply.send({
+        status: 'ok',
         data: {
           items: entries.map((entry) => ({
             id: entry.id,
