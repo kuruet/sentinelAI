@@ -6830,11 +6830,11 @@ textarea {
 code,
 pre,
 .ui-mono,
-[class*="__request"],
-[class*="__correlation"],
-[class*="__context"],
-[class*="__metadata"],
-[class*="__error"] {
+[class*='__request'],
+[class*='__correlation'],
+[class*='__context'],
+[class*='__metadata'],
+[class*='__error'] {
   overflow-wrap: anywhere;
   word-break: break-word;
 }
