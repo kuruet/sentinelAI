@@ -8,7 +8,7 @@ function ProtectedRoute({ children }: PropsWithChildren) {
 
   if (status === 'loading') {
     return (
-      <div className="auth-loading" role="status">
+      <div className="auth-loading" role="status" aria-live="polite">
         <div className="auth-loading__indicator" aria-hidden="true" />
         <span>Verifying session…</span>
       </div>
@@ -16,7 +16,9 @@ function ProtectedRoute({ children }: PropsWithChildren) {
   }
 
   if (status !== 'authenticated') {
-    return <Navigate to="/login" replace state={{ from: location.pathname }} />;
+    const from = `${location.pathname}${location.search}${location.hash}`;
+
+    return <Navigate to="/login" replace state={{ from }} />;
   }
 
   return children;

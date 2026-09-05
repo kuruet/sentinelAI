@@ -1,5 +1,3 @@
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '');
-
 export interface ApiError {
   status: number;
   code?: string;
@@ -18,6 +16,8 @@ export class ApiRequestError extends Error {
   }
 }
 
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '');
+
 function buildUrl(path: string): string {
   if (!API_BASE_URL) {
     return path;
@@ -33,7 +33,11 @@ async function parseResponseBody(response: Response): Promise<unknown> {
     return undefined;
   }
 
-  return response.json();
+  try {
+    return await response.json();
+  } catch {
+    return undefined;
+  }
 }
 
 export async function apiRequest<T>(
@@ -55,10 +59,20 @@ export async function apiRequest<T>(
     headers.set('Authorization', `Bearer ${token}`);
   }
 
-  const response = await fetch(buildUrl(path), {
-    ...options,
-    headers,
-  });
+  let response: Response;
+
+  try {
+    response = await fetch(buildUrl(path), {
+      ...options,
+      headers,
+    });
+  } catch {
+    throw new ApiRequestError({
+      status: 0,
+      code: 'NETWORK_ERROR',
+      message: 'Unable to reach the SentinelAI API.',
+    });
+  }
 
   const body = await parseResponseBody(response);
 

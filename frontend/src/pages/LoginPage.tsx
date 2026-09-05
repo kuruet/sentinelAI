@@ -1,16 +1,28 @@
-import { FormEvent, useState } from 'react';
+import { type FormEvent, useState } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
 import { useAuth } from '../auth/AuthProvider';
 
+function getSafeReturnPath(value: unknown): string {
+  if (typeof value !== 'string' || value.length === 0) {
+    return '/';
+  }
+
+  if (!value.startsWith('/') || value.startsWith('//')) {
+    return '/';
+  }
+
+  return value;
+}
+
 function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { status, loginWithToken } = useAuth();
+  const { status, authError, loginWithToken } = useAuth();
 
   const [token, setToken] = useState('');
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(authError);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (status === 'authenticated') {
@@ -25,8 +37,7 @@ function LoginPage() {
     try {
       await loginWithToken(token);
 
-      const from = typeof location.state?.from === 'string' ? location.state.from : '/';
-
+      const from = getSafeReturnPath(location.state?.from);
       navigate(from, { replace: true });
     } catch (submissionError) {
       setError(
@@ -73,14 +84,21 @@ function LoginPage() {
               type="password"
               autoComplete="current-password"
               value={token}
-              onChange={(event) => setToken(event.target.value)}
+              onChange={(event) => {
+                setToken(event.target.value);
+                if (error) {
+                  setError(null);
+                }
+              }}
               placeholder="Paste access token"
               disabled={isSubmitting}
+              aria-invalid={Boolean(error)}
+              aria-describedby={error ? 'authentication-error' : undefined}
               required
             />
 
             {error ? (
-              <div className="auth-form__error" role="alert">
+              <div id="authentication-error" className="auth-form__error" role="alert">
                 {error}
               </div>
             ) : null}

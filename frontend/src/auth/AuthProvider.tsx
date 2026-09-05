@@ -16,6 +16,7 @@ export type AuthStatus = 'loading' | 'authenticated' | 'unauthenticated';
 interface AuthContextValue {
   status: AuthStatus;
   token: string | null;
+  authError: string | null;
   isAuthenticated: boolean;
   loginWithToken: (token: string) => Promise<void>;
   logout: () => void;
@@ -41,13 +42,35 @@ function removePersistedToken(): void {
   window.sessionStorage.removeItem(SESSION_STORAGE_KEY);
 }
 
+function getAuthenticationError(error: unknown): string {
+  if (error instanceof ApiRequestError) {
+    if (error.status === 401) {
+      return 'The supplied authentication token was rejected.';
+    }
+
+    if (error.status === 403) {
+      return 'Your account is not permitted to access SentinelAI.';
+    }
+
+    if (error.status === 0) {
+      return 'The authentication service could not be reached. Check that the backend is running and try again.';
+    }
+
+    return 'The authentication service could not complete the request. Please try again.';
+  }
+
+  return 'The authentication service could not complete the request. Please try again.';
+}
+
 export function AuthProvider({ children }: PropsWithChildren) {
   const [token, setToken] = useState<string | null>(null);
   const [status, setStatus] = useState<AuthStatus>('loading');
+  const [authError, setAuthError] = useState<string | null>(null);
 
   const logout = useCallback(() => {
     removePersistedToken();
     setToken(null);
+    setAuthError(null);
     setStatus('unauthenticated');
   }, []);
 
@@ -56,9 +79,12 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
     if (!activeToken) {
       setToken(null);
+      setAuthError(null);
       setStatus('unauthenticated');
       return false;
     }
+
+    setAuthError(null);
 
     try {
       await testProtectedRequest(activeToken);
@@ -70,13 +96,15 @@ export function AuthProvider({ children }: PropsWithChildren) {
       if (error instanceof ApiRequestError && error.status === 401) {
         removePersistedToken();
         setToken(null);
+        setAuthError('Your session has expired or is no longer valid. Please sign in again.');
         setStatus('unauthenticated');
         return false;
       }
 
-      setToken(activeToken);
-      setStatus('authenticated');
-      return true;
+      setToken(null);
+      setAuthError(getAuthenticationError(error));
+      setStatus('unauthenticated');
+      return false;
     }
   }, [token]);
 
@@ -87,7 +115,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
       throw new Error('A valid authentication token is required.');
     }
 
-    setStatus('loading');
+    setAuthError(null);
 
     try {
       await testProtectedRequest(normalizedToken);
@@ -98,13 +126,11 @@ export function AuthProvider({ children }: PropsWithChildren) {
       setToken(null);
       setStatus('unauthenticated');
 
-      if (error instanceof ApiRequestError && error.status === 401) {
-        throw new Error('The supplied authentication token was rejected.', {
-          cause: error,
-        });
-      }
-
-      throw error;
+      const message = getAuthenticationError(error);
+      setAuthError(message);
+      throw new Error(message, {
+        cause: error,
+      });
     }
   }, []);
 
@@ -123,12 +149,13 @@ export function AuthProvider({ children }: PropsWithChildren) {
     () => ({
       status,
       token,
+      authError,
       isAuthenticated: status === 'authenticated',
       loginWithToken,
       logout,
       verifySession,
     }),
-    [loginWithToken, logout, status, token, verifySession],
+    [authError, loginWithToken, logout, status, token, verifySession],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
