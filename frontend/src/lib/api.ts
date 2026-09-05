@@ -507,6 +507,37 @@ export interface RootCauseAnalysisHypothesis {
   contradictingReferences: RootCauseAnalysisReference[];
 }
 
+export type RecommendationPriority = 'IMMEDIATE' | 'HIGH' | 'NORMAL' | 'LOW';
+
+export interface RecommendationConfidence {
+  level: 'HIGH' | 'MEDIUM' | 'LOW';
+  score?: number | null;
+  rationale: string;
+}
+
+export interface RecommendationReference {
+  type: 'INCIDENT' | 'EVENT' | 'EVIDENCE' | 'INVESTIGATION';
+  id: string;
+  reason: string;
+}
+
+export interface IntelligenceRecommendation {
+  id: string;
+  title: string;
+  action: string;
+  priority: RecommendationPriority;
+  confidence: RecommendationConfidence;
+  references: RecommendationReference[];
+}
+
+export interface RecommendationsResponse {
+  incidentId: string;
+  recommendations: IntelligenceRecommendation[];
+  provider: string;
+  model: string;
+  requestId?: string;
+  latencyMs?: number;
+}
 export interface RootCauseAnalysisResponse {
   incidentId: string;
   mode: RootCauseAnalysisMode;
@@ -519,6 +550,25 @@ export interface RootCauseAnalysisResponse {
   latencyMs?: number;
 }
 
+export async function getRecommendations(
+  token: string,
+  incidentId: string,
+  model: string,
+): Promise<RecommendationsResponse> {
+  const response = await apiRequest<{
+    status: string;
+    data: RecommendationsResponse;
+  }>(
+    `/api/v1/incidents/${encodeURIComponent(incidentId)}/intelligence/recommendations`,
+    {
+      method: 'POST',
+      body: JSON.stringify({ model }),
+    },
+    token,
+  );
+
+  return response.data;
+}
 export async function analyzeRootCause(
   token: string,
   incidentId: string,

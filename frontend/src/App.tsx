@@ -14,6 +14,7 @@ import InvestigationAssistantPage from './pages/InvestigationAssistantPage';
 import RootCauseAnalysisPage from './pages/RootCauseAnalysisPage';
 import InvestigationPage from './pages/InvestigationPage';
 import LoginPage from './pages/LoginPage';
+import RecommendationsPage from './pages/RecommendationsPage';
 
 function ProtectedApplication() {
   return (
@@ -35,6 +36,10 @@ function ProtectedApplication() {
           <Route
             path="/incidents/:id/intelligence/root-cause"
             element={<RootCauseAnalysisPage />}
+          />
+          <Route
+            path="/incidents/:id/intelligence/recommendations"
+            element={<RecommendationsPage />}
           />
           <Route path="/incidents/new" element={<CreateIncidentPage />} />
           <Route path="/investigation" element={<InvestigationPage />} />

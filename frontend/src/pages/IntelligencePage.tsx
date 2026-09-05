@@ -402,6 +402,12 @@ function IntelligencePage() {
             >
               Open root-cause analysis
             </Link>
+            <Link
+              to={`/incidents/${incidentId}/intelligence/recommendations`}
+              className="ui-button ui-button--secondary"
+            >
+              Open recommendations
+            </Link>
           </div>
         </Card>
       </section>
