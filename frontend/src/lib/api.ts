@@ -169,3 +169,33 @@ export async function listIncidents(
 
   return response.data;
 }
+
+export interface CreateIncidentRequest {
+  title: string;
+  description?: string | null;
+  severity: IncidentSeverity;
+  priority?: number;
+  startedAt?: string | null;
+}
+
+export async function createIncident(
+  token: string,
+  input: CreateIncidentRequest,
+): Promise<IncidentResponse> {
+  const response = await apiRequest<{
+    status: string;
+    data: IncidentResponse;
+  }>(
+    '/api/v1/incidents',
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(input),
+    },
+    token,
+  );
+
+  return response.data;
+}
