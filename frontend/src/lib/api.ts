@@ -207,3 +207,79 @@ export async function getIncident(token: string, incidentId: string): Promise<In
 
   return response.data;
 }
+export type IncidentEventType =
+  'ALERT' | 'LOG' | 'METRIC' | 'DEPLOYMENT' | 'CONFIGURATION_CHANGE' | 'MANUAL' | 'SYSTEM';
+
+export interface IncidentEventResponse {
+  id: string;
+  incidentId: string;
+  eventType: IncidentEventType;
+  occurredAt: string;
+  sequence: number;
+  title: string;
+  description: string | null;
+  source: string | null;
+  metadata: Record<string, unknown> | null;
+  createdAt: string;
+}
+
+export interface IncidentEventListResponse {
+  items: IncidentEventResponse[];
+}
+
+export interface CreateIncidentEventRequest {
+  eventType: IncidentEventType;
+  occurredAt: string;
+  sequence: number;
+  title: string;
+  description?: string | null;
+  source?: string | null;
+  metadata?: Record<string, unknown> | null;
+}
+
+export async function listIncidentEvents(
+  token: string,
+  incidentId: string,
+): Promise<IncidentEventListResponse> {
+  const response = await apiRequest<{
+    status: string;
+    data: IncidentEventListResponse;
+  }>(`/api/v1/incidents/${encodeURIComponent(incidentId)}/events`, {}, token);
+
+  return response.data;
+}
+
+export async function getIncidentTimeline(
+  token: string,
+  incidentId: string,
+): Promise<IncidentEventListResponse> {
+  const response = await apiRequest<{
+    status: string;
+    data: IncidentEventListResponse;
+  }>(`/api/v1/incidents/${encodeURIComponent(incidentId)}/timeline`, {}, token);
+
+  return response.data;
+}
+
+export async function createIncidentEvent(
+  token: string,
+  incidentId: string,
+  input: CreateIncidentEventRequest,
+): Promise<IncidentEventResponse> {
+  const response = await apiRequest<{
+    status: string;
+    data: IncidentEventResponse;
+  }>(
+    `/api/v1/incidents/${encodeURIComponent(incidentId)}/events`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(input),
+    },
+    token,
+  );
+
+  return response.data;
+}
