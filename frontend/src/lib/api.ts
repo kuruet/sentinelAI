@@ -393,6 +393,52 @@ export async function deleteIncidentEvidence(
     token,
   );
 }
+export type ConfidenceLevel = 'HIGH' | 'MEDIUM' | 'LOW';
+
+export interface ConfidenceAssessment {
+  level: ConfidenceLevel;
+  score?: number | null;
+  rationale: string;
+}
+
+export type IntelligenceReferenceType = 'INCIDENT' | 'EVENT' | 'EVIDENCE' | 'INVESTIGATION';
+
+export interface IntelligenceReference {
+  type: IntelligenceReferenceType;
+  id: string;
+  reason: string;
+}
+
+export interface IntelligenceContext {
+  incident: IncidentResponse;
+  events: IncidentEventResponse[];
+  evidence: EvidenceResponse[];
+  investigation: InvestigationResponse | null;
+}
+
+export interface IntelligenceContextMetadata {
+  generatedAt: string;
+  eventCount: number;
+  evidenceCount: number;
+  hasInvestigation: boolean;
+}
+
+export interface IntelligenceContextSnapshot {
+  context: IntelligenceContext;
+  metadata: IntelligenceContextMetadata;
+}
+
+export async function getIncidentIntelligenceContext(
+  token: string,
+  incidentId: string,
+): Promise<IntelligenceContextSnapshot> {
+  const response = await apiRequest<{
+    status: string;
+    data: IntelligenceContextSnapshot;
+  }>(`/api/v1/incidents/${encodeURIComponent(incidentId)}/intelligence/context`, {}, token);
+
+  return response.data;
+}
 export interface CreateInvestigationRequest {
   summary?: string | null;
   startedAt?: string | null;
