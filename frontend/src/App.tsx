@@ -11,6 +11,7 @@ import CreateIncidentPage from './pages/CreateIncidentPage';
 import IntelligencePage from './pages/IntelligencePage';
 import IncidentSummaryPage from './pages/IncidentSummaryPage';
 import InvestigationAssistantPage from './pages/InvestigationAssistantPage';
+import RootCauseAnalysisPage from './pages/RootCauseAnalysisPage';
 import InvestigationPage from './pages/InvestigationPage';
 import LoginPage from './pages/LoginPage';
 
@@ -21,7 +22,6 @@ function ProtectedApplication() {
         <Routes>
           <Route path="/" element={<DashboardPage />} />
           <Route path="/incidents" element={<IncidentsPage />} />
-
           <Route path="/incidents/:id" element={<IncidentDetailPage />} />
           <Route path="/incidents/:id/timeline" element={<TimelinePage />} />
           <Route path="/incidents/:id/evidence" element={<EvidencePage />} />
@@ -31,6 +31,10 @@ function ProtectedApplication() {
           <Route
             path="/incidents/:id/intelligence/assistant"
             element={<InvestigationAssistantPage />}
+          />{' '}
+          <Route
+            path="/incidents/:id/intelligence/root-cause"
+            element={<RootCauseAnalysisPage />}
           />
           <Route path="/incidents/new" element={<CreateIncidentPage />} />
           <Route path="/investigation" element={<InvestigationPage />} />

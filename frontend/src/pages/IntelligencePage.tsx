@@ -378,12 +378,10 @@ function IntelligencePage() {
               <span className="intelligence-page__readiness-dot" aria-hidden="true" />
               <strong>Context available</strong>
             </div>
-
             <p className="ui-secondary">
               The intelligence layer has access to the incident, ordered events, evidence, and
               investigation record returned by the backend context service.
             </p>
-
             <ul>
               <li>Source data remains authoritative.</li>
               <li>Context is incident-scoped and access-controlled.</li>
@@ -397,6 +395,12 @@ function IntelligencePage() {
               className="ui-button ui-button--secondary"
             >
               Open investigation assistant
+            </Link>{' '}
+            <Link
+              to={`/incidents/${encodeURIComponent(incidentId)}/intelligence/root-cause`}
+              className="ui-button ui-button--secondary"
+            >
+              Open root-cause analysis
             </Link>
           </div>
         </Card>

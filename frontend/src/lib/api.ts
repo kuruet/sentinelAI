@@ -484,6 +484,61 @@ export async function askInvestigationAssistant(
 
   return response.data;
 }
+export type RootCauseAnalysisMode = 'PRIMARY' | 'ALTERNATIVE';
+
+export interface RootCauseAnalysisReference {
+  type: 'INCIDENT' | 'EVENT' | 'EVIDENCE' | 'INVESTIGATION' | 'FINDING';
+  id: string;
+  reason: string;
+}
+
+export interface RootCauseAnalysisConfidence {
+  level: 'HIGH' | 'MEDIUM' | 'LOW';
+  score?: number | null;
+  rationale: string;
+}
+
+export interface RootCauseAnalysisHypothesis {
+  id: string;
+  title: string;
+  description: string;
+  confidence: RootCauseAnalysisConfidence;
+  supportingReferences: RootCauseAnalysisReference[];
+  contradictingReferences: RootCauseAnalysisReference[];
+}
+
+export interface RootCauseAnalysisResponse {
+  incidentId: string;
+  mode: RootCauseAnalysisMode;
+  hypotheses: RootCauseAnalysisHypothesis[];
+  analysis: string;
+  limitations: string[];
+  provider: string;
+  model: string;
+  requestId?: string | null;
+  latencyMs?: number;
+}
+
+export async function analyzeRootCause(
+  token: string,
+  incidentId: string,
+  mode: RootCauseAnalysisMode,
+  model: string,
+): Promise<RootCauseAnalysisResponse> {
+  const response = await apiRequest<{
+    status: string;
+    data: RootCauseAnalysisResponse;
+  }>(
+    `/api/v1/incidents/${encodeURIComponent(incidentId)}/intelligence/root-cause`,
+    {
+      method: 'POST',
+      body: JSON.stringify({ mode, model }),
+    },
+    token,
+  );
+
+  return response.data;
+}
 export type IncidentSummaryMode = 'EXECUTIVE' | 'INVESTIGATION' | 'TIMELINE';
 
 export interface IncidentSummaryReference {
