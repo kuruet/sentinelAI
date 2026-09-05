@@ -439,6 +439,51 @@ export async function getIncidentIntelligenceContext(
 
   return response.data;
 }
+export type InvestigationAssistantIntent =
+  | 'INVESTIGATION_SUMMARY'
+  | 'EVIDENCE_INTERPRETATION'
+  | 'TIMELINE_ANALYSIS'
+  | 'NEXT_INVESTIGATION_STEP'
+  | 'HYPOTHESIS_REVIEW';
+
+export interface InvestigationAssistantReference {
+  type: 'INCIDENT' | 'EVENT' | 'EVIDENCE' | 'INVESTIGATION' | 'FINDING';
+  id: string;
+  reason: string;
+}
+
+export interface InvestigationAssistantResponse {
+  incidentId: string;
+  answer: string;
+  references: InvestigationAssistantReference[];
+  limitations: string[];
+  provider: string;
+  model: string;
+  requestId?: string | null;
+  latencyMs: number;
+}
+
+export async function askInvestigationAssistant(
+  token: string,
+  incidentId: string,
+  question: string,
+  intent: InvestigationAssistantIntent,
+  model: string,
+): Promise<InvestigationAssistantResponse> {
+  const response = await apiRequest<{
+    status: string;
+    data: InvestigationAssistantResponse;
+  }>(
+    `/api/v1/incidents/${encodeURIComponent(incidentId)}/intelligence/assistant`,
+    {
+      method: 'POST',
+      body: JSON.stringify({ question, intent, model }),
+    },
+    token,
+  );
+
+  return response.data;
+}
 export type IncidentSummaryMode = 'EXECUTIVE' | 'INVESTIGATION' | 'TIMELINE';
 
 export interface IncidentSummaryReference {

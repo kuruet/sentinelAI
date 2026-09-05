@@ -10,6 +10,7 @@ import EvidencePage from './pages/EvidencePage';
 import CreateIncidentPage from './pages/CreateIncidentPage';
 import IntelligencePage from './pages/IntelligencePage';
 import IncidentSummaryPage from './pages/IncidentSummaryPage';
+import InvestigationAssistantPage from './pages/InvestigationAssistantPage';
 import InvestigationPage from './pages/InvestigationPage';
 import LoginPage from './pages/LoginPage';
 
@@ -27,6 +28,10 @@ function ProtectedApplication() {
           <Route path="/incidents/:id/investigation" element={<InvestigationPage />} />
           <Route path="/incidents/:id/intelligence" element={<IntelligencePage />} />
           <Route path="/incidents/:id/intelligence/summary" element={<IncidentSummaryPage />} />
+          <Route
+            path="/incidents/:id/intelligence/assistant"
+            element={<InvestigationAssistantPage />}
+          />
           <Route path="/incidents/new" element={<CreateIncidentPage />} />
           <Route path="/investigation" element={<InvestigationPage />} />
           <Route path="/intelligence" element={<IntelligencePage />} />

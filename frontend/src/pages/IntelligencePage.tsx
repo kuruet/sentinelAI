@@ -392,6 +392,12 @@ function IntelligencePage() {
                 returns a result.
               </li>
             </ul>
+            <Link
+              to={`/incidents/${encodeURIComponent(incidentId)}/intelligence/assistant`}
+              className="ui-button ui-button--secondary"
+            >
+              Open investigation assistant
+            </Link>
           </div>
         </Card>
       </section>
