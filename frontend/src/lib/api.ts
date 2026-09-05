@@ -439,6 +439,46 @@ export async function getIncidentIntelligenceContext(
 
   return response.data;
 }
+export type IncidentSummaryMode = 'EXECUTIVE' | 'INVESTIGATION' | 'TIMELINE';
+
+export interface IncidentSummaryReference {
+  type: 'INCIDENT' | 'EVENT' | 'EVIDENCE' | 'INVESTIGATION' | 'FINDING';
+  id: string;
+  reason: string;
+}
+
+export interface IncidentSummaryResponse {
+  incidentId: string;
+  mode: IncidentSummaryMode;
+  summary: string;
+  references: IncidentSummaryReference[];
+  limitations: string[];
+  provider: string;
+  model: string;
+  requestId?: string | null;
+  latencyMs: number;
+}
+
+export async function generateIncidentSummary(
+  token: string,
+  incidentId: string,
+  mode: IncidentSummaryMode,
+  model: string,
+): Promise<IncidentSummaryResponse> {
+  const response = await apiRequest<{
+    status: string;
+    data: IncidentSummaryResponse;
+  }>(
+    `/api/v1/incidents/${encodeURIComponent(incidentId)}/intelligence/summary`,
+    {
+      method: 'POST',
+      body: JSON.stringify({ mode, model }),
+    },
+    token,
+  );
+
+  return response.data;
+}
 export interface CreateInvestigationRequest {
   summary?: string | null;
   startedAt?: string | null;
