@@ -23,6 +23,7 @@ function ProtectedApplication() {
           <Route path="/incidents/:id" element={<IncidentDetailPage />} />
           <Route path="/incidents/:id/timeline" element={<TimelinePage />} />
           <Route path="/incidents/:id/evidence" element={<EvidencePage />} />
+          <Route path="/incidents/:id/investigation" element={<InvestigationPage />} />
           <Route path="/incidents/new" element={<CreateIncidentPage />} />
           <Route path="/investigation" element={<InvestigationPage />} />
           <Route path="/intelligence" element={<IntelligencePage />} />

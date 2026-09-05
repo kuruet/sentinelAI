@@ -393,3 +393,89 @@ export async function deleteIncidentEvidence(
     token,
   );
 }
+export interface CreateInvestigationRequest {
+  summary?: string | null;
+  startedAt?: string | null;
+  completedAt?: string | null;
+}
+
+export interface UpdateInvestigationRequest {
+  summary?: string | null;
+  startedAt?: string | null;
+  completedAt?: string | null;
+}
+
+export interface InvestigationResponse {
+  id: string;
+  incidentId: string;
+  summary: string | null;
+  startedAt: string | null;
+  completedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export async function getIncidentInvestigation(
+  token: string,
+  incidentId: string,
+): Promise<InvestigationResponse> {
+  const response = await apiRequest<{
+    status: string;
+    data: InvestigationResponse;
+  }>(`/api/v1/incidents/${encodeURIComponent(incidentId)}/investigation`, {}, token);
+
+  return response.data;
+}
+
+export async function createIncidentInvestigation(
+  token: string,
+  incidentId: string,
+  input: CreateInvestigationRequest,
+): Promise<InvestigationResponse> {
+  const response = await apiRequest<{
+    status: string;
+    data: InvestigationResponse;
+  }>(
+    `/api/v1/incidents/${encodeURIComponent(incidentId)}/investigation`,
+    {
+      method: 'POST',
+      body: JSON.stringify(input),
+    },
+    token,
+  );
+
+  return response.data;
+}
+
+export async function updateIncidentInvestigation(
+  token: string,
+  incidentId: string,
+  input: UpdateInvestigationRequest,
+): Promise<InvestigationResponse> {
+  const response = await apiRequest<{
+    status: string;
+    data: InvestigationResponse;
+  }>(
+    `/api/v1/incidents/${encodeURIComponent(incidentId)}/investigation`,
+    {
+      method: 'PATCH',
+      body: JSON.stringify(input),
+    },
+    token,
+  );
+
+  return response.data;
+}
+
+export async function deleteIncidentInvestigation(
+  token: string,
+  incidentId: string,
+): Promise<void> {
+  await apiRequest<unknown>(
+    `/api/v1/incidents/${encodeURIComponent(incidentId)}/investigation`,
+    {
+      method: 'DELETE',
+    },
+    token,
+  );
+}
