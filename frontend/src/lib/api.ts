@@ -283,3 +283,113 @@ export async function createIncidentEvent(
 
   return response.data;
 }
+
+export const EVIDENCE_TYPES = [
+  'LOG',
+  'METRIC',
+  'TRACE',
+  'ALERT',
+  'DEPLOYMENT',
+  'CONFIGURATION',
+  'DOCUMENT',
+  'MANUAL',
+  'OTHER',
+] as const;
+
+export type EvidenceType = (typeof EVIDENCE_TYPES)[number];
+
+export interface CreateEvidenceRequest {
+  evidenceType: EvidenceType;
+  title: string;
+  description?: string | null;
+  source: string;
+  sourceRef?: string | null;
+  collectedAt?: string | null;
+  occurredAt?: string | null;
+  contentHash?: string | null;
+  trustLevel?: string | null;
+  metadata?: Record<string, unknown> | null;
+}
+
+export interface EvidenceResponse {
+  id: string;
+  incidentId: string;
+  evidenceType: EvidenceType;
+  title: string;
+  description: string | null;
+  source: string;
+  sourceRef: string | null;
+  collectedAt: string | null;
+  occurredAt: string | null;
+  contentHash: string | null;
+  trustLevel: string | null;
+  metadata: Record<string, unknown> | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface EvidenceListResponse {
+  items: EvidenceResponse[];
+}
+export async function listIncidentEvidence(
+  token: string,
+  incidentId: string,
+): Promise<EvidenceListResponse> {
+  const response = await apiRequest<{
+    status: string;
+    data: EvidenceListResponse;
+  }>(`/api/v1/incidents/${encodeURIComponent(incidentId)}/evidence`, {}, token);
+
+  return response.data;
+}
+
+export async function getIncidentEvidence(
+  token: string,
+  incidentId: string,
+  evidenceId: string,
+): Promise<EvidenceResponse> {
+  const response = await apiRequest<{
+    status: string;
+    data: EvidenceResponse;
+  }>(
+    `/api/v1/incidents/${encodeURIComponent(incidentId)}/evidence/${encodeURIComponent(evidenceId)}`,
+    {},
+    token,
+  );
+
+  return response.data;
+}
+
+export async function createIncidentEvidence(
+  token: string,
+  incidentId: string,
+  input: CreateEvidenceRequest,
+): Promise<EvidenceResponse> {
+  const response = await apiRequest<{
+    status: string;
+    data: EvidenceResponse;
+  }>(
+    `/api/v1/incidents/${encodeURIComponent(incidentId)}/evidence`,
+    {
+      method: 'POST',
+      body: JSON.stringify(input),
+    },
+    token,
+  );
+
+  return response.data;
+}
+
+export async function deleteIncidentEvidence(
+  token: string,
+  incidentId: string,
+  evidenceId: string,
+): Promise<void> {
+  await apiRequest<unknown>(
+    `/api/v1/incidents/${encodeURIComponent(incidentId)}/evidence/${encodeURIComponent(evidenceId)}`,
+    {
+      method: 'DELETE',
+    },
+    token,
+  );
+}
