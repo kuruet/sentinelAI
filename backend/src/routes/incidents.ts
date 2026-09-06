@@ -831,8 +831,8 @@ export async function incidentRoutes(app: FastifyInstance) {
 
       if (!intelligenceApi) {
         throw new AppError(
-          500,
-          'INTERNAL_SERVER_ERROR',
+          503,
+          'AI_PROVIDER_UNAVAILABLE',
           'AI intelligence provider is not configured.',
         );
       }
@@ -869,8 +869,8 @@ export async function incidentRoutes(app: FastifyInstance) {
 
       if (!intelligenceApi) {
         throw new AppError(
-          500,
-          'INTERNAL_SERVER_ERROR',
+          503,
+          'AI_PROVIDER_UNAVAILABLE',
           'AI intelligence provider is not configured.',
         );
       }
@@ -907,8 +907,8 @@ export async function incidentRoutes(app: FastifyInstance) {
 
       if (!intelligenceApi) {
         throw new AppError(
-          500,
-          'INTERNAL_SERVER_ERROR',
+          503,
+          'AI_PROVIDER_UNAVAILABLE',
           'AI intelligence provider is not configured.',
         );
       }
@@ -945,8 +945,8 @@ export async function incidentRoutes(app: FastifyInstance) {
 
       if (!intelligenceApi) {
         throw new AppError(
-          500,
-          'INTERNAL_SERVER_ERROR',
+          503,
+          'AI_PROVIDER_UNAVAILABLE',
           'AI intelligence provider is not configured.',
         );
       }

@@ -4,7 +4,8 @@ export type ApiErrorCode =
   | 'NOT_FOUND'
   | 'UNAUTHORIZED'
   | 'FORBIDDEN'
-  | 'INTERNAL_SERVER_ERROR';
+  | 'INTERNAL_SERVER_ERROR'
+  | 'AI_PROVIDER_UNAVAILABLE';
 
 export interface ApiErrorResponse {
   status: 'error';
