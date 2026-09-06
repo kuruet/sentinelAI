@@ -5,7 +5,7 @@ services:
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-sentinelai}
       POSTGRES_USER: ${POSTGRES_USER:-sentinelai}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be configured}
     ports:
       - '5433:5432'
     volumes:
@@ -44,7 +44,7 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER:-sentinelai}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-sentinelai}
       REDIS_URL: redis://redis:6379
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
-      JWT_SECRET: ${JWT_SECRET:-}
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET must be configured}
       SIMULATION_TARGET: http://backend:3000
       SIMULATION_INTERVAL: ${SIMULATION_INTERVAL:-5000}
     depends_on:
