@@ -1,5 +1,3 @@
-name: sentinelai
-
 services:
   postgres:
     image: postgres:17-alpine
@@ -31,6 +29,43 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+
+  backend:
+    build:
+      context: ..
+      dockerfile: backend/Dockerfile
+    container_name: sentinelai-backend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      BACKEND_HOST: 0.0.0.0
+      BACKEND_URL: http://backend:3000
+      DATABASE_URL: postgresql://${POSTGRES_USER:-sentinelai}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-sentinelai}
+      REDIS_URL: redis://redis:6379
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      JWT_SECRET: ${JWT_SECRET:-}
+      SIMULATION_TARGET: http://backend:3000
+      SIMULATION_INTERVAL: ${SIMULATION_INTERVAL:-5000}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - '3000:3000'
+
+  frontend:
+    build:
+      context: ..
+      dockerfile: frontend/Dockerfile
+    container_name: sentinelai-frontend
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_started
+    ports:
+      - '4173:80'
 
 volumes:
   sentinelai-postgres-data:
