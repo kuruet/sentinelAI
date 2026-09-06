@@ -66,8 +66,7 @@ export async function initializeDemoScenario(): Promise<{
         eventType: 'ALERT' as const,
         offsetMinutes: 0,
         title: 'Checkout error-rate alert fired',
-        description:
-          'The checkout service exceeded the configured 5xx error-rate threshold.',
+        description: 'The checkout service exceeded the configured 5xx error-rate threshold.',
         source: 'monitoring',
       },
       {
@@ -118,9 +117,7 @@ export async function initializeDemoScenario(): Promise<{
     ];
 
     for (const event of events) {
-      const occurredAt = new Date(
-        baseTime.getTime() + event.offsetMinutes * 60_000,
-      );
+      const occurredAt = new Date(baseTime.getTime() + event.offsetMinutes * 60_000);
 
       await tx.incidentEvent.create({
         data: {
@@ -143,8 +140,7 @@ export async function initializeDemoScenario(): Promise<{
       {
         evidenceType: 'ALERT' as const,
         title: 'Checkout error-rate alert',
-        description:
-          'Alert showing the checkout 5xx rate crossing the production threshold.',
+        description: 'Alert showing the checkout 5xx rate crossing the production threshold.',
         source: 'monitoring',
         sourceRef: 'alert:checkout-5xx-001',
         offsetMinutes: 0,
@@ -153,8 +149,7 @@ export async function initializeDemoScenario(): Promise<{
       {
         evidenceType: 'METRIC' as const,
         title: 'Checkout error-rate metric',
-        description:
-          'Metric snapshot showing elevated 5xx responses with stable request volume.',
+        description: 'Metric snapshot showing elevated 5xx responses with stable request volume.',
         source: 'metrics',
         sourceRef: 'metric:checkout-5xx-rate',
         offsetMinutes: 5,
@@ -183,8 +178,7 @@ export async function initializeDemoScenario(): Promise<{
       {
         evidenceType: 'CONFIGURATION' as const,
         title: 'Database pool configuration diff',
-        description:
-          'Configuration diff identifying the database connection-pool change.',
+        description: 'Configuration diff identifying the database connection-pool change.',
         source: 'configuration-management',
         sourceRef: 'configdiff:checkout-db-pool',
         offsetMinutes: 20,
@@ -193,9 +187,7 @@ export async function initializeDemoScenario(): Promise<{
     ];
 
     for (const item of evidence) {
-      const occurredAt = new Date(
-        baseTime.getTime() + item.offsetMinutes * 60_000,
-      );
+      const occurredAt = new Date(baseTime.getTime() + item.offsetMinutes * 60_000);
 
       await tx.evidence.create({
         data: {

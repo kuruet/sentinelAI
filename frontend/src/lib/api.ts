@@ -220,6 +220,26 @@ export async function createIncident(
 
   return response.data;
 }
+export async function updateIncidentLifecycle(
+  token: string,
+  incidentId: string,
+  status: IncidentStatus,
+): Promise<IncidentResponse> {
+  const response = await apiRequest<{
+    status: string;
+    data: IncidentResponse;
+  }>(
+    `/api/v1/incidents/${encodeURIComponent(incidentId)}/lifecycle`,
+    {
+      method: 'PATCH',
+      body: JSON.stringify({ status }),
+    },
+    token,
+  );
+
+  return response.data;
+}
+
 export async function getIncident(token: string, incidentId: string): Promise<IncidentResponse> {
   const response = await apiRequest<{
     status: string;

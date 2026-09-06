@@ -1,7 +1,12 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../auth/AuthProvider';
-import { ApiRequestError, IncidentResponse, getIncident } from '../lib/api';
+import {
+  ApiRequestError,
+  IncidentResponse,
+  getIncident,
+  updateIncidentLifecycle,
+} from '../lib/api';
 import Badge from '../components/ui/Badge';
 import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
@@ -62,6 +67,8 @@ export default function IncidentDetailPage() {
   const [incident, setIncident] = useState<IncidentResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [lifecycleUpdating, setLifecycleUpdating] = useState(false);
+  const [lifecycleError, setLifecycleError] = useState('');
 
   useEffect(() => {
     let cancelled = false;
@@ -111,6 +118,29 @@ export default function IncidentDetailPage() {
       cancelled = true;
     };
   }, [id, token]);
+
+  async function handleLifecycleTransition(nextStatus: IncidentResponse['status']) {
+    if (!token || !incident) {
+      return;
+    }
+
+    setLifecycleUpdating(true);
+    setLifecycleError('');
+
+    try {
+      const updated = await updateIncidentLifecycle(token, incident.id, nextStatus);
+
+      setIncident(updated);
+    } catch (requestError) {
+      setLifecycleError(
+        requestError instanceof ApiRequestError
+          ? requestError.message
+          : 'Unable to update the incident lifecycle.',
+      );
+    } finally {
+      setLifecycleUpdating(false);
+    }
+  }
 
   if (loading) {
     return (
@@ -253,6 +283,55 @@ export default function IncidentDetailPage() {
               <div>
                 <p className="eyebrow">Incident navigation</p>
                 <h2>Actions</h2>
+              </div>
+            </div>
+
+            <div className="incident-detail__lifecycle">
+              <div>
+                <p className="eyebrow">Incident lifecycle</p>
+                <p className="ui-muted">Transitions are enforced by the backend.</p>
+              </div>
+
+              {lifecycleError ? (
+                <p className="ui-error" role="alert">
+                  {lifecycleError}
+                </p>
+              ) : null}
+
+              <div className="button-row">
+                {incident.status === 'IDENTIFIED' ? (
+                  <Button
+                    type="button"
+                    disabled={lifecycleUpdating}
+                    onClick={() => void handleLifecycleTransition('INVESTIGATING')}
+                  >
+                    {lifecycleUpdating ? 'Updating…' : 'Start investigation'}
+                  </Button>
+                ) : null}
+
+                {incident.status === 'INVESTIGATING' ? (
+                  <Button
+                    type="button"
+                    disabled={lifecycleUpdating}
+                    onClick={() => void handleLifecycleTransition('RESOLVED')}
+                  >
+                    {lifecycleUpdating ? 'Updating…' : 'Mark resolved'}
+                  </Button>
+                ) : null}
+
+                {incident.status === 'RESOLVED' ? (
+                  <Button
+                    type="button"
+                    disabled={lifecycleUpdating}
+                    onClick={() => void handleLifecycleTransition('CLOSED')}
+                  >
+                    {lifecycleUpdating ? 'Updating…' : 'Close incident'}
+                  </Button>
+                ) : null}
+
+                {incident.status === 'CLOSED' ? (
+                  <span className="ui-muted">Lifecycle complete.</span>
+                ) : null}
               </div>
             </div>
 

@@ -1,9 +1,5 @@
 import { prisma } from '../src/infrastructure/database';
-import {
-  DEMO_INCIDENT_ID,
-  DEMO_USER_ID,
-  initializeDemoScenario,
-} from '../src/demo/demo-scenario';
+import { DEMO_INCIDENT_ID, DEMO_USER_ID, initializeDemoScenario } from '../src/demo/demo-scenario';
 
 async function main(): Promise<void> {
   const result = await initializeDemoScenario();
@@ -26,19 +22,21 @@ async function main(): Promise<void> {
     ['incident id', incident.id === DEMO_INCIDENT_ID],
     ['incident status', incident.status === 'INVESTIGATING'],
     ['incident severity', incident.severity === 'HIGH'],
-    ['commander', incident.participants.some(
-      (participant) =>
-        participant.userId === DEMO_USER_ID &&
-        participant.role === 'INCIDENT_COMMANDER',
-    )],
+    [
+      'commander',
+      incident.participants.some(
+        (participant) =>
+          participant.userId === DEMO_USER_ID && participant.role === 'INCIDENT_COMMANDER',
+      ),
+    ],
     ['event count', incident.events.length === 6],
-    ['event sequence', incident.events.every(
-      (event, index) => event.sequence === index + 1,
-    )],
-    ['chronological events', incident.events.every(
-      (event, index, events) =>
-        index === 0 || event.occurredAt >= events[index - 1].occurredAt,
-    )],
+    ['event sequence', incident.events.every((event, index) => event.sequence === index + 1)],
+    [
+      'chronological events',
+      incident.events.every(
+        (event, index, events) => index === 0 || event.occurredAt >= events[index - 1].occurredAt,
+      ),
+    ],
     ['evidence count', incident.evidence.length === 5],
     ['investigation', incident.investigation !== null],
   ] as const;
@@ -88,4 +86,3 @@ main()
   .finally(async () => {
     await prisma.$disconnect();
   });
-
