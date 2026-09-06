@@ -3,6 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "description": "SentinelAI backend service.",
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "start": "node dist/index.js"
+  },
   "dependencies": {
     "@fastify/cors": "^11.3.0",
     "@fastify/helmet": "^13.1.1",

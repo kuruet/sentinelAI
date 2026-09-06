@@ -40,11 +40,40 @@ export async function buildApp(): Promise<FastifyInstance> {
 export async function start() {
   const app = await buildApp();
 
+  const shutdown = async (signal: string) => {
+    app.log.info({ signal }, 'Shutdown signal received.');
+
+    try {
+      await app.close();
+      app.log.info('Backend shutdown complete.');
+    } catch (error) {
+      app.log.error(error, 'Backend shutdown failed.');
+      process.exitCode = 1;
+    }
+  };
+
+  process.once('SIGINT', () => {
+    void shutdown('SIGINT');
+  });
+
+  process.once('SIGTERM', () => {
+    void shutdown('SIGTERM');
+  });
+
   try {
     await app.listen({
       host: env.BACKEND_HOST,
       port: env.PORT,
     });
+
+    app.log.info(
+      {
+        host: env.BACKEND_HOST,
+        port: env.PORT,
+        nodeEnv: env.NODE_ENV,
+      },
+      'SentinelAI backend started.',
+    );
   } catch (error) {
     app.log.error(error);
     await app.close();

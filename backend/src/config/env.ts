@@ -1,6 +1,7 @@
+import path from 'node:path';
 import { config as loadEnv } from 'dotenv';
 
-loadEnv({ path: '../.env' });
+loadEnv({ path: path.resolve(__dirname, '../../../.env') });
 
 function requireEnv(name: string): string {
   const value = process.env[name]?.trim();
@@ -43,7 +44,8 @@ export const env = {
 
   PORT: parsePort(process.env.PORT?.trim() || '3000', 'PORT'),
 
-  BACKEND_HOST: process.env.BACKEND_HOST?.trim() || '127.0.0.1',
+  BACKEND_HOST:
+    process.env.BACKEND_HOST?.trim() || (nodeEnv === 'production' ? '0.0.0.0' : '127.0.0.1'),
 
   BACKEND_URL: process.env.BACKEND_URL?.trim() || 'http://localhost:3000',
 
