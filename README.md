@@ -4,24 +4,31 @@ AI-powered incident intelligence platform for detecting, analyzing, simulating, 
 
 ## Project Status
 
-SentinelAI is currently in the foundation phase.
+SentinelAI now includes a containerized application stack suitable for local development, deterministic demonstrations, and deployment-readiness validation.
 
 The repository currently includes:
 
-- pnpm monorepo structure
-- TypeScript foundation
-- ESLint and Prettier
-- Environment configuration strategy
-- Git workflow
-- Documentation foundation
+- React + Vite incident console
+- Fastify + TypeScript backend API
+- PostgreSQL 17 persistence
+- Redis 8 cache and queue infrastructure
+- BullMQ worker infrastructure
+- Prisma 7 database integration
+- AI provider abstraction
+- Authentication and security controls
+- Deterministic incident demo scenario
+- Docker-based production packaging
+- Docker Compose service orchestration
+- Health and dependency-readiness endpoints
+- Automated lint, formatting, typecheck, and CI quality gates
 
-Application services and incident-intelligence capabilities will be implemented incrementally.
+Core incident-management, investigation, evidence, simulation, AI, security, and deployment capabilities have been implemented incrementally and verified through the project phases.
 
 ## Vision
 
 SentinelAI is designed to help engineering teams understand and respond to incidents faster by combining incident data, system context, AI-assisted analysis, and controlled failure simulation.
 
-The planned platform will support:
+The platform supports:
 
 - Incident ingestion and normalization
 - Incident investigation
@@ -31,7 +38,7 @@ The planned platform will support:
 - Operational insights
 - Incident reporting
 
-These capabilities are planned architecture and are not yet implemented unless explicitly stated in the repository.
+The implementation is organized around the repository architecture and verified capabilities described in the project documentation.
 
 ## High-Level Architecture
 
@@ -141,14 +148,15 @@ pnpm format
 
 ## Documentation
 
-| Document                                               | Purpose                                                |
-| ------------------------------------------------------ | ------------------------------------------------------ |
-| [Environment Strategy](ENVIRONMENT.md)                 | Environment variables and secret-management policy     |
-| [Git Workflow](GIT_WORKFLOW.md)                        | Branching, commits, pull requests, and Git conventions |
-| [Architecture](docs/architecture/ARCHITECTURE.md)      | Planned system architecture                            |
-| [Development Guide](docs/development/DEVELOPMENT.md)   | Local development workflow                             |
-| [Development Standards](docs/development/STANDARDS.md) | Coding, testing, security, and review conventions      |
-| [Architecture Decisions](docs/decisions/README.md)     | Architecture decision records                          |
+| Document                                                  | Purpose                                                                        |
+| --------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| [Environment Strategy](ENVIRONMENT.md)                    | Environment variables and secret-management policy                             |
+| [Git Workflow](GIT_WORKFLOW.md)                           | Branching, commits, pull requests, and Git conventions                         |
+| [Architecture](docs/architecture/ARCHITECTURE.md)         | Planned system architecture                                                    |
+| [Deployment & Demo Guide](docs/development/DEPLOYMENT.md) | Container deployment, health checks, recovery, and deterministic demo workflow |
+| [Development Guide](docs/development/DEVELOPMENT.md)      | Local development workflow                                                     |
+| [Development Standards](docs/development/STANDARDS.md)    | Coding, testing, security, and review conventions                              |
+| [Architecture Decisions](docs/decisions/README.md)        | Architecture decision records                                                  |
 
 ## Development Philosophy
 
