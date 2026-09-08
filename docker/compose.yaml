@@ -55,6 +55,27 @@ services:
     ports:
       - '3000:3000'
 
+  sentinelai-demo:
+    build:
+      context: ..
+      dockerfile: simulation-engine/Dockerfile
+    container_name: sentinelai-demo
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      HOST: 0.0.0.0
+      DATABASE_URL: postgresql://${POSTGRES_USER:-sentinelai}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-sentinelai}
+      SENTINELAI_URL: http://backend:3000
+      SENTINELAI_TOKEN: ${SENTINELAI_TOKEN:-}
+      SENTINELAI_INCIDENT_ID: ${SENTINELAI_INCIDENT_ID:-}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      backend:
+        condition: service_started
+    ports:
+      - '4000:4000'
   frontend:
     build:
       context: ..
