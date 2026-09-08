@@ -20,6 +20,7 @@ interface LogContext {
   durationMs?: number;
   errorCode?: string;
   dependency?: string;
+  failureMode?: string;
 }
 
 interface Histogram {
@@ -39,6 +40,8 @@ const requestDuration: Histogram = {
   sum: 0,
   buckets: [0, 0, 0, 0, 0],
 };
+
+let databaseFailureInjected = false;
 
 function incrementCounter(metric: Map<string, number> | { value: number }, key?: string): void {
   if ('value' in metric) {
@@ -190,6 +193,10 @@ function writeJson(
 }
 
 async function checkDatabase(): Promise<void> {
+  if (databaseFailureInjected) {
+    throw new Error('DEMO_DATABASE_FAILURE_INJECTED');
+  }
+
   const client = await database.connect();
 
   try {
@@ -250,6 +257,9 @@ async function handleRequest(
           dependencies: {
             database: 'healthy',
           },
+          failureInjection: {
+            database: databaseFailureInjected,
+          },
         });
 
         const durationMs = Date.now() - startedAt;
@@ -271,6 +281,9 @@ async function handleRequest(
           dependencies: {
             database: 'unhealthy',
           },
+          failureInjection: {
+            database: databaseFailureInjected,
+          },
         });
 
         const durationMs = Date.now() - startedAt;
@@ -286,6 +299,7 @@ async function handleRequest(
           errorCode: 'DATABASE_UNAVAILABLE',
           dependency: 'postgresql',
           durationMs,
+          failureMode: databaseFailureInjected ? 'controlled' : 'dependency',
         });
       }
 
@@ -358,8 +372,77 @@ async function handleRequest(
           errorCode: 'CHECKOUT_DEPENDENCY_UNAVAILABLE',
           dependency: 'postgresql',
           durationMs,
+          failureMode: databaseFailureInjected ? 'controlled' : 'dependency',
         });
       }
+
+      return;
+    }
+    if (method === 'POST' && path === '/demo/failure') {
+      const body = await new Promise<string>((resolve, reject) => {
+        let data = '';
+
+        request.setEncoding('utf8');
+
+        request.on('data', (chunk: string) => {
+          data += chunk;
+        });
+
+        request.on('end', () => resolve(data));
+        request.on('error', reject);
+      });
+
+      let payload: { enabled?: boolean };
+
+      try {
+        payload = JSON.parse(body || '{}') as { enabled?: boolean };
+      } catch {
+        payload = {};
+      }
+
+      if (typeof payload.enabled !== 'boolean') {
+        writeJson(response, 400, {
+          error: 'INVALID_FAILURE_CONFIGURATION',
+          message: 'Request body must contain a boolean "enabled" field.',
+        });
+
+        const durationMs = Date.now() - startedAt;
+        recordRequest(path, durationMs);
+
+        log('WARN', 'failure_injection_rejected', {
+          requestId,
+          method,
+          path,
+          statusCode: 400,
+          errorCode: 'INVALID_FAILURE_CONFIGURATION',
+          durationMs,
+        });
+
+        return;
+      }
+
+      databaseFailureInjected = payload.enabled;
+
+      writeJson(response, 200, {
+        status: 'updated',
+        service: SERVICE_NAME,
+        failureInjection: {
+          database: databaseFailureInjected,
+        },
+      });
+
+      const durationMs = Date.now() - startedAt;
+      recordRequest(path, durationMs);
+
+      log('WARN', 'failure_injection_changed', {
+        requestId,
+        method,
+        path,
+        statusCode: 200,
+        dependency: 'postgresql',
+        failureMode: databaseFailureInjected ? 'controlled' : 'disabled',
+        durationMs,
+      });
 
       return;
     }
