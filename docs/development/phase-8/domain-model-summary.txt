@@ -1,0 +1,200 @@
+C:\Users\Pratik\sentinelAI\backend\node_modules\@fastify\cors\types\index.d.ts:106: * will prevent these requests from being logged.
+C:\Users\Pratik\sentinelAI\backend\node_modules\@prisma\adapter-pg\dist\index.d.ts:66: /** Callback attached to the pool's 'error' events. */
+C:\Users\Pratik\sentinelAI\backend\node_modules\@prisma\adapter-pg\dist\index.d.ts:68: /** Callback attached to connection's 'error' events. */
+C:\Users\Pratik\sentinelAI\backend\node_modules\@prisma\client\runtime\client.d.ts:1210: $on<E extends ExtendedEventType>(eventType: E, callback: EventCallback<E>): any;
+C:\Users\Pratik\sentinelAI\backend\node_modules\@prisma\client\runtime\client.d.ts:1724: emit: 'stdout' | 'event';
+C:\Users\Pratik\sentinelAI\backend\node_modules\@prisma\client\runtime\client.d.ts:1728: * Typings for the events we emit.
+C:\Users\Pratik\sentinelAI\backend\node_modules\@prisma\client\runtime\client.d.ts:1734: on<E extends EngineEventType>(event: E, listener: (event: EngineEvent<E>) => void): LogEmitter;
+C:\Users\Pratik\sentinelAI\backend\node_modules\@prisma\client\runtime\client.d.ts:1735: emit(event: QueryEventType, payload: QueryEvent): boolean;
+C:\Users\Pratik\sentinelAI\backend\node_modules\@prisma\client\runtime\client.d.ts:1736: emit(event: LogEventType, payload: LogEvent): boolean;
+C:\Users\Pratik\sentinelAI\backend\node_modules\@prisma\client\runtime\client.d.ts:1739: declare type LogEvent = {
+C:\Users\Pratik\sentinelAI\backend\node_modules\@prisma\client\runtime\client.d.ts:1745: declare type LogEventType = 'info' | 'warn' | 'error';
+C:\Users\Pratik\sentinelAI\backend\node_modules\@prisma\client\runtime\client.d.ts:2052: * // Emit as events
+C:\Users\Pratik\sentinelAI\backend\node_modules\@prisma\client\runtime\client.d.ts:2446: declare type QueryEvent = {
+C:\Users\Pratik\sentinelAI\backend\node_modules\@prisma\client\runtime\client.d.ts:2454: declare type QueryEventType = 'query';
+C:\Users\Pratik\sentinelAI\backend\node_modules\@prisma\client\runtime\client.d.ts:2568: * Handles the error and logs it, logging the error is done synchronously waiting for the event
+C:\Users\Pratik\sentinelAI\backend\node_modules\@prisma\client\runtime\client.d.ts:2845: * Adds an event to the Span.
+C:\Users\Pratik\sentinelAI\backend\node_modules\@prisma\client\runtime\client.d.ts:2847: * @param name the name of the event.
+C:\Users\Pratik\sentinelAI\backend\node_modules\@prisma\client\runtime\client.d.ts:2849: *     associated with this event. Can be also a start time
+C:\Users\Pratik\sentinelAI\backend\node_modules\@prisma\client\runtime\client.d.ts:2851: * @param [startTime] start time of the event.
+C:\Users\Pratik\sentinelAI\backend\node_modules\@prisma\client\runtime\client.d.ts:2853: addEvent(name: string, attributesOrStartTime?: SpanAttributes | TimeInput, startTime?: TimeInput): this;
+C:\Users\Pratik\sentinelAI\backend\node_modules\@prisma\client\runtime\client.d.ts:2907: * @returns true if this Span is active and recording information like events
+C:\Users\Pratik\sentinelAI\backend\node_modules\@prisma\client\runtime\client.d.ts:2908: *     with the `AddEvent` operation and attributes using `setAttributes`.
+C:\Users\Pratik\sentinelAI\backend\node_modules\@prisma\client\runtime\client.d.ts:2912: * Sets exception as a span event
+C:\Users\Pratik\sentinelAI\backend\node_modules\@prisma\client\runtime\client.d.ts:2914: * @param [time] the time to set as Span's event time. If not provided,
+C:\Users\Pratik\sentinelAI\backend\node_modules\@prisma\client\runtime\client.d.ts:3270: * Emits spans reported by a remote engine, together with the log events that
+C:\Users\Pratik\sentinelAI\backend\node_modules\@prisma\client\runtime\client.d.ts:3273: * Implementations must call `emitLogEvent` exactly once for every entry in
+C:\Users\Pratik\sentinelAI\backend\node_modules\@prisma\client\runtime\client.d.ts:3274: * `events`, otherwise the client silently drops logs the user asked for. Each
+C:\Users\Pratik\sentinelAI\backend\node_modules\@prisma\client\runtime\client.d.ts:3275: * event should be emitted while the span identified by its `spanId` is the
+C:\Users\Pratik\sentinelAI\backend\node_modules\@prisma\client\runtime\client.d.ts:3277: * they would for a locally executed query. Events whose span is missing or
+C:\Users\Pratik\sentinelAI\backend\node_modules\@prisma\client\runtime\client.d.ts:3278: * not emitted must still be passed to `emitLogEvent`.
+C:\Users\Pratik\sentinelAI\backend\node_modules\@prisma\client\runtime\client.d.ts:3280: dispatchEngineSpans(spans: EngineSpan[], events: EngineTraceEvent[], emitLogEvent: (event: EngineTraceEvent) => void): void;
+C:\Users\Pratik\sentinelAI\backend\node_modules\@prisma\client\runtime\client.d.ts:823: declare type EngineEvent<E extends EngineEventType> = E extends QueryEventType ? QueryEvent : LogEvent;
+C:\Users\Pratik\sentinelAI\backend\node_modules\@prisma\client\runtime\client.d.ts:825: declare type EngineEventType = QueryEventType | LogEventType;
+C:\Users\Pratik\sentinelAI\backend\node_modules\@prisma\client\runtime\client.d.ts:842: declare interface EngineTraceEvent {
+C:\Users\Pratik\sentinelAI\backend\node_modules\@prisma\client\runtime\client.d.ts:864: declare type EventCallback<E extends ExtendedEventType> = [E] extends ['beforeExit'] ? () => Promise<void> : [E] extends [LogLevel] ? (event: EngineEvent<E>) => void : never;
+C:\Users\Pratik\sentinelAI\backend\node_modules\@prisma\client\runtime\client.d.ts:898: declare type ExtendedEventType = LogLevel | 'beforeExit';
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\async_hooks.d.ts:147: * Registers functions to be called for different lifetime events of each async
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\async_hooks.d.ts:151: * respective asynchronous event during a resource's lifetime.
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\async_hooks.d.ts:193: * The ID of the execution context that created this async event.
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\async_hooks.d.ts:208: * resources. Using this, users can easily trigger the lifetime events of their
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\async_hooks.d.ts:248: * @param type The type of async event.
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\async_hooks.d.ts:250: *   this async event (default: `executionAsyncId()`), or an
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\async_hooks.d.ts:581: * This means that if, for example, the context is entered within an event
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\async_hooks.d.ts:582: * handler subsequent event handlers will also run within that context unless
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\async_hooks.d.ts:589: * emitter.on('my-event', () => {
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\async_hooks.d.ts:592: * emitter.on('my-event', () => {
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\async_hooks.d.ts:597: * emitter.emit('my-event');
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\async_hooks.d.ts:647: * This map contains all the event types that might be emitted by the `async_hooks.init()` event.
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\async_hooks.d.ts:657: const FSEVENTWRAP: number;
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\child_process.d.ts:10: interface ChildProcessEventMap {
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\child_process.d.ts:210: * The `ChildProcess` object may emit an `'error'` event if the signal
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\child_process.d.ts:223: * See `Signal Events` for more details.
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\child_process.d.ts:26: class ChildProcess implements EventEmitter {
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\child_process.d.ts:260: * Node.js instance, these messages can be received via the `'message'` event.
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\child_process.d.ts:295: * Node.js core and will not be emitted in the child's `'message'` event. Rather, such messages are emitted using the `'internalMessage'` event and are consumed internally by Node.js.
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\child_process.d.ts:296: * Applications should avoid using such messages or listening for `'internalMessage'` events as it is subject to change without notice.
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\child_process.d.ts:301: * registered on the `'message'` event. Any data that is received and buffered in
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\child_process.d.ts:308: * If no `callback` function is provided and the message cannot be sent, an `'error'` event will be emitted by the `ChildProcess` object. This can
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\child_process.d.ts:352: * listening on a `'message'` event instead of `'connection'` and using `server.bind()` instead of `server.listen()`. This is, however, only
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\child_process.d.ts:367: * // Open up the server and send sockets to child. Use pauseOnConnect to prevent
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\child_process.d.ts:384: * passed to the event callback function:
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\child_process.d.ts:4: import { Abortable, EventEmitter, InternalEventEmitter } from "node:events";
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\child_process.d.ts:424: * The `'disconnect'` event will be emitted when there are no messages in the
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\child_process.d.ts:434: * By default, the parent will wait for the detached child to exit. To prevent the
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\child_process.d.ts:435: * parent from waiting for a given `subprocess` to exit, use the `subprocess.unref()` method. Doing so will cause the parent's event loop to not
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\child_process.d.ts:473: interface ChildProcess extends InternalEventEmitter<ChildProcessEventMap> {}
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\child_process.d.ts:505: interface Control extends EventEmitter {
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\child_process.d.ts:611: * import { once } from 'node:events';
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\cluster.d.ts:100: * the `'disconnect'` event has not been emitted after some time.
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\cluster.d.ts:142: * has been created. It is disconnected after the `'disconnect'` event is emitted.
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\cluster.d.ts:19: * Workers will call `process.exit(0)` if the `'disconnect'` event occurs
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\cluster.d.ts:208: interface Worker extends InternalEventEmitter<cluster.WorkerEventMap> {}
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\cluster.d.ts:217: interface WorkerEventMap {
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\cluster.d.ts:295: interface ClusterEventMap {
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\cluster.d.ts:3: import { EventEmitter, InternalEventEmitter } from "node:events";
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\cluster.d.ts:304: interface Cluster extends InternalEventEmitter<ClusterEventMap> {
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\cluster.d.ts:4: class Worker implements EventEmitter {
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\cluster.d.ts:409: * A worker is removed from `cluster.workers` after the worker has disconnected _and_ exited. The order between these two events cannot be determined in advance. However, it
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\cluster.d.ts:410: * is guaranteed that the removal from the `cluster.workers` list happens before the last `'disconnect'` or `'exit'` event is emitted.
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\cluster.d.ts:77: * In a worker, this function will close all servers, wait for the `'close'` event
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\console.d.ts:81: * method adds an event with the label `'label'` to the Timeline panel of the inspector.
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\crypto.d.ts:1056: * When data has been encrypted without standard block padding, calling `decipher.setAutoPadding(false)` will disable automatic padding to prevent `decipher.final()` from checking for and
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\dgram.d.ts:125: * `'listening'` event is emitted and the optional `callback` function is
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\dgram.d.ts:128: * Specifying both a `'listening'` event listener and passing a
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\dgram.d.ts:135: * If binding fails, an `'error'` event is generated. In rare case (e.g.
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\dgram.d.ts:175: * complete, a `'listening'` event is emitted and the optional `callback`
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\dgram.d.ts:183: * Specifying both a `'listening'` event listener and passing a
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\dgram.d.ts:199: * If binding fails, an `'error'` event is generated. In rare case (e.g.
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\dgram.d.ts:230: * as an `'error'` event. After `bindSync()` returns, `socket.address()` is
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\dgram.d.ts:231: * valid synchronously and the `'listening'` event is emitted on the next tick.
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\dgram.d.ts:236: * `'message'` event. `bindSync()` always binds the socket's own handle and
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\dgram.d.ts:244: * provided, it is added as a listener for the `'close'` event.
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\dgram.d.ts:256: * will be used by default. Once the connection is complete, a `'connect'` event
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\dgram.d.ts:258: * the `callback` is called or, failing this, an `'error'` event is emitted.
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\dgram.d.ts:269: * thrown synchronously rather than reported via the `'error'` event. Because
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\dgram.d.ts:284: * and the `'connect'` event is emitted on the next tick. Trying to call
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\dgram.d.ts:387: * Node.js event loop.
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\dgram.d.ts:391: * the error is emitted as an `'error'` event on the `socket` object.
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\dgram.d.ts:4: import { Abortable, EventEmitter, InternalEventEmitter } from "node:events";
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\dgram.d.ts:64: * @param callback Attached as a listener for `'message'` events. Optional.
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\dgram.d.ts:648: interface Socket extends InternalEventEmitter<SocketEventMap> {}
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\dgram.d.ts:68: interface SocketEventMap {
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\dgram.d.ts:82: class Socket implements EventEmitter {
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\diagnostics_channel.d.ts:108: * `tracing:${name}:${eventType}` where `eventType` is `start` or `end`.
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\diagnostics_channel.d.ts:111: * traces synchronous operations. It only has `start` and `end` events, without
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\diagnostics_channel.d.ts:112: * `asyncStart`, `asyncEnd`, or `error` events, making it suitable for tracing
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\diagnostics_channel.d.ts:388: * simplify the process of producing events for tracing application flow. {@link tracingChannel} is used to construct a `TracingChannel`. As with `Channel` it is recommended to create and reuse a
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\diagnostics_channel.d.ts:465: * Trace a synchronous function call. This will always produce a `start event` and `end event` around the execution and may produce an `error event` if the given function throws an error.
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\diagnostics_channel.d.ts:467: * events should have any bound stores set to match this trace context.
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\diagnostics_channel.d.ts:469: * To ensure only correct trace graphs are formed, events will only be published if subscribers are present prior to starting the trace. Subscriptions
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\diagnostics_channel.d.ts:470: * which are added after the trace begins will not receive future events from that trace, only future traces will be seen.
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\diagnostics_channel.d.ts:486: * @param context Shared object to correlate events through
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\diagnostics_channel.d.ts:499: * [thenable object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise#thenables). This will always produce a [`start` event](https://nodejs.org/docs/latest-v26.x/api/diagnostics_channel.html#startevent) and
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\diagnostics_channel.d.ts:500: * [`end` event](https://nodejs.org/docs/latest-v26.x/api/diagnostics_channel.html#endevent) around the synchronous portion of the function execution, and
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\diagnostics_channel.d.ts:501: * will produce an [`asyncStart` event](https://nodejs.org/docs/latest-v26.x/api/diagnostics_channel.html#asyncstartevent) and [`asyncEnd` event](https://nodejs.org/docs/latest-v26.x/api/diagnostics_channel.html#asyncendevent) when the
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\diagnostics_channel.d.ts:503: * [`error` event](https://nodejs.org/docs/latest-v26.x/api/diagnostics_channel.html#errorevent) if the given function throws an error or the returned promise
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\diagnostics_channel.d.ts:506: * events should have any bound stores set to match this trace context.
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\diagnostics_channel.d.ts:509: * returned with a warning, and no `asyncStart` or `asyncEnd` events will be
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\diagnostics_channel.d.ts:512: * To ensure only correct trace graphs are formed, events will only be published if subscribers are present prior to starting the trace. Subscriptions
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\diagnostics_channel.d.ts:513: * which are added after the trace begins will not receive future events from that trace, only future traces will be seen.
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\diagnostics_channel.d.ts:529: * @param context Shared object to correlate trace events through
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\diagnostics_channel.d.ts:544: * Trace a callback-receiving function call. This will always produce a `start event` and `end event` around the synchronous portion of the
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\diagnostics_channel.d.ts:545: * function execution, and will produce a `asyncStart event` and `asyncEnd event` around the callback execution. It may also produce an `error event` if the given function throws an error or
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\diagnostics_channel.d.ts:548: * events should have any bound stores set to match this trace context.
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\diagnostics_channel.d.ts:569: * To ensure only correct trace graphs are formed, events will only be published if subscribers are present prior to starting the trace. Subscriptions
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\diagnostics_channel.d.ts:570: * which are added after the trace begins will not receive future events from that trace, only future traces will be seen.
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\diagnostics_channel.d.ts:596: * @param context Shared object to correlate trace events through
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\diagnostics_channel.d.ts:640: * events. This makes it suitable for tracing operations that don't involve
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\diagnostics_channel.d.ts:668: * Subscribe to the bounded channel events. This is equivalent to calling
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\diagnostics_channel.d.ts:690: * Unsubscribe from the bounded channel events. This is equivalent to calling
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\diagnostics_channel.d.ts:713: * Trace a synchronous function call. This will produce a `start` event and `end`
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\diagnostics_channel.d.ts:714: * event around the execution. This runs the given function using
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\diagnostics_channel.d.ts:716: * events have any bound stores set to match this trace context.
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\diagnostics_channel.d.ts:729: * @param context Shared object to correlate events through
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\diagnostics_channel.d.ts:744: * `start` and `end` events, enters bound stores, and handles cleanup when disposed.
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\diagnostics_channel.d.ts:754: *   // Stores are entered, start event is published
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\diagnostics_channel.d.ts:759: * // End event is published, stores are restored automatically
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\diagnostics_channel.d.ts:762: * @param context Shared object to correlate events through
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\diagnostics_channel.d.ts:770: * operation, automatically publishing events and managing store contexts.
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\diagnostics_channel.d.ts:782: *   // Start event is published, stores are entered
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\diagnostics_channel.d.ts:784: *   // End event is automatically published at end of block
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\diagnostics_channel.d.ts:80: * channels will be created in the form of `tracing:${name}:${eventType}` where `eventType` corresponds to the types of `TracingChannel Channels`.
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\domain.d.ts:11: * An array of event emitters that have been explicitly added to the domain.
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\domain.d.ts:13: members: EventEmitter[];
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\domain.d.ts:130: *     // event on the domain instead of being repeated throughout
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\domain.d.ts:2: import { EventEmitter } from "node:events";
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\domain.d.ts:42: * binding all event emitters, timers, and low-level requests that are
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\domain.d.ts:7: * To handle the errors that it catches, listen to its `'error'` event.
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\domain.d.ts:72: * Explicitly adds an emitter to the domain. If any event handlers called by
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\domain.d.ts:73: * the emitter throw an error, or if the emitter emits an `'error'` event, it
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\domain.d.ts:74: * will be routed to the domain's `'error'` event, just like with implicit
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\domain.d.ts:77: * If the `EventEmitter` was already bound to a domain, it is removed from that
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\domain.d.ts:81: add(emitter: EventEmitter): void;
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\domain.d.ts:87: remove(emitter: EventEmitter): void;
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\domain.d.ts:9: class Domain extends EventEmitter {
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\domain.d.ts:91: * thrown will be routed to the domain's `'error'` event.
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\events.d.ts:1: declare module "node:events" {
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\events.d.ts:1003: export = EventEmitter;
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\events.d.ts:1005: declare module "events" {
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\events.d.ts:1006: import events = require("node:events");
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\events.d.ts:1007: export = events;
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\events.d.ts:101: * import { EventEmitter } from 'node:events';
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\events.d.ts:102: * const myEmitter = new EventEmitter();
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\events.d.ts:105: * myEmitter.on('event', function firstListener() {
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\events.d.ts:109: * myEmitter.on('event', function secondListener(arg1, arg2) {
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\events.d.ts:110: *   console.log(`event with parameters ${arg1}, ${arg2} in second listener`);
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\events.d.ts:113: * myEmitter.on('event', function thirdListener(...args) {
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\events.d.ts:115: *   console.log(`event with parameters ${parameters} in third listener`);
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\events.d.ts:118: * console.log(myEmitter.listeners('event'));
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\events.d.ts:120: * myEmitter.emit('event', 1, 2, 3, 4, 5);
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\events.d.ts:129: * // event with parameters 1, 2 in second listener
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\events.d.ts:13: type EventNames<Events extends EventMap<Events>, EventName extends string | symbol> = IfEventMap<
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\events.d.ts:130: * // event with parameters 1, 2, 3, 4, 5 in third listener
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\events.d.ts:134: emit<E extends string | symbol>(eventName: EventNames<T, E>, ...args: Args<T, E>): boolean;
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\events.d.ts:136: * Returns an array listing the events for which the emitter has registered
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\events.d.ts:14: Events,
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\events.d.ts:140: * import { EventEmitter } from 'node:events';
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\events.d.ts:142: * const myEE = new EventEmitter();
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\events.d.ts:149: * console.log(myEE.eventNames());
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\events.d.ts:15: EventName | (keyof Events & (string | symbol)) | keyof EventEmitterEventMap,
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\events.d.ts:154: eventNames(): (string | symbol)[];
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\events.d.ts:156: * Returns the current max listener value for the `EventEmitter` which is either
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\events.d.ts:158: * `events.defaultMaxListeners`.
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\events.d.ts:163: * Returns the number of listeners listening for the event named `eventName`.
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\events.d.ts:165: * in the list of the listeners of the event.
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\events.d.ts:167: * @param eventName The name of the event being listened for
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\events.d.ts:168: * @param listener The event handler function
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\events.d.ts:171: eventName: EventNames<T, E>,
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\events.d.ts:175: * Returns a copy of the array of listeners for the event named `eventName`.
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\events.d.ts:18: type Listener<Events extends EventMap<Events>, EventName extends string | symbol> = IfEventMap<
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\events.d.ts:186: listeners<E extends string | symbol>(eventName: EventNames<T, E>): Listener<T, E>[];
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\events.d.ts:19: Events,
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\events.d.ts:191: off<E extends string | symbol>(eventName: EventNames<T, E>, listener: Listener<T, E>): this;
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\events.d.ts:194: * event named `eventName`. No checks are made to see if the `listener` has
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\events.d.ts:195: * already been added. Multiple calls passing the same combination of `eventName`
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\events.d.ts:205: * Returns a reference to the `EventEmitter`, so that calls can be chained.
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\events.d.ts:207: * By default, event listeners are invoked in the order they are added. The
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\events.d.ts:209: * event listener to the beginning of the listeners array.
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\events.d.ts:21: ...args: EventName extends keyof Events ? Events[EventName]
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\events.d.ts:212: * import { EventEmitter } from 'node:events';

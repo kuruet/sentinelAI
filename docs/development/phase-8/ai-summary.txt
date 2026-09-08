@@ -1,0 +1,150 @@
+C:\Users\Pratik\sentinelAI\backend\node_modules\@types\node\http.d.ts:400: * after the limit is reached will get `503 Service Unavailable` as a response.
+C:\Users\Pratik\sentinelAI\backend\node_modules\fastify\fastify.d.ts:168: return503OnClosing?: boolean,
+C:\Users\Pratik\sentinelAI\backend\node_modules\fastify\test\types\fastify.tst.ts:245: expect(fastify({ return503OnClosing: true })).type.toBeAssignableTo<FastifyInstance>()
+C:\Users\Pratik\sentinelAI\backend\node_modules\fastify\test\types\fastify.tst.ts:322: expect(fastify({ return503OnClosing: true })).type.toBeAssignableTo<PromiseLike<FastifyInstance>>()
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\_vendor\zod-to-json-schema\Options.d.ts:29: openaiStrictMode?: boolean;
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\auth\subject-token-providers.d.ts:59: * `https://api.openai.com/v1`.
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\auth\types.d.ts:1: /** Supplies a fresh external identity token for an OpenAI workload-identity exchange. */
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\auth\types.d.ts:12: /** Identifier of the OpenAI identity-provider resource that trusts the external workload. */
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\auth\types.d.ts:14: /** Identifier of the OpenAI service account that receives the verified external identity. */
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\auth\types.d.ts:21: /** Configures OpenAI-only federation from an explicitly attested X.509 client certificate. */
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\auth\types.d.ts:27: /** OpenAI service account authorized for the verified certificate identity. */
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\auth\types.d.ts:43: /** OAuth token-exchange response returned by the OpenAI workload-identity endpoint. */
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\auth\types.d.ts:45: /** OpenAI access token to use as the request's bearer credential. */
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\auth\types.d.ts:8: /** Configures federation from an external workload identity into an OpenAI service account. */
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\auth\workload-identity-auth.d.ts:20: * @param config External identity provider, OpenAI service account, and refresh settings.
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\auth\workload-identity-auth.d.ts:21: * @param fetch Optional fetch implementation for calls to the OpenAI token endpoint.
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\auth\workload-identity-auth.d.ts:25: * Returns a valid OpenAI access token, exchanging or refreshing credentials as needed.
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\auth\workload-identity-auth.d.ts:32: * @throws {OpenAIError} When a successful exchange has an invalid access token or expiration.
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\auth\workload-identity-auth.d.ts:4: * Exchanges external workload-identity tokens for cached OpenAI access tokens.
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\auth\x509-transport.d.ts:18: /** Existing OpenAI identity-provider resource enrolled for the certificate. */
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\auth\x509-transport.d.ts:20: /** OpenAI service account authorized for the verified certificate identity. */
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\auth\x509-transport.d.ts:22: /** Optional private certificate authorities trusted for OpenAI's issuer and API. */
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\azure.d.ts:11: /** OpenAI data residency cannot be combined with Azure routing. */
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\azure.d.ts:13: /** Azure cannot receive an SDK-owned OpenAI X.509 certificate credential. */
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\azure.d.ts:15: /** Azure cannot receive OpenAI X.509 workload-identity certificate transports. */
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\azure.d.ts:20: * Defaults to process.env['OPENAI_API_VERSION'].
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\azure.d.ts:24: * Your Azure endpoint, including the resource, e.g. `https://example-resource.azure.openai.com/`
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\azure.d.ts:34: * Defaults to process.env['AZURE_OPENAI_API_KEY'].
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\azure.d.ts:4: import { OpenAI } from "./client.js";
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\azure.d.ts:43: /** API Client for interfacing with the Azure OpenAI API. */
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\azure.d.ts:44: export declare class AzureOpenAI extends OpenAI {
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\azure.d.ts:47: /** Azure OpenAI API version included in requests made by this client. */
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\azure.d.ts:50: * API Client for interfacing with the Azure OpenAI API.
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\azure.d.ts:52: * @param {string | undefined} [opts.apiVersion] - Defaults to `process.env['OPENAI_API_VERSION'] ?? undefined`.
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\azure.d.ts:53: * @param {string | undefined} [opts.endpoint] - Your Azure endpoint, including the resource, e.g. `https://example-resource.azure.openai.com/`. Defaults to `process.env['AZURE_OPENAI_ENDPOINT'] ?? undefined`.
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\azure.d.ts:54: * @param {string | undefined} [opts.apiKey] - Defaults to `process.env['AZURE_OPENAI_API_KEY'] ?? undefined`.
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\azure.d.ts:56: * @param {string | null | undefined} [opts.organization] - Defaults to `process.env['OPENAI_ORG_ID'] ?? null`.
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\azure.d.ts:57: * @param {string} [opts.baseURL] - Sets the base URL for the API, e.g. `https://example-resource.azure.openai.com/openai/`. Defaults to `process.env['OPENAI_BASE_URL']`.
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\azure.d.ts:67: /** Clones this client with Azure options; OpenAI data residency remains unsupported. */
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\azure.d.ts:7: /** API Client for interfacing with the Azure OpenAI API. */
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\azure.d.ts:76: /** Fully resolved request headers sent to Azure OpenAI. */
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\azure.d.ts:9: /** AzureOpenAI does not support third-party provider configuration. */
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\bedrock.d.ts:1: import { OpenAI } from "./client.js";
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\bedrock.d.ts:19: * `https://bedrock-mantle.<region>.api.aws/openai/v1` from `awsRegion`,
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\bedrock.d.ts:24: * BedrockOpenAI only supports Bedrock bearer token authentication.
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\bedrock.d.ts:27: /** OpenAI data residency cannot be combined with Bedrock routing. */
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\bedrock.d.ts:29: /** Bedrock cannot receive an SDK-owned OpenAI X.509 certificate credential. */
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\bedrock.d.ts:32: * BedrockOpenAI only supports Bedrock bearer token authentication.
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\bedrock.d.ts:35: /** Bedrock cannot receive OpenAI X.509 workload-identity certificate transports. */
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\bedrock.d.ts:48: /** API Client for interfacing with Amazon Bedrock's OpenAI-compatible endpoint. */
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\bedrock.d.ts:49: export declare class BedrockOpenAI extends OpenAI {
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\bedrock.d.ts:58: * API Client for interfacing with Amazon Bedrock's OpenAI-compatible endpoint.
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\bedrock.d.ts:7: /** Configures Amazon Bedrock's OpenAI-compatible endpoint and bearer-token authentication. */
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\beta\realtime\index.d.ts:1: export { OpenAIRealtimeError } from "./internal-base.js";
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\beta\realtime\internal-base.d.ts:3: import { OpenAIError } from "../../error.js";
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\beta\realtime\internal-base.d.ts:4: import type OpenAI from "../../index.js";
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\beta\realtime\internal-base.d.ts:42: error: (error: OpenAIRealtimeError) => void;
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\beta\realtime\internal-base.d.ts:5: import { AzureOpenAI } from "../../index.js";
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\beta\realtime\internal-base.d.ts:56: export declare abstract class OpenAIRealtimeEmitter extends EventEmitter<RealtimeEvents> {
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\beta\realtime\internal-base.d.ts:75: /** Reports whether the client is an Azure OpenAI client with Azure-specific Realtime routing. */
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\beta\realtime\internal-base.d.ts:76: export declare function isAzure(client: Pick<OpenAI, 'apiKey' | 'baseURL'>): client is AzureOpenAI;
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\beta\realtime\internal-base.d.ts:9: export declare class OpenAIRealtimeError extends OpenAIError {
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\beta\realtime\internal-base.d.ts:99: export declare function buildRealtimeURL(client: Pick<OpenAI, 'apiKey' | 'baseURL'>, connection: string | RealtimeConnectionConfig): URL;
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\beta\realtime\websocket.d.ts:1: import type { AzureOpenAI } from "../../index.js";
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\beta\realtime\websocket.d.ts:19: export declare class OpenAIRealtimeWebSocket extends OpenAIRealtimeEmitter {
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\beta\realtime\websocket.d.ts:2: import { OpenAI } from "../../index.js";
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\beta\realtime\websocket.d.ts:28: * {@link OpenAIRealtimeWebSocket.create}; Azure deployment sessions should use
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\beta\realtime\websocket.d.ts:29: * {@link OpenAIRealtimeWebSocket.azure}. Ephemeral credentials starting with
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\beta\realtime\websocket.d.ts:34: * @throws {OpenAIError} If browser access would expose an unapproved credential.
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\beta\realtime\websocket.d.ts:4: import { OpenAIRealtimeEmitter } from "./internal-base.js";
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\beta\realtime\websocket.d.ts:46: }, client?: Pick<OpenAI, 'apiKey' | 'baseURL'>);
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\beta\realtime\websocket.d.ts:52: * @param client OpenAI client that owns the endpoint and refreshable or static credential.
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\beta\realtime\websocket.d.ts:55: static create(client: Pick<OpenAI, 'apiKey' | 'baseURL' | '_callApiKey'>, props: RealtimeConnectionConfig & {
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\beta\realtime\websocket.d.ts:58: }): Promise<OpenAIRealtimeWebSocket>;
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\beta\realtime\websocket.d.ts:60: * Opens a native beta Azure OpenAI Realtime session for a model deployment.
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\beta\realtime\websocket.d.ts:66: * @param client Azure OpenAI client that supplies the endpoint and credential.
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\beta\realtime\websocket.d.ts:70: static azure(client: Pick<AzureOpenAI, '_callApiKey' | 'apiVersion' | 'apiKey' | 'baseURL' | 'deploymentName'>, options?: {
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\beta\realtime\websocket.d.ts:75: }): Promise<OpenAIRealtimeWebSocket>;
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\beta\realtime\ws.d.ts:16: * {@link OpenAIRealtimeWS.create}; Azure deployment sessions should use
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\beta\realtime\ws.d.ts:17: * {@link OpenAIRealtimeWS.azure}.
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\beta\realtime\ws.d.ts:2: import type { AzureOpenAI } from "../../index.js";
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\beta\realtime\ws.d.ts:27: }, client?: Pick<OpenAI, 'apiKey' | 'baseURL'>);
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\beta\realtime\ws.d.ts:3: import { OpenAI } from "../../index.js";
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\beta\realtime\ws.d.ts:33: * @param client OpenAI client that owns the endpoint and refreshable or static credential.
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\beta\realtime\ws.d.ts:36: static create(client: Pick<OpenAI, 'apiKey' | 'baseURL' | '_callApiKey'>, props: RealtimeConnectionConfig & {
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\beta\realtime\ws.d.ts:39: }): Promise<OpenAIRealtimeWS>;
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\beta\realtime\ws.d.ts:41: * Opens a beta Azure OpenAI Realtime session for the selected model deployment.
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\beta\realtime\ws.d.ts:47: * @param client Azure OpenAI client that supplies the endpoint and credential.
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\beta\realtime\ws.d.ts:5: import { OpenAIRealtimeEmitter } from "./internal-base.js";
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\beta\realtime\ws.d.ts:51: static azure(client: Pick<AzureOpenAI, '_callApiKey' | 'apiVersion' | 'apiKey' | 'baseURL' | 'deploymentName'>, props?: {
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\beta\realtime\ws.d.ts:56: }): Promise<OpenAIRealtimeWS>;
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\beta\realtime\ws.d.ts:7: export declare class OpenAIRealtimeWS extends OpenAIRealtimeEmitter {
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\client.d.ts:105: * const client = new OpenAI({
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\client.d.ts:157: * Defaults to process.env['OPENAI_LOG'] or 'warn' if it isn't set.
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\client.d.ts:173: /** First-class certificate credential created with `fromX509` from `openai/auth/x509-transport`. */
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\client.d.ts:182: * API Client for interfacing with the OpenAI API.
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\client.d.ts:184: export declare class OpenAI {
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\client.d.ts:203: * API Client for interfacing with the OpenAI API.
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\client.d.ts:205: * @param {string | null | undefined} [opts.apiKey=process.env['OPENAI_API_KEY'] ?? null]
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\client.d.ts:206: * @param {string | null | undefined} [opts.adminAPIKey=process.env['OPENAI_ADMIN_KEY'] ?? null]
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\client.d.ts:207: * @param {string | null | undefined} [opts.organization=process.env['OPENAI_ORG_ID'] ?? null]
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\client.d.ts:208: * @param {string | null | undefined} [opts.project=process.env['OPENAI_PROJECT_ID'] ?? null]
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\client.d.ts:209: * @param {string | null | undefined} [opts.webhookSecret=process.env['OPENAI_WEBHOOK_SECRET'] ?? null]
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\client.d.ts:210: * @param {string} [opts.baseURL=process.env['OPENAI_BASE_URL'] ?? https://api.openai.com/v1] - Override the default base URL for the API.
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\client.d.ts:289: static OpenAI: typeof OpenAI;
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\client.d.ts:291: static OpenAIError: typeof Errors.OpenAIError;
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\client.d.ts:356: * Manage and run evals in the OpenAI platform.
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\client.d.ts:366: export declare namespace OpenAI {
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\client.d.ts:52: * - Defaults to process.env['OPENAI_API_KEY'].
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\client.d.ts:55: * - The function must return a non-empty string; otherwise an OpenAIError is thrown.
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\client.d.ts:56: * - If the function throws, the error is wrapped in an OpenAIError with the original
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\client.d.ts:62: * Defaults to process.env['OPENAI_ADMIN_KEY'].
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\client.d.ts:66: * Defaults to process.env['OPENAI_ORG_ID'].
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\client.d.ts:70: * Defaults to process.env['OPENAI_PROJECT_ID'].
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\client.d.ts:74: * Defaults to process.env['OPENAI_WEBHOOK_SECRET'].
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\client.d.ts:80: * Defaults to process.env['OPENAI_BASE_URL'].
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\client.d.ts:84: * Select an OpenAI regional endpoint. This overrides an inherited or environment
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\core\api-promise.d.ts:1: import { type OpenAI } from "../client.js";
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\core\api-promise.d.ts:13: constructor(client: OpenAI, responsePromise: Promise<APIResponseProps>, parseResponse?: (client: OpenAI, props: APIResponseProps) => PromiseOrValue<WithRequestID<T>>);
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\core\api-promise.d.ts:30: * issues to OpenAI.
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\core\error.d.ts:2: export declare class OpenAIError extends Error {
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\core\error.d.ts:4: export declare class APIError<TStatus extends number | undefined = number | undefined, THeaders extends Headers | undefined = Headers | undefined, TError extends Object | undefined = Object | undefined> extends OpenAIError {
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\core\error.d.ts:51: export declare class LengthFinishReasonError extends OpenAIError {
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\core\error.d.ts:54: export declare class ContentFilterFinishReasonError extends OpenAIError {
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\core\error.d.ts:69: export declare class SubjectTokenProviderError extends OpenAIError {
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\core\pagination.d.ts:102: constructor(client: OpenAI, response: Response, body: NextCursorPageResponse<Item>, options: FinalRequestOptions);
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\core\pagination.d.ts:11: constructor(client: OpenAI, response: Response, body: unknown, options: FinalRequestOptions);
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\core\pagination.d.ts:29: constructor(client: OpenAI, request: Promise<APIResponseProps>, Page: new (...args: ConstructorParameters<typeof AbstractPage>) => PageClass);
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\core\pagination.d.ts:3: import { type OpenAI } from "../client.js";
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\core\pagination.d.ts:49: constructor(client: OpenAI, response: Response, body: PageResponse<Item>, options: FinalRequestOptions);
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\core\pagination.d.ts:66: constructor(client: OpenAI, response: Response, body: CursorPageResponse<Item>, options: FinalRequestOptions);
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\core\pagination.d.ts:84: constructor(client: OpenAI, response: Response, body: ConversationCursorPageResponse<Item>, options: FinalRequestOptions);
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\core\resource.d.ts:1: import type { OpenAI } from "../client.js";
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\core\resource.d.ts:3: protected _client: OpenAI;
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\core\resource.d.ts:4: constructor(client: OpenAI);
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\core\streaming.d.ts:2: import type { OpenAI } from "../client.js";
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\core\streaming.d.ts:25: constructor(iterator: () => AsyncIterator<Item>, controller: AbortController, client?: OpenAI);
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\core\streaming.d.ts:33: static fromSSEResponse<Item>(response: Response, controller: AbortController, client?: OpenAI, synthesizeEventData?: boolean): Stream<Item>;
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\core\streaming.d.ts:38: static fromReadableStream<Item>(readableStream: ReadableStream, controller: AbortController, client?: OpenAI): Stream<Item>;
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\helpers\standard-schema.d.ts:123: * @throws {OpenAIError} If no JSON Schema is available or its `oneOf` branches
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\helpers\standard-schema.d.ts:141: * @throws {OpenAIError} If no JSON Schema is available or its `oneOf` branches
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\helpers\standard-schema.d.ts:158: * @throws {OpenAIError} If no JSON Schema is available or its `oneOf` branches
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\helpers\standard-schema.d.ts:174: * @throws {OpenAIError} If no JSON Schema is available or its `oneOf` branches
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\helpers\standard-schema.d.ts:188: * @throws {OpenAIError} If no JSON Schema is available or its `oneOf` branches
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\helpers\standard-schema.d.ts:204: * @throws {OpenAIError} If no JSON Schema is available or its `oneOf` branches
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\helpers\standard-schema.d.ts:218: * @throws {OpenAIError} If no JSON Schema is available or its `oneOf` branches
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\helpers\standard-schema.d.ts:232: * @throws {OpenAIError} If no JSON Schema is available or its `oneOf` branches
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\index.d.ts:1: export { OpenAI as default } from "./client.js";
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\index.d.ts:4: export { OpenAI, type ClientOptions, type DataResidency } from "./client.js";
+C:\Users\Pratik\sentinelAI\backend\node_modules\openai\index.d.ts:6: export { OpenAIError, APIError, APIConnectionError, APIConnectionTimeoutError, APIUserAbortError, NotFoundError, ConflictError, RateLimitError, BadRequestError, AuthenticationError, InternalServerError, PermissionDeniedError, UnprocessableEntityError, InvalidWebhookSignatureError, OAuthError, SubjectTokenProviderError, } from "./core/error.js";

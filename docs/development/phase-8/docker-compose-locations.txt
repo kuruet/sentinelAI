@@ -1,0 +1,2 @@
+C:\Users\Pratik\sentinelAI\compose.yaml
+C:\Users\Pratik\sentinelAI\docker\compose.yaml
