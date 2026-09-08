@@ -4,6 +4,7 @@ export const AI_CONTEXT_ITEM_TYPES = [
   'EVIDENCE',
   'INVESTIGATION',
   'FINDING',
+  'CORRELATION',
 ] as const;
 
 export type AIContextItemType = (typeof AI_CONTEXT_ITEM_TYPES)[number];
@@ -36,5 +37,6 @@ export interface AIContextBuilderOptions {
   maxEvents?: number;
   maxEvidence?: number;
   maxFindings?: number;
+  maxCorrelations?: number;
   maxContentLength?: number;
 }

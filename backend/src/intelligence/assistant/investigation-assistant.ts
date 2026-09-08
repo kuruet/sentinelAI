@@ -16,7 +16,7 @@ export interface InvestigationAssistantRequest {
 }
 
 export interface InvestigationAssistantReference {
-  type: 'INCIDENT' | 'EVENT' | 'EVIDENCE' | 'INVESTIGATION' | 'FINDING';
+  type: 'INCIDENT' | 'EVENT' | 'EVIDENCE' | 'INVESTIGATION' | 'FINDING' | 'CORRELATION';
   id: string;
   reason: string;
 }

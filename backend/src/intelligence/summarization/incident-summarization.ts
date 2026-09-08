@@ -9,7 +9,7 @@ export interface IncidentSummaryRequest {
 }
 
 export interface IncidentSummaryReference {
-  type: 'INCIDENT' | 'EVENT' | 'EVIDENCE' | 'INVESTIGATION' | 'FINDING';
+  type: 'INCIDENT' | 'EVENT' | 'EVIDENCE' | 'INVESTIGATION' | 'FINDING' | 'CORRELATION';
   id: string;
   reason: string;
 }

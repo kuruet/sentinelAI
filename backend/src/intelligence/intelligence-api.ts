@@ -224,7 +224,9 @@ export class IntelligenceApiService {
   }
 
   buildContext(snapshot: IntelligenceContextSnapshot) {
-    return this.contextBuilder.build(snapshot);
+    const deterministic = this.buildDeterministicAnalysis(snapshot);
+
+    return this.contextBuilder.build(snapshot, deterministic.findings, deterministic.correlations);
   }
 
   async answer(

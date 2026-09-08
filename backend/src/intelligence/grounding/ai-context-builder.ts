@@ -1,5 +1,6 @@
 import type { IntelligenceContextSnapshot } from '../contracts/context';
 import type { IntelligenceFinding } from '../contracts/finding';
+import type { IntelligenceCorrelation } from '../contracts/correlation';
 import type {
   AIContextBuilderOptions,
   AIContextItem,
@@ -11,6 +12,7 @@ import type {
 const DEFAULT_MAX_EVENTS = 50;
 const DEFAULT_MAX_EVIDENCE = 50;
 const DEFAULT_MAX_FINDINGS = 25;
+const DEFAULT_MAX_CORRELATIONS = 50;
 const DEFAULT_MAX_CONTENT_LENGTH = 4000;
 
 function reference(type: AIContextItemType, id: string, reason: string): AIContextReference {
@@ -36,6 +38,34 @@ function findingItem(finding: IntelligenceFinding, maxContentLength: number): AI
   };
 }
 
+function correlationItem(
+  correlation: IntelligenceCorrelation,
+  maxContentLength: number,
+): AIContextItem {
+  return {
+    type: 'CORRELATION',
+    id: correlation.id,
+    content: boundedContent(
+      [
+        `Title: ${correlation.title}`,
+        `Description: ${correlation.description}`,
+        `Type: ${correlation.type}`,
+        `Confidence: ${correlation.confidence}`,
+        `Occurred At: ${correlation.occurredAt ?? 'unknown'}`,
+        `References: ${correlation.references
+          .map((reference) => `${reference.type}:${reference.id} — ${reference.reason}`)
+          .join('; ')}`,
+      ].join('\n'),
+      maxContentLength,
+    ),
+    occurredAt: correlation.occurredAt,
+    reference: reference(
+      'CORRELATION',
+      correlation.id,
+      'Deterministic correlation derived from incident context.',
+    ),
+  };
+}
 export class AIContextBuilder {
   private readonly options: Required<AIContextBuilderOptions>;
 
@@ -44,6 +74,7 @@ export class AIContextBuilder {
       maxEvents: options.maxEvents ?? DEFAULT_MAX_EVENTS,
       maxEvidence: options.maxEvidence ?? DEFAULT_MAX_EVIDENCE,
       maxFindings: options.maxFindings ?? DEFAULT_MAX_FINDINGS,
+      maxCorrelations: options.maxCorrelations ?? DEFAULT_MAX_CORRELATIONS,
       maxContentLength: options.maxContentLength ?? DEFAULT_MAX_CONTENT_LENGTH,
     };
   }
@@ -51,6 +82,7 @@ export class AIContextBuilder {
   build(
     snapshot: IntelligenceContextSnapshot,
     findings: IntelligenceFinding[] = [],
+    correlations: IntelligenceCorrelation[] = [],
   ): GroundedAIContext {
     const items: AIContextItem[] = [];
 
@@ -188,6 +220,14 @@ export class AIContextBuilder {
       items.push(findingItem(finding, this.options.maxContentLength));
     }
 
+    const selectedCorrelations = correlations
+      .slice()
+      .sort((a, b) => a.id.localeCompare(b.id))
+      .slice(0, this.options.maxCorrelations);
+
+    for (const correlation of selectedCorrelations) {
+      items.push(correlationItem(correlation, this.options.maxContentLength));
+    }
     const references = items
       .map((item) => item.reference)
       .sort((a, b) => {
