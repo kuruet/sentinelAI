@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { SentinelAIIngestionClient } from './integration/sentinelai-ingestion-client.js';
+import { SentinelAIEvidenceClient } from './integration/sentinelai-evidence-client.js';
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
 import { Pool } from 'pg';
 
@@ -389,6 +390,76 @@ async function handleRequest(
           JSON.stringify({
             error: 'SENTINELAI_INTEGRATION_FAILED',
             message: error instanceof Error ? error.message : 'Unknown integration failure.',
+          }),
+        );
+      }
+
+      return;
+    }
+    if (method === 'POST' && path === '/demo/integrate-evidence') {
+      if (!SENTINELAI_TOKEN || !SENTINELAI_INCIDENT_ID) {
+        response.statusCode = 503;
+        response.setHeader('content-type', 'application/json');
+        response.end(
+          JSON.stringify({
+            error: 'SENTINELAI_INTEGRATION_NOT_CONFIGURED',
+            message: 'SentinelAI integration credentials are not configured.',
+          }),
+        );
+        return;
+      }
+
+      const client = new SentinelAIEvidenceClient({
+        baseUrl: SENTINELAI_URL,
+        token: SENTINELAI_TOKEN,
+        incidentId: SENTINELAI_INCIDENT_ID,
+      });
+
+      const occurredAt = new Date().toISOString();
+
+      try {
+        const result = await client.createEvidence({
+          evidenceType: 'LOG',
+          title: 'Demo application observed application signal',
+          description: 'Controlled telemetry evidence emitted by the SentinelAI demo application.',
+          source: SERVICE_NAME,
+          sourceRef: requestId,
+          collectedAt: occurredAt,
+          occurredAt,
+          trustLevel: 'DEMO_OBSERVED',
+          metadata: {
+            service: SERVICE_NAME,
+            version: SERVICE_VERSION,
+            integration: 'simulation-engine',
+            requestId,
+            evidenceOrigin: 'controlled-demo-application',
+          },
+        });
+
+        log('INFO', 'sentinelai_evidence_integrated', {
+          requestId,
+          statusCode: 201,
+          durationMs: Date.now() - startedAt,
+        });
+
+        response.statusCode = 201;
+        response.setHeader('content-type', 'application/json');
+        response.end(JSON.stringify(result));
+      } catch (error) {
+        log('ERROR', 'sentinelai_evidence_integration_failed', {
+          requestId,
+          statusCode: 502,
+          durationMs: Date.now() - startedAt,
+          errorCode: 'SENTINELAI_EVIDENCE_INTEGRATION_FAILED',
+        });
+
+        response.statusCode = 502;
+        response.setHeader('content-type', 'application/json');
+        response.end(
+          JSON.stringify({
+            error: 'SENTINELAI_EVIDENCE_INTEGRATION_FAILED',
+            message:
+              error instanceof Error ? error.message : 'Unknown evidence integration failure.',
           }),
         );
       }
