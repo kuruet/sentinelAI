@@ -22,6 +22,145 @@ interface LogContext {
   dependency?: string;
 }
 
+interface Histogram {
+  count: number;
+  sum: number;
+  buckets: number[];
+}
+
+const requestCount = new Map<string, number>();
+const checkoutSuccessCount = { value: 0 };
+const checkoutFailureCount = { value: 0 };
+const healthCheckFailureCount = { value: 0 };
+const dependencyFailureCount = new Map<string, number>();
+
+const requestDuration: Histogram = {
+  count: 0,
+  sum: 0,
+  buckets: [0, 0, 0, 0, 0],
+};
+
+function incrementCounter(metric: Map<string, number> | { value: number }, key?: string): void {
+  if ('value' in metric) {
+    metric.value += 1;
+    return;
+  }
+
+  const current = metric.get(key ?? '') ?? 0;
+  metric.set(key ?? '', current + 1);
+}
+
+function observeRequestDuration(durationMs: number): void {
+  requestDuration.count += 1;
+  requestDuration.sum += durationMs;
+
+  const limits = [10, 50, 100, 250, 1000];
+
+  limits.forEach((limit, index) => {
+    if (durationMs <= limit) {
+      requestDuration.buckets[index] += 1;
+    }
+  });
+}
+
+function escapeLabel(value: string): string {
+  return value.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '\\n');
+}
+
+function renderMetrics(): string {
+  const lines: string[] = [];
+
+  lines.push(
+    '# HELP sentinelai_http_requests_total Total HTTP requests handled by the demo application.',
+  );
+  lines.push('# TYPE sentinelai_http_requests_total counter');
+
+  for (const [route, count] of requestCount.entries()) {
+    lines.push(
+      `sentinelai_http_requests_total{service="${escapeLabel(
+        SERVICE_NAME,
+      )}",route="${escapeLabel(route)}"} ${count}`,
+    );
+  }
+
+  lines.push('# HELP sentinelai_checkout_success_total Successful checkout operations.');
+  lines.push('# TYPE sentinelai_checkout_success_total counter');
+  lines.push(
+    `sentinelai_checkout_success_total{service="${escapeLabel(
+      SERVICE_NAME,
+    )}"} ${checkoutSuccessCount.value}`,
+  );
+
+  lines.push('# HELP sentinelai_checkout_failure_total Failed checkout operations.');
+  lines.push('# TYPE sentinelai_checkout_failure_total counter');
+  lines.push(
+    `sentinelai_checkout_failure_total{service="${escapeLabel(
+      SERVICE_NAME,
+    )}"} ${checkoutFailureCount.value}`,
+  );
+
+  lines.push('# HELP sentinelai_health_check_failure_total Failed dependency health checks.');
+  lines.push('# TYPE sentinelai_health_check_failure_total counter');
+  lines.push(
+    `sentinelai_health_check_failure_total{service="${escapeLabel(
+      SERVICE_NAME,
+    )}"} ${healthCheckFailureCount.value}`,
+  );
+
+  lines.push('# HELP sentinelai_dependency_failure_total Dependency failures.');
+  lines.push('# TYPE sentinelai_dependency_failure_total counter');
+
+  for (const [dependency, count] of dependencyFailureCount.entries()) {
+    lines.push(
+      `sentinelai_dependency_failure_total{service="${escapeLabel(
+        SERVICE_NAME,
+      )}",dependency="${escapeLabel(dependency)}"} ${count}`,
+    );
+  }
+
+  lines.push('# HELP sentinelai_http_request_duration_ms HTTP request duration in milliseconds.');
+  lines.push('# TYPE sentinelai_http_request_duration_ms histogram');
+
+  const bucketLimits = [10, 50, 100, 250, 1000];
+
+  bucketLimits.forEach((limit, index) => {
+    lines.push(
+      `sentinelai_http_request_duration_ms_bucket{service="${escapeLabel(
+        SERVICE_NAME,
+      )}",le="${limit}"} ${requestDuration.buckets[index]}`,
+    );
+  });
+
+  lines.push(
+    `sentinelai_http_request_duration_ms_bucket{service="${escapeLabel(
+      SERVICE_NAME,
+    )}",le="+Inf"} ${requestDuration.count}`,
+  );
+
+  lines.push(
+    `sentinelai_http_request_duration_ms_sum{service="${escapeLabel(
+      SERVICE_NAME,
+    )}"} ${requestDuration.sum}`,
+  );
+
+  lines.push(
+    `sentinelai_http_request_duration_ms_count{service="${escapeLabel(
+      SERVICE_NAME,
+    )}"} ${requestDuration.count}`,
+  );
+
+  return `${lines.join('\n')}\n`;
+}
+
+function recordRequest(route: string, durationMs: number): void {
+  incrementCounter(requestCount, route);
+  observeRequestDuration(durationMs);
+}
+
+function recordDependencyFailure(dependency: string): void {
+  incrementCounter(dependencyFailureCount, dependency);
+}
+
 function log(level: LogLevel, event: string, context: LogContext = {}): void {
   console.log(
     JSON.stringify({
@@ -50,12 +189,11 @@ function writeJson(
   response.end(JSON.stringify(body));
 }
 
-async function checkDatabase(): Promise<boolean> {
+async function checkDatabase(): Promise<void> {
   const client = await database.connect();
 
   try {
     await client.query('SELECT 1');
-    return true;
   } finally {
     client.release();
   }
@@ -87,12 +225,15 @@ async function handleRequest(
         message: 'SentinelAI demo checkout application is running.',
       });
 
+      const durationMs = Date.now() - startedAt;
+      recordRequest(path, durationMs);
+
       log('INFO', 'http_request_completed', {
         requestId,
         method,
         path,
         statusCode: 200,
-        durationMs: Date.now() - startedAt,
+        durationMs,
       });
 
       return;
@@ -111,13 +252,16 @@ async function handleRequest(
           },
         });
 
+        const durationMs = Date.now() - startedAt;
+        recordRequest(path, durationMs);
+
         log('INFO', 'health_check_completed', {
           requestId,
           method,
           path,
           statusCode: 200,
           dependency: 'postgresql',
-          durationMs: Date.now() - startedAt,
+          durationMs,
         });
       } catch {
         writeJson(response, 503, {
@@ -129,6 +273,11 @@ async function handleRequest(
           },
         });
 
+        const durationMs = Date.now() - startedAt;
+        recordRequest(path, durationMs);
+        healthCheckFailureCount.value += 1;
+        recordDependencyFailure('postgresql');
+
         log('ERROR', 'health_check_failed', {
           requestId,
           method,
@@ -136,9 +285,30 @@ async function handleRequest(
           statusCode: 503,
           errorCode: 'DATABASE_UNAVAILABLE',
           dependency: 'postgresql',
-          durationMs: Date.now() - startedAt,
+          durationMs,
         });
       }
+
+      return;
+    }
+
+    if (method === 'GET' && path === '/metrics') {
+      const metrics = renderMetrics();
+
+      response.statusCode = 200;
+      response.setHeader('content-type', 'text/plain; version=0.0.4; charset=utf-8');
+      response.end(metrics);
+
+      const durationMs = Date.now() - startedAt;
+      recordRequest(path, durationMs);
+
+      log('INFO', 'metrics_scrape_completed', {
+        requestId,
+        method,
+        path,
+        statusCode: 200,
+        durationMs,
+      });
 
       return;
     }
@@ -156,12 +326,16 @@ async function handleRequest(
           orderId,
         });
 
+        const durationMs = Date.now() - startedAt;
+        recordRequest(path, durationMs);
+        checkoutSuccessCount.value += 1;
+
         log('INFO', 'checkout_completed', {
           requestId,
           method,
           path,
           statusCode: 200,
-          durationMs: Date.now() - startedAt,
+          durationMs,
         });
       } catch {
         writeJson(response, 503, {
@@ -171,6 +345,11 @@ async function handleRequest(
           message: 'Checkout could not complete because the database is unavailable.',
         });
 
+        const durationMs = Date.now() - startedAt;
+        recordRequest(path, durationMs);
+        checkoutFailureCount.value += 1;
+        recordDependencyFailure('postgresql');
+
         log('ERROR', 'checkout_failed', {
           requestId,
           method,
@@ -178,7 +357,7 @@ async function handleRequest(
           statusCode: 503,
           errorCode: 'CHECKOUT_DEPENDENCY_UNAVAILABLE',
           dependency: 'postgresql',
-          durationMs: Date.now() - startedAt,
+          durationMs,
         });
       }
 
@@ -190,14 +369,20 @@ async function handleRequest(
       service: SERVICE_NAME,
     });
 
+    const durationMs = Date.now() - startedAt;
+    recordRequest(path, durationMs);
+
     log('WARN', 'http_request_not_found', {
       requestId,
       method,
       path,
       statusCode: 404,
-      durationMs: Date.now() - startedAt,
+      durationMs,
     });
   } catch {
+    const durationMs = Date.now() - startedAt;
+    recordRequest(path, durationMs);
+
     writeJson(response, 500, {
       error: 'INTERNAL_SERVER_ERROR',
       service: SERVICE_NAME,
@@ -209,7 +394,7 @@ async function handleRequest(
       path,
       statusCode: 500,
       errorCode: 'INTERNAL_SERVER_ERROR',
-      durationMs: Date.now() - startedAt,
+      durationMs,
     });
   }
 }
@@ -218,7 +403,7 @@ const server = createServer((request, response) => {
   void handleRequest(request, response);
 });
 
-async function shutdown(signal: string): Promise<void> {
+async function shutdown(): Promise<void> {
   log('INFO', 'service_shutdown_started', {
     dependency: 'postgresql',
   });
@@ -230,18 +415,14 @@ async function shutdown(signal: string): Promise<void> {
       dependency: 'postgresql',
     });
   });
-
-  if (signal === 'SIGINT' || signal === 'SIGTERM') {
-    return;
-  }
 }
 
 process.once('SIGINT', () => {
-  void shutdown('SIGINT');
+  void shutdown();
 });
 
 process.once('SIGTERM', () => {
-  void shutdown('SIGTERM');
+  void shutdown();
 });
 
 server.listen(PORT, HOST, () => {
