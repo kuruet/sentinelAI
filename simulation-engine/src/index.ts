@@ -1,8 +1,12 @@
 import { randomUUID } from 'node:crypto';
+import { SentinelAIIngestionClient } from './integration/sentinelai-ingestion-client.js';
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
 import { Pool } from 'pg';
 
 const PORT = Number(process.env.PORT ?? 4000);
+const SENTINELAI_URL = process.env.SENTINELAI_URL ?? 'http://localhost:3000';
+const SENTINELAI_TOKEN = process.env.SENTINELAI_TOKEN ?? '';
+const SENTINELAI_INCIDENT_ID = process.env.SENTINELAI_INCIDENT_ID ?? '';
 const HOST = process.env.HOST ?? '0.0.0.0';
 const DATABASE_URL =
   process.env.DATABASE_URL ?? 'postgresql://sentinelai:sentinelai@localhost:5433/sentinelai';
@@ -324,6 +328,73 @@ async function handleRequest(
       return;
     }
 
+    if (method === 'POST' && path === '/demo/integrate') {
+      if (!SENTINELAI_TOKEN || !SENTINELAI_INCIDENT_ID) {
+        response.statusCode = 503;
+        response.setHeader('content-type', 'application/json');
+        response.end(
+          JSON.stringify({
+            error: 'SENTINELAI_INTEGRATION_NOT_CONFIGURED',
+            message: 'SentinelAI integration credentials are not configured.',
+          }),
+        );
+        return;
+      }
+
+      const client = new SentinelAIIngestionClient({
+        baseUrl: SENTINELAI_URL,
+        token: SENTINELAI_TOKEN,
+        incidentId: SENTINELAI_INCIDENT_ID,
+      });
+
+      try {
+        const result = await client.ingest([
+          {
+            source: SERVICE_NAME,
+            signalType: 'LOG',
+            occurredAt: new Date().toISOString(),
+            title: 'Demo application integration signal',
+            description:
+              'Controlled integration signal emitted by the SentinelAI demo application.',
+            sourceRef: requestId,
+            metadata: {
+              service: SERVICE_NAME,
+              version: SERVICE_VERSION,
+              integration: 'simulation-engine',
+              requestId,
+            },
+          },
+        ]);
+
+        log('INFO', 'sentinelai_event_integrated', {
+          requestId,
+          statusCode: 202,
+          durationMs: Date.now() - startedAt,
+        });
+
+        response.statusCode = 202;
+        response.setHeader('content-type', 'application/json');
+        response.end(JSON.stringify(result));
+      } catch (error) {
+        log('ERROR', 'sentinelai_event_integration_failed', {
+          requestId,
+          statusCode: 502,
+          durationMs: Date.now() - startedAt,
+          errorCode: 'SENTINELAI_INTEGRATION_FAILED',
+        });
+
+        response.statusCode = 502;
+        response.setHeader('content-type', 'application/json');
+        response.end(
+          JSON.stringify({
+            error: 'SENTINELAI_INTEGRATION_FAILED',
+            message: error instanceof Error ? error.message : 'Unknown integration failure.',
+          }),
+        );
+      }
+
+      return;
+    }
     if (method === 'GET' && path === '/metrics') {
       const metrics = renderMetrics();
 
