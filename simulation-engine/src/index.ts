@@ -10,10 +10,27 @@ const DATABASE_URL =
 const SERVICE_NAME = 'sentinelai-demo-checkout';
 const SERVICE_VERSION = '0.1.0';
 
+type DeploymentStatus = 'STARTED' | 'COMPLETED' | 'FAILED';
+
+interface DeploymentEvent {
+  deploymentId: string;
+  service: string;
+  environment: string;
+  previousVersion: string;
+  newVersion: string;
+  status: DeploymentStatus;
+  timestamp: string;
+}
 type LogLevel = 'INFO' | 'WARN' | 'ERROR';
 
 interface LogContext {
   requestId?: string;
+  deploymentCount?: number;
+  deploymentId?: string;
+  deploymentStatus?: DeploymentStatus;
+  newVersion?: string;
+  previousVersion?: string;
+  environment?: string;
   method?: string;
   path?: string;
   statusCode?: number;
@@ -30,6 +47,7 @@ interface Histogram {
 }
 
 const requestCount = new Map<string, number>();
+const deploymentEvents: DeploymentEvent[] = [];
 const checkoutSuccessCount = { value: 0 };
 const checkoutFailureCount = { value: 0 };
 const healthCheckFailureCount = { value: 0 };
@@ -375,6 +393,152 @@ async function handleRequest(
           failureMode: databaseFailureInjected ? 'controlled' : 'dependency',
         });
       }
+
+      return;
+    }
+    if (method === 'POST' && path === '/demo/deployment') {
+      const body = await new Promise<string>((resolve, reject) => {
+        let data = '';
+
+        request.setEncoding('utf8');
+
+        request.on('data', (chunk: string) => {
+          data += chunk;
+        });
+
+        request.on('end', () => resolve(data));
+        request.on('error', reject);
+      });
+
+      let payload: {
+        environment?: unknown;
+        previousVersion?: unknown;
+        newVersion?: unknown;
+        status?: unknown;
+      };
+
+      try {
+        payload = JSON.parse(body || '{}') as typeof payload;
+      } catch {
+        writeJson(response, 400, {
+          error: 'INVALID_DEPLOYMENT_CONFIGURATION',
+          message: 'Deployment payload must be valid JSON.',
+        });
+
+        const durationMs = Date.now() - startedAt;
+        recordRequest(path, durationMs);
+
+        log('WARN', 'deployment_event_rejected', {
+          requestId,
+          method,
+          path,
+          statusCode: 400,
+          errorCode: 'INVALID_DEPLOYMENT_CONFIGURATION',
+          durationMs,
+        });
+
+        return;
+      }
+
+      const environment =
+        typeof payload.environment === 'string' && payload.environment.trim()
+          ? payload.environment.trim()
+          : 'demo';
+
+      const previousVersion =
+        typeof payload.previousVersion === 'string' && payload.previousVersion.trim()
+          ? payload.previousVersion.trim()
+          : SERVICE_VERSION;
+
+      const newVersion =
+        typeof payload.newVersion === 'string' && payload.newVersion.trim()
+          ? payload.newVersion.trim()
+          : SERVICE_VERSION;
+
+      const status =
+        payload.status === undefined
+          ? 'COMPLETED'
+          : payload.status === 'STARTED' ||
+              payload.status === 'COMPLETED' ||
+              payload.status === 'FAILED'
+            ? payload.status
+            : null;
+
+      if (!status) {
+        writeJson(response, 400, {
+          error: 'INVALID_DEPLOYMENT_CONFIGURATION',
+          message: 'Deployment status must be STARTED, COMPLETED, or FAILED.',
+        });
+
+        const durationMs = Date.now() - startedAt;
+        recordRequest(path, durationMs);
+
+        log('WARN', 'deployment_event_rejected', {
+          requestId,
+          method,
+          path,
+          statusCode: 400,
+          errorCode: 'INVALID_DEPLOYMENT_CONFIGURATION',
+          durationMs,
+        });
+
+        return;
+      }
+
+      const deploymentEvent: DeploymentEvent = {
+        deploymentId: randomUUID(),
+        service: SERVICE_NAME,
+        environment,
+        previousVersion,
+        newVersion,
+        status,
+        timestamp: new Date().toISOString(),
+      };
+
+      deploymentEvents.push(deploymentEvent);
+
+      writeJson(response, 201, {
+        status: 'recorded',
+        deployment: deploymentEvent,
+      });
+
+      const durationMs = Date.now() - startedAt;
+      recordRequest(path, durationMs);
+
+      log('INFO', 'deployment_event_recorded', {
+        requestId,
+        method,
+        path,
+        statusCode: 201,
+        durationMs,
+        deploymentId: deploymentEvent.deploymentId,
+        environment: deploymentEvent.environment,
+        previousVersion: deploymentEvent.previousVersion,
+        newVersion: deploymentEvent.newVersion,
+        deploymentStatus: deploymentEvent.status,
+      });
+
+      return;
+    }
+
+    if (method === 'GET' && path === '/demo/deployments') {
+      writeJson(response, 200, {
+        service: SERVICE_NAME,
+        count: deploymentEvents.length,
+        deployments: deploymentEvents,
+      });
+
+      const durationMs = Date.now() - startedAt;
+      recordRequest(path, durationMs);
+
+      log('INFO', 'deployment_events_listed', {
+        requestId,
+        method,
+        path,
+        statusCode: 200,
+        durationMs,
+        deploymentCount: deploymentEvents.length,
+      });
 
       return;
     }
