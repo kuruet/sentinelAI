@@ -55,6 +55,8 @@ export const env = {
 
   OPENAI_API_KEY: process.env.OPENAI_API_KEY?.trim() || undefined,
 
+  GEMINI_API_KEY: process.env.GEMINI_API_KEY?.trim() || undefined,
+
   JWT_SECRET: process.env.JWT_SECRET?.trim() || undefined,
 
   SIMULATION_TARGET: process.env.SIMULATION_TARGET?.trim() || 'http://localhost:3000',

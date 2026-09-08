@@ -10,4 +10,7 @@ export type {
 export { OpenAIProvider } from './openai-provider';
 export type { OpenAIProviderOptions } from './openai-provider';
 
+export { GeminiProvider } from './gemini-provider';
+export type { GeminiProviderOptions } from './gemini-provider';
+
 export { FakeAIProvider } from './fake-ai-provider';

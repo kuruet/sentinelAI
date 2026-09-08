@@ -33,7 +33,7 @@ import {
   type IntelligenceHypothesis,
   type IntelligenceRecommendation,
 } from '../intelligence';
-import { OpenAIProvider } from '../intelligence/providers';
+import { GeminiProvider } from '../intelligence/providers';
 import { AuditLogAIAuditRecorder } from '../intelligence';
 import { env } from '../config/env';
 import { authenticate, getAuthenticatedIdentity } from '../security';
@@ -50,15 +50,17 @@ import {
   updateIncidentSeverityPriorityRequestSchema,
   updateIncidentRequestSchema,
 } from '../validation';
+
 export async function incidentRoutes(app: FastifyInstance) {
-  const intelligenceApi = env.OPENAI_API_KEY
+  const intelligenceApi = env.GEMINI_API_KEY
     ? new IntelligenceApiService({
-        provider: new OpenAIProvider({
-          apiKey: env.OPENAI_API_KEY,
+        provider: new GeminiProvider({
+          apiKey: env.GEMINI_API_KEY,
         }),
         auditRecorder: new AuditLogAIAuditRecorder(auditLogService),
       })
     : null;
+
   app.addHook('onRequest', authenticate);
   app.post(
     '/api/v1/incidents',
