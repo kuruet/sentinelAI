@@ -5,6 +5,7 @@ import { z } from 'zod';
 import type { AIProvider, AIProviderResponse } from '../providers';
 import { buildGroundedAIRequest, AIContextBuilder } from '../grounding';
 import type { GroundedAIContext } from '../grounding';
+import type { IntelligenceCorrelation } from '../contracts/correlation';
 import type { IntelligenceHypothesis } from '../contracts/hypothesis';
 import {
   INTELLIGENCE_REFERENCE_TYPES,
@@ -237,6 +238,7 @@ export class RootCauseAnalysisService {
     request: RootCauseAnalysisRequest,
     snapshot: Parameters<AIContextBuilder['build']>[0],
     findings: import('../contracts/finding').IntelligenceFinding[] = [],
+    correlations: IntelligenceCorrelation[] = [],
   ): Promise<RootCauseAnalysisResponse> {
     if (!ROOT_CAUSE_ANALYSIS_MODES.includes(request.mode)) {
       throw new Error(`Unsupported RCA mode: ${request.mode}`);
@@ -250,7 +252,7 @@ export class RootCauseAnalysisService {
       throw new Error('RCA model is required.');
     }
 
-    const context: GroundedAIContext = this.contextBuilder.build(snapshot, findings);
+    const context: GroundedAIContext = this.contextBuilder.build(snapshot, findings, correlations);
 
     const groundedRequest = buildGroundedAIRequest(context, {
       model: request.model,

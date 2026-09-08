@@ -1,4 +1,5 @@
 import type { IntelligenceFinding } from '../contracts/finding';
+import type { IntelligenceCorrelation } from '../contracts/correlation';
 
 import type { IntelligenceContextSnapshot } from '../contracts/context';
 
@@ -20,12 +21,13 @@ export class IncidentSummarizationService {
     request: IncidentSummaryRequest,
     snapshot: IntelligenceContextSnapshot,
     findings: IntelligenceFinding[] = [],
+    correlations: IntelligenceCorrelation[] = [],
   ): Promise<IncidentSummaryResponse> {
     if (request.incidentId !== snapshot.context.incident.id) {
       throw new Error('Incident summarization incident ID does not match context.');
     }
 
-    const context = this.contextBuilder.build(snapshot, findings);
+    const context = this.contextBuilder.build(snapshot, findings, correlations);
 
     const modeInstructions: Record<IncidentSummaryRequest['mode'], string> = {
       EXECUTIVE:

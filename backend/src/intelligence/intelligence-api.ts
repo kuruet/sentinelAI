@@ -245,6 +245,7 @@ export class IntelligenceApiService {
       },
       snapshot,
       deterministic.findings,
+      deterministic.correlations,
     );
   }
 
@@ -263,6 +264,7 @@ export class IntelligenceApiService {
       },
       snapshot,
       deterministic.findings,
+      deterministic.correlations,
     );
   }
 
@@ -281,6 +283,7 @@ export class IntelligenceApiService {
       },
       snapshot,
       deterministic.findings,
+      deterministic.correlations,
     );
   }
 
@@ -296,6 +299,7 @@ export class IntelligenceApiService {
         snapshot,
         findings: deterministic.findings,
         hypotheses: deterministic.hypotheses,
+        correlations: deterministic.correlations,
       },
       {
         incidentId,

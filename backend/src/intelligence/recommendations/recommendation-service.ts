@@ -11,6 +11,7 @@ import {
   type IntelligenceReference,
 } from '../contracts/evidence-reference';
 import type { IntelligenceFinding } from '../contracts/finding';
+import type { IntelligenceCorrelation } from '../contracts/correlation';
 import type { IntelligenceHypothesis } from '../contracts/hypothesis';
 import {
   RECOMMENDATION_PRIORITIES,
@@ -69,6 +70,7 @@ export interface RecommendationsAnalysisInput {
   snapshot: IntelligenceContextSnapshot;
   findings?: IntelligenceFinding[];
   hypotheses?: IntelligenceHypothesis[];
+  correlations?: IntelligenceCorrelation[];
 }
 
 export interface RecommendationsResponse {
@@ -108,7 +110,11 @@ export class AIRecommendationsService {
       throw new Error('Recommendation analysis incidentId does not match the supplied context.');
     }
 
-    const groundedContext = this.contextBuilder.build(input.snapshot, input.findings ?? []);
+    const groundedContext = this.contextBuilder.build(
+      input.snapshot,
+      input.findings ?? [],
+      input.correlations ?? [],
+    );
 
     const instructions = [
       'Generate operational recommendations and next investigation actions using only the supplied intelligence context.',

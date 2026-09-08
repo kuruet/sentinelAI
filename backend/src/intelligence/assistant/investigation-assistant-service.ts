@@ -1,4 +1,5 @@
 import type { IntelligenceFinding } from '../contracts/finding';
+import type { IntelligenceCorrelation } from '../contracts/correlation';
 
 import type { AIProvider } from '../providers/ai-provider';
 
@@ -23,6 +24,7 @@ export class InvestigationAssistantService {
     request: InvestigationAssistantRequest,
     snapshot: IntelligenceContextSnapshot,
     findings: IntelligenceFinding[] = [],
+    correlations: IntelligenceCorrelation[] = [],
   ): Promise<InvestigationAssistantResponse> {
     if (request.incidentId !== snapshot.context.incident.id) {
       throw new Error('Investigation assistant incident ID does not match context.');
@@ -34,7 +36,7 @@ export class InvestigationAssistantService {
       throw new Error('Investigation assistant question is required.');
     }
 
-    const context = this.contextBuilder.build(snapshot, findings);
+    const context = this.contextBuilder.build(snapshot, findings, correlations);
 
     const groundedRequest = buildGroundedAIRequest(context, {
       model: request.model,
