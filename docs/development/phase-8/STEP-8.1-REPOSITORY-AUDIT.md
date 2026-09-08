@@ -15,23 +15,23 @@ Connect a controlled demo/production-like application to SentinelAI through logs
 
 ## Phase 8 Steps
 
-| Step | Description | Status |
-|---|---|---|
-| 8.1 | Repository & Architecture Audit | IN PROGRESS |
-| 8.2 | Demo Application | NOT STARTED |
-| 8.3 | Structured Logging | NOT STARTED |
-| 8.4 | Metrics | NOT STARTED |
-| 8.5 | Controlled Failure Injection | NOT STARTED |
-| 8.6 | Deployment Events | NOT STARTED |
-| 8.7 | Ingestion Layer | NOT STARTED |
-| 8.8 | Event Integration | NOT STARTED |
-| 8.9 | Evidence Integration | NOT STARTED |
-| 8.10 | Automatic Incident Correlation | NOT STARTED |
-| 8.11 | AI Context Integration | NOT STARTED |
-| 8.12 | End-to-End Incident Scenario | NOT STARTED |
-| 8.13 | Failure & Recovery Testing | NOT STARTED |
-| 8.14 | Docker/Compose Integration | NOT STARTED |
-| 8.15 | Final Phase 8 Quality Gate | NOT STARTED |
+| Step | Description                             | Status      |
+| ---- | --------------------------------------- | ----------- |
+| 8.1  | Repository & Architecture Audit         | IN PROGRESS |
+| 8.2  | Demo Application                        | NOT STARTED |
+| 8.3  | Structured Logging                      | NOT STARTED |
+| 8.4  | Metrics                                 | NOT STARTED |
+| 8.5  | Controlled Failure Injection            | NOT STARTED |
+| 8.6  | Deployment Events                       | NOT STARTED |
+| 8.7  | Ingestion Layer                         | NOT STARTED |
+| 8.8  | Event Integration                       | NOT STARTED |
+| 8.9  | Evidence Integration                    | NOT STARTED |
+| 8.10 | Automatic Incident Correlation          | NOT STARTED |
+| 8.11 | AI Context Integration                  | NOT STARTED |
+| 8.12 | End-to-End Incident Scenario            | NOT STARTED |
+| 8.13 | Failure & Recovery Testing              | NOT STARTED |
+| 8.14 | Docker/Compose Integration              | NOT STARTED |
+| 8.15 | Final Phase 8 Quality Gate              | NOT STARTED |
 | 8.16 | Demo Runbook & Presentation Preparation | NOT STARTED |
 
 - FOUND: `package.json`
