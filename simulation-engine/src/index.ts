@@ -3,6 +3,7 @@ import { SentinelAIIngestionClient } from './integration/sentinelai-ingestion-cl
 import { SentinelAIEvidenceClient } from './integration/sentinelai-evidence-client.js';
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
 import { Pool } from 'pg';
+import { renderDemoPage } from './demo-page.js';
 
 const PORT = Number(process.env.PORT ?? 4000);
 const SENTINELAI_URL = process.env.SENTINELAI_URL ?? 'http://localhost:3000';
@@ -249,16 +250,14 @@ async function handleRequest(
 
   try {
     if (method === 'GET' && path === '/') {
-      writeJson(response, 200, {
-        service: SERVICE_NAME,
-        version: SERVICE_VERSION,
-        message: 'SentinelAI demo checkout application is running.',
-      });
+      response.statusCode = 200;
+      response.setHeader('content-type', 'text/html; charset=utf-8');
+      response.end(renderDemoPage());
 
       const durationMs = Date.now() - startedAt;
       recordRequest(path, durationMs);
 
-      log('INFO', 'http_request_completed', {
+      log('INFO', 'demo_ui_served', {
         requestId,
         method,
         path,
@@ -817,3 +816,4 @@ process.once('SIGTERM', () => {
 server.listen(PORT, HOST, () => {
   log('INFO', 'service_started');
 });
+
