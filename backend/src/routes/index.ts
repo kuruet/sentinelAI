@@ -5,6 +5,7 @@ import { incidentRoutes } from './incidents';
 import { automaticCorrelationRoutes } from './automatic-correlation';
 import { ingestionRoutes } from '../ingestion/ingestion-routes';
 import { validationRoutes } from './validation';
+import { demoRoutes } from './demo';
 
 export async function registerRoutes(app: FastifyInstance) {
   await app.register(healthRoutes);
@@ -13,4 +14,5 @@ export async function registerRoutes(app: FastifyInstance) {
   await app.register(incidentRoutes);
   await app.register(automaticCorrelationRoutes);
   await app.register(ingestionRoutes);
+  await app.register(demoRoutes);
 }

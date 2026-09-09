@@ -4,17 +4,25 @@ import { SentinelAIEvidenceClient } from './integration/sentinelai-evidence-clie
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
 import { Pool } from 'pg';
 import { renderDemoPage } from './demo-page.js';
+import {
+  DEMO_SCENARIOS,
+  DEMO_SCENARIO_IDS,
+  getDemoScenario,
+  type DemoScenarioId,
+} from './demo-scenarios.js';
 
 const PORT = Number(process.env.PORT ?? 4000);
 const SENTINELAI_URL = process.env.SENTINELAI_URL ?? 'http://localhost:3000';
 const SENTINELAI_TOKEN = process.env.SENTINELAI_TOKEN ?? '';
 const SENTINELAI_INCIDENT_ID = process.env.SENTINELAI_INCIDENT_ID ?? '';
 const HOST = process.env.HOST ?? '0.0.0.0';
+
+let activeScenario: DemoScenarioId = 'checkout';
 const DATABASE_URL =
   process.env.DATABASE_URL ?? 'postgresql://sentinelai:sentinelai@localhost:5433/sentinelai';
 
-const SERVICE_NAME = 'sentinelai-demo-checkout';
-const SERVICE_VERSION = '0.1.0';
+let SERVICE_NAME = DEMO_SCENARIOS.checkout.serviceName;
+let SERVICE_VERSION = DEMO_SCENARIOS.checkout.serviceVersion;
 
 type DeploymentStatus = 'STARTED' | 'COMPLETED' | 'FAILED';
 
@@ -56,6 +64,10 @@ const requestCount = new Map<string, number>();
 const deploymentEvents: DeploymentEvent[] = [];
 const checkoutSuccessCount = { value: 0 };
 const checkoutFailureCount = { value: 0 };
+const paymentSuccessCount = { value: 0 };
+const paymentFailureCount = { value: 0 };
+const inventorySuccessCount = { value: 0 };
+const inventoryFailureCount = { value: 0 };
 const healthCheckFailureCount = { value: 0 };
 const dependencyFailureCount = new Map<string, number>();
 
@@ -66,6 +78,26 @@ const requestDuration: Histogram = {
 };
 
 let databaseFailureInjected = false;
+let paymentAuthorizationFailureInjected = false;
+let inventoryLatencyFailureInjected = false;
+
+function getActiveScenario() {
+  return getDemoScenario(activeScenario);
+}
+
+function applyActiveScenario(id: DemoScenarioId): void {
+  const scenario = getDemoScenario(id);
+
+  activeScenario = id;
+  SERVICE_NAME = scenario.serviceName;
+  SERVICE_VERSION = scenario.serviceVersion;
+
+  databaseFailureInjected = false;
+  paymentAuthorizationFailureInjected = false;
+  inventoryLatencyFailureInjected = false;
+
+  deploymentEvents.length = 0;
+}
 
 function incrementCounter(metric: Map<string, number> | { value: number }, key?: string): void {
   if ('value' in metric) {
@@ -268,6 +300,228 @@ async function handleRequest(
       return;
     }
 
+    if (method === 'POST' && path === '/demo/reset') {
+      if (!SENTINELAI_TOKEN) {
+        writeJson(response, 503, {
+          error: 'SENTINELAI_TOKEN_NOT_CONFIGURED',
+          message: 'SentinelAI demo reset is unavailable because the server token is not configured.',
+        });
+
+        const durationMs = Date.now() - startedAt;
+        recordRequest(path, durationMs);
+
+        log('ERROR', 'demo_reset_unavailable', {
+          requestId,
+          method,
+          path,
+          statusCode: 503,
+          durationMs,
+        });
+
+        return;
+      }
+
+      try {
+        const resetResponse = await fetch(
+          `${SENTINELAI_URL}/api/v1/demo/reset`,
+          {
+            method: 'POST',
+            headers: {
+              authorization: `Bearer ${SENTINELAI_TOKEN}`,
+              'content-type': 'application/json',
+            },
+            body: '{}',
+          },
+        );
+
+        const resetText = await resetResponse.text();
+
+        let resetBody: unknown;
+        try {
+          resetBody = JSON.parse(resetText);
+        } catch {
+          resetBody = resetText;
+        }
+
+        if (!resetResponse.ok) {
+          writeJson(response, resetResponse.status, {
+            error: 'SENTINELAI_DEMO_RESET_FAILED',
+            message: 'SentinelAI rejected the demo reset request.',
+            response: resetBody,
+          });
+
+          const durationMs = Date.now() - startedAt;
+          recordRequest(path, durationMs);
+
+          log('ERROR', 'demo_reset_failed', {
+            requestId,
+            method,
+            path,
+            statusCode: resetResponse.status,
+            durationMs,
+          });
+
+          return;
+        }
+
+        applyActiveScenario('checkout');
+
+        writeJson(response, 200, {
+          status: 'ok',
+          data: {
+            localScenarioReset: true,
+            sentinelai: resetBody,
+          },
+        });
+
+        const durationMs = Date.now() - startedAt;
+        recordRequest(path, durationMs);
+
+        log('INFO', 'demo_reset_completed', {
+          requestId,
+          method,
+          path,
+          statusCode: 200,
+          durationMs,
+        });
+
+        return;
+      } catch (error) {
+        writeJson(response, 502, {
+          error: 'SENTINELAI_DEMO_RESET_UNREACHABLE',
+          message: 'The simulation engine could not reach SentinelAI for demo reset.',
+        });
+
+        const durationMs = Date.now() - startedAt;
+        recordRequest(path, durationMs);
+
+        log('ERROR', 'demo_reset_unreachable', {
+          requestId,
+          method,
+          path,
+          statusCode: 502,
+          durationMs,
+        });
+
+        return;
+      }
+    }
+
+    if (method === 'GET' && path === '/demo/scenarios') {
+      writeJson(response, 200, {
+        status: 'ok',
+        activeScenario,
+        scenarios: DEMO_SCENARIO_IDS.map((id) => {
+          const scenario = getDemoScenario(id);
+
+          return {
+            id: scenario.id,
+            incidentId: scenario.incidentId,
+            serviceName: scenario.serviceName,
+            serviceVersion: scenario.serviceVersion,
+            title: scenario.title,
+            description: scenario.description,
+            failureMode: scenario.failureMode,
+            workloadPath: scenario.workloadPath,
+            workloadName: scenario.workloadName,
+          };
+        }),
+      });
+
+      const durationMs = Date.now() - startedAt;
+      recordRequest(path, durationMs);
+
+      log('INFO', 'demo_scenarios_listed', {
+        requestId,
+        method,
+        path,
+        statusCode: 200,
+        durationMs,
+      });
+
+      return;
+    }
+
+    if (method === 'POST' && path === '/demo/scenario') {
+      const body = await new Promise<string>((resolve, reject) => {
+        let data = '';
+
+        request.setEncoding('utf8');
+
+        request.on('data', (chunk: string) => {
+          data += chunk;
+        });
+
+        request.on('end', () => resolve(data));
+        request.on('error', reject);
+      });
+
+      let payload: { scenarioId?: unknown };
+
+      try {
+        payload = JSON.parse(body || '{}') as { scenarioId?: unknown };
+      } catch {
+        payload = {};
+      }
+
+      if (
+        typeof payload.scenarioId !== 'string' ||
+        !DEMO_SCENARIO_IDS.includes(payload.scenarioId as DemoScenarioId)
+      ) {
+        writeJson(response, 400, {
+          error: 'INVALID_DEMO_SCENARIO',
+          message: `scenarioId must be one of: ${DEMO_SCENARIO_IDS.join(', ')}.`,
+        });
+
+        const durationMs = Date.now() - startedAt;
+        recordRequest(path, durationMs);
+
+        log('WARN', 'demo_scenario_selection_rejected', {
+          requestId,
+          method,
+          path,
+          statusCode: 400,
+          errorCode: 'INVALID_DEMO_SCENARIO',
+          durationMs,
+        });
+
+        return;
+      }
+
+      applyActiveScenario(payload.scenarioId as DemoScenarioId);
+
+      const scenario = getActiveScenario();
+
+      writeJson(response, 200, {
+        status: 'selected',
+        scenario: {
+          id: scenario.id,
+          incidentId: scenario.incidentId,
+          serviceName: scenario.serviceName,
+          serviceVersion: scenario.serviceVersion,
+          title: scenario.title,
+          description: scenario.description,
+          failureMode: scenario.failureMode,
+          workloadPath: scenario.workloadPath,
+          workloadName: scenario.workloadName,
+        },
+      });
+
+      const durationMs = Date.now() - startedAt;
+      recordRequest(path, durationMs);
+
+      log('INFO', 'demo_scenario_selected', {
+        requestId,
+        method,
+        path,
+        statusCode: 200,
+        durationMs,
+        failureMode: scenario.failureMode,
+      });
+
+      return;
+    }
+
     if (method === 'GET' && path === '/health') {
       try {
         await checkDatabase();
@@ -344,7 +598,7 @@ async function handleRequest(
       const client = new SentinelAIIngestionClient({
         baseUrl: SENTINELAI_URL,
         token: SENTINELAI_TOKEN,
-        incidentId: SENTINELAI_INCIDENT_ID,
+        incidentId: getActiveScenario().incidentId,
       });
 
       try {
@@ -353,15 +607,16 @@ async function handleRequest(
             source: SERVICE_NAME,
             signalType: 'LOG',
             occurredAt: new Date().toISOString(),
-            title: 'Demo application integration signal',
-            description:
-              'Controlled integration signal emitted by the SentinelAI demo application.',
+            title: getActiveScenario().signalTitle,
+            description: getActiveScenario().signalDescription,
             sourceRef: requestId,
             metadata: {
               service: SERVICE_NAME,
               version: SERVICE_VERSION,
               integration: 'simulation-engine',
               requestId,
+              scenarioId: getActiveScenario().id,
+              failureMode: getActiveScenario().failureMode,
             },
           },
         ]);
@@ -411,7 +666,7 @@ async function handleRequest(
       const client = new SentinelAIEvidenceClient({
         baseUrl: SENTINELAI_URL,
         token: SENTINELAI_TOKEN,
-        incidentId: SENTINELAI_INCIDENT_ID,
+        incidentId: getActiveScenario().incidentId,
       });
 
       const occurredAt = new Date().toISOString();
@@ -419,8 +674,8 @@ async function handleRequest(
       try {
         const result = await client.createEvidence({
           evidenceType: 'LOG',
-          title: 'Demo application observed application signal',
-          description: 'Controlled telemetry evidence emitted by the SentinelAI demo application.',
+          title: getActiveScenario().evidenceTitle,
+          description: getActiveScenario().evidenceDescription,
           source: SERVICE_NAME,
           sourceRef: requestId,
           collectedAt: occurredAt,
@@ -432,6 +687,8 @@ async function handleRequest(
             integration: 'simulation-engine',
             requestId,
             evidenceOrigin: 'controlled-demo-application',
+            scenarioId: getActiveScenario().id,
+            failureMode: getActiveScenario().failureMode,
           },
         });
 
@@ -476,6 +733,146 @@ async function handleRequest(
       recordRequest(path, durationMs);
 
       log('INFO', 'metrics_scrape_completed', {
+        requestId,
+        method,
+        path,
+        statusCode: 200,
+        durationMs,
+      });
+
+      return;
+    }
+
+    if (method === 'POST' && path === '/payment') {
+      const scenario = getActiveScenario();
+
+      if (activeScenario !== 'payment') {
+        writeJson(response, 409, {
+          error: 'DEMO_SCENARIO_NOT_ACTIVE',
+          message: 'Select the payment scenario before running the payment workload.',
+          activeScenario,
+          requiredScenario: 'payment',
+        });
+
+        const durationMs = Date.now() - startedAt;
+        recordRequest(path, durationMs);
+
+        return;
+      }
+
+      if (paymentAuthorizationFailureInjected) {
+        writeJson(response, 502, {
+          status: 'failed',
+          service: scenario.serviceName,
+          error: scenario.failureErrorCode,
+          message: scenario.failureMessage,
+        });
+
+        const durationMs = Date.now() - startedAt;
+        recordRequest(path, durationMs);
+        paymentFailureCount.value += 1;
+        recordDependencyFailure(scenario.dependency);
+
+        log('ERROR', 'payment_authorization_failed', {
+          requestId,
+          method,
+          path,
+          statusCode: 502,
+          errorCode: scenario.failureErrorCode,
+          dependency: scenario.dependency,
+          durationMs,
+          failureMode: 'controlled',
+        });
+
+        return;
+      }
+
+      const authorizationId = `demo-payment-${Date.now()}`;
+
+      writeJson(response, 200, {
+        status: 'success',
+        service: scenario.serviceName,
+        message: scenario.successMessage,
+        authorizationId,
+      });
+
+      const durationMs = Date.now() - startedAt;
+      recordRequest(path, durationMs);
+      paymentSuccessCount.value += 1;
+
+      log('INFO', 'payment_authorization_completed', {
+        requestId,
+        method,
+        path,
+        statusCode: 200,
+        durationMs,
+      });
+
+      return;
+    }
+
+    if (method === 'POST' && path === '/inventory') {
+      const scenario = getActiveScenario();
+
+      if (activeScenario !== 'inventory') {
+        writeJson(response, 409, {
+          error: 'DEMO_SCENARIO_NOT_ACTIVE',
+          message: 'Select the inventory scenario before running the inventory workload.',
+          activeScenario,
+          requiredScenario: 'inventory',
+        });
+
+        const durationMs = Date.now() - startedAt;
+        recordRequest(path, durationMs);
+
+        return;
+      }
+
+      if (inventoryLatencyFailureInjected) {
+        await new Promise((resolve) => setTimeout(resolve, 750));
+
+        writeJson(response, 200, {
+          status: 'degraded',
+          service: scenario.serviceName,
+          message: scenario.failureMessage,
+          latencyMs: 750,
+          cache: 'miss',
+        });
+
+        const durationMs = Date.now() - startedAt;
+        recordRequest(path, durationMs);
+        inventoryFailureCount.value += 1;
+        recordDependencyFailure(scenario.dependency);
+
+        log('WARN', 'inventory_lookup_degraded', {
+          requestId,
+          method,
+          path,
+          statusCode: 200,
+          dependency: scenario.dependency,
+          durationMs,
+          failureMode: 'controlled',
+        });
+
+        return;
+      }
+
+      const inventoryRequestId = `demo-inventory-${Date.now()}`;
+
+      writeJson(response, 200, {
+        status: 'success',
+        service: scenario.serviceName,
+        message: scenario.successMessage,
+        inventoryRequestId,
+        latencyMs: 20,
+        cache: 'hit',
+      });
+
+      const durationMs = Date.now() - startedAt;
+      recordRequest(path, durationMs);
+      inventorySuccessCount.value += 1;
+
+      log('INFO', 'inventory_lookup_completed', {
         requestId,
         method,
         path,
@@ -726,13 +1123,22 @@ async function handleRequest(
         return;
       }
 
-      databaseFailureInjected = payload.enabled;
+      if (activeScenario === 'checkout') {
+        databaseFailureInjected = payload.enabled;
+      } else if (activeScenario === 'payment') {
+        paymentAuthorizationFailureInjected = payload.enabled;
+      } else {
+        inventoryLatencyFailureInjected = payload.enabled;
+      }
 
       writeJson(response, 200, {
         status: 'updated',
         service: SERVICE_NAME,
+        scenario: activeScenario,
         failureInjection: {
           database: databaseFailureInjected,
+          paymentAuthorization: paymentAuthorizationFailureInjected,
+          inventoryLatency: inventoryLatencyFailureInjected,
         },
       });
 
@@ -744,8 +1150,13 @@ async function handleRequest(
         method,
         path,
         statusCode: 200,
-        dependency: 'postgresql',
-        failureMode: databaseFailureInjected ? 'controlled' : 'disabled',
+        dependency: getActiveScenario().dependency,
+        failureMode:
+          databaseFailureInjected ||
+          paymentAuthorizationFailureInjected ||
+          inventoryLatencyFailureInjected
+            ? 'controlled'
+            : 'disabled',
         durationMs,
       });
 
@@ -816,4 +1227,7 @@ process.once('SIGTERM', () => {
 server.listen(PORT, HOST, () => {
   log('INFO', 'service_started');
 });
+
+
+
 
