@@ -6,6 +6,7 @@ import { automaticCorrelationRoutes } from './automatic-correlation';
 import { ingestionRoutes } from '../ingestion/ingestion-routes';
 import { validationRoutes } from './validation';
 import { demoRoutes } from './demo';
+import { applicationHealthReportRoutes } from './application-health-report';
 
 export async function registerRoutes(app: FastifyInstance) {
   await app.register(healthRoutes);
@@ -15,4 +16,5 @@ export async function registerRoutes(app: FastifyInstance) {
   await app.register(automaticCorrelationRoutes);
   await app.register(ingestionRoutes);
   await app.register(demoRoutes);
+  await app.register(applicationHealthReportRoutes);
 }
