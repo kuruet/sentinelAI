@@ -128,6 +128,75 @@ export async function apiRequest<T>(
   return body as T;
 }
 
+export async function downloadIncidentReport(
+  token: string,
+  incidentId: string,
+): Promise<Blob> {
+  const headers = new Headers({
+    Accept: 'application/pdf',
+    Authorization: `Bearer ${token}`,
+  });
+
+  let response: Response;
+
+  try {
+    response = await fetch(
+      buildUrl(`/api/v1/incidents/${encodeURIComponent(incidentId)}/report`),
+      {
+        method: 'GET',
+        headers,
+        cache: 'no-store',
+      },
+    );
+  } catch {
+    throw new ApiRequestError({
+      status: 0,
+      code: 'NETWORK_ERROR',
+      message: 'Unable to reach the SentinelAI API.',
+    });
+  }
+
+  if (!response.ok) {
+    const body = await parseResponseBody(response);
+    const payload =
+      typeof body === 'object' && body !== null
+        ? (body as {
+            error?: { code?: unknown; message?: unknown };
+            message?: unknown;
+          })
+        : undefined;
+
+    const message =
+      typeof payload?.error?.message === 'string'
+        ? payload.error.message
+        : typeof payload?.message === 'string'
+          ? payload.message
+          : `Report download failed with status ${response.status}.`;
+
+    const code =
+      typeof payload?.error?.code === 'string'
+        ? payload.error.code
+        : undefined;
+
+    throw new ApiRequestError({
+      status: response.status,
+      code,
+      message,
+    });
+  }
+
+  const contentType = response.headers.get('content-type') ?? '';
+
+  if (!contentType.toLowerCase().includes('application/pdf')) {
+    throw new ApiRequestError({
+      status: response.status,
+      code: 'INVALID_RESPONSE',
+      message: 'The report endpoint did not return a PDF.',
+    });
+  }
+
+  return response.blob();
+}
 export async function testProtectedRequest(token: string): Promise<{
   status: string;
   message: string;
@@ -800,6 +869,22 @@ export interface AuditLogListResponse {
   items: AuditLogResponse[];
 }
 
+
+export interface AuditLogResponse {
+  id: string;
+  actorUserId: string;
+  action: string;
+  resourceType: string;
+  resourceId: string;
+  incidentId: string | null;
+  metadata: unknown;
+  createdAt: string;
+}
+
+export interface AuditLogListResponse {
+  items: AuditLogResponse[];
+}
+
 export async function getAuditLogs(
   token: string,
   incidentId: string,
@@ -812,6 +897,142 @@ export async function getAuditLogs(
     {
       method: 'GET',
     },
+    token,
+  );
+
+  return response.data;
+}
+
+export type HistoricalIncidentMatchSignal =
+  | 'CONTENT_HASH'
+  | 'EVENT_PATTERN'
+  | 'EVIDENCE_PATTERN'
+  | 'INCIDENT_TEXT'
+  | 'INVESTIGATION';
+
+export interface HistoricalIncidentMatchReason {
+  signal: HistoricalIncidentMatchSignal;
+  description: string;
+}
+
+export interface HistoricalIncidentMatch {
+  incidentId: string;
+  title: string;
+  status: IncidentStatus;
+  severity: IncidentSeverity;
+  createdAt: string;
+  resolvedAt: string | null;
+  similarityScore: number;
+  matchReasons: HistoricalIncidentMatchReason[];
+}
+
+export interface HistoricalIncidentIntelligenceResponse {
+  currentIncidentId: string;
+  matches: HistoricalIncidentMatch[];
+  candidatesExamined: number;
+}
+
+export async function getHistoricalIncidentIntelligence(
+  token: string,
+  incidentId: string,
+  limit = 5,
+): Promise<HistoricalIncidentIntelligenceResponse> {
+  if (!Number.isInteger(limit) || limit < 1 || limit > 20) {
+    throw new RangeError('Historical incident limit must be an integer between 1 and 20.');
+  }
+
+  const response = await apiRequest<{
+    status: string;
+    data: HistoricalIncidentIntelligenceResponse;
+  }>(
+    `/api/v1/incidents/${encodeURIComponent(incidentId)}/intelligence/historical?limit=${limit}`,
+    {},
+    token,
+  );
+
+  return response.data;
+}
+
+
+
+
+export type ReportIncidentStatus =
+  | 'IDENTIFIED'
+  | 'INVESTIGATING'
+  | 'RESOLVED'
+  | 'CLOSED';
+
+export type ReportIncidentSeverity = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+
+export type ReportEventType =
+  | 'ALERT'
+  | 'LOG'
+  | 'METRIC'
+  | 'DEPLOYMENT'
+  | 'CONFIGURATION_CHANGE'
+  | 'MANUAL'
+  | 'SYSTEM';
+
+export type ReportEvidenceType =
+  | 'LOG'
+  | 'METRIC'
+  | 'TRACE'
+  | 'ALERT'
+  | 'DEPLOYMENT'
+  | 'CONFIGURATION'
+  | 'DOCUMENT'
+  | 'MANUAL'
+  | 'OTHER';
+
+export interface ReportCountComparison {
+  current: number;
+  previous: number;
+  changePercent: number | null;
+  changeAbsolute: number;
+}
+
+export interface ApplicationHealthReport {
+  generatedAt: string;
+  period: {
+    startAt: string;
+    endAt: string;
+    previousStartAt: string;
+    previousEndAt: string;
+  };
+  incidentSummary: {
+    created: ReportCountComparison;
+    bySeverity: Record<ReportIncidentSeverity, number>;
+    byCurrentStatus: Record<ReportIncidentStatus, number>;
+    resolvedDuration: {
+      sampleCount: number;
+      averageMinutes: number | null;
+      medianMinutes: number | null;
+      excludedCount: number;
+    };
+  };
+  activitySummary: {
+    events: ReportCountComparison;
+    evidence: ReportCountComparison;
+    eventsByType: Record<ReportEventType, number>;
+    evidenceByType: Record<ReportEvidenceType, number>;
+    eventsByDay: Array<{ date: string; count: number }>;
+    evidenceByDay: Array<{ date: string; count: number }>;
+    evidenceWithoutValidOccurrenceTime: number;
+  };
+}
+
+export async function getApplicationHealthReport(
+  token: string,
+  startAt: string,
+  endAt: string,
+): Promise<ApplicationHealthReport> {
+  const query = new URLSearchParams({ startAt, endAt });
+  const response = await apiRequest<{
+    status: string;
+    data: ApplicationHealthReport;
+  }>(
+    `/api/v1/reports/application-health?${query.toString()}`,
+    { method: 'GET', cache: 'no-store' },
     token,
   );
 

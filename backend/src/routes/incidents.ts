@@ -1,4 +1,5 @@
 import type { FastifyInstance } from 'fastify';
+import { incidentReportPdfService } from '../services/incident-report-pdf-service';
 import type {
   ApiSuccessResponse,
   AuditLogListResponse,
@@ -19,6 +20,7 @@ import {
   incidentService,
   auditLogService,
   intelligenceContextService,
+  historicalIncidentIntelligenceService,
 } from '../application';
 import { AppError } from '../errors/app-error';
 import {
@@ -794,6 +796,38 @@ export async function incidentRoutes(app: FastifyInstance) {
   );
 
   app.get(
+    '/api/v1/incidents/:id/report',
+    async (request, reply) => {
+      const { id } = request.params as { id?: string };
+
+      if (!id || id.trim().length === 0) {
+        throw new AppError(400, 'BAD_REQUEST', 'Incident ID is required.');
+      }
+
+      const identity = getAuthenticatedIdentity(request);
+      await incidentAuthorizationService.requireReadAccess(id, identity.userId);
+
+      const snapshot = await intelligenceContextService.buildContext(id);
+
+      if (!snapshot) {
+        throw new AppError(404, 'NOT_FOUND', 'Incident not found.');
+      }
+
+      const pdfBuffer = await incidentReportPdfService.generate(snapshot);
+      const safeId = id.replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 80) || 'incident';
+
+      return reply
+        .header(
+          'Content-Disposition',
+          `attachment; filename="sentinelai-incident-${safeId}-report.pdf"`,
+        )
+        .header('Cache-Control', 'no-store')
+        .header('X-Content-Type-Options', 'nosniff')
+        .type('application/pdf')
+        .send(pdfBuffer);
+    },
+  );
+  app.get(
     '/api/v1/incidents/:id/intelligence/context',
     async (request): Promise<ApiSuccessResponse<unknown>> => {
       const { id } = request.params as { id?: string };
@@ -814,6 +848,56 @@ export async function incidentRoutes(app: FastifyInstance) {
       return {
         status: 'ok',
         data: snapshot,
+      };
+    },
+  );
+
+  app.get(
+    '/api/v1/incidents/:id/intelligence/historical',
+    async (request): Promise<ApiSuccessResponse<unknown>> => {
+      const { id } = request.params as { id?: string };
+
+      if (!id || id.trim().length === 0) {
+        throw new AppError(400, 'BAD_REQUEST', 'Incident ID is required.');
+      }
+
+      const query = request.query as { limit?: unknown };
+      let limit = 5;
+
+      if (query.limit !== undefined) {
+        if (
+          typeof query.limit !== 'string' ||
+          !/^[1-9]\d*$/.test(query.limit)
+        ) {
+          throw new AppError(
+            400,
+            'BAD_REQUEST',
+            'The limit parameter must be an integer between 1 and 20.',
+          );
+        }
+
+        limit = Number(query.limit);
+
+        if (!Number.isSafeInteger(limit) || limit > 20) {
+          throw new AppError(
+            400,
+            'BAD_REQUEST',
+            'The limit parameter must be an integer between 1 and 20.',
+          );
+        }
+      }
+
+      const identity = getAuthenticatedIdentity(request);
+      const result =
+        await historicalIncidentIntelligenceService.findSimilarIncidents(
+          id,
+          identity.userId,
+          limit,
+        );
+
+      return {
+        status: 'ok',
+        data: result,
       };
     },
   );
@@ -1006,3 +1090,4 @@ export async function incidentRoutes(app: FastifyInstance) {
     },
   );
 }
+

@@ -17,6 +17,7 @@ import LoginPage from './pages/LoginPage';
 import RecommendationsPage from './pages/RecommendationsPage';
 import ExplainabilityPage from './pages/ExplainabilityPage';
 import AuditTrailPage from './pages/AuditTrailPage';
+import ApplicationHealthReportPage from './pages/ApplicationHealthReportPage';
 
 function ProtectedApplication() {
   return (
@@ -51,6 +52,7 @@ function ProtectedApplication() {
           <Route path="/incidents/new" element={<CreateIncidentPage />} />
           <Route path="/investigation" element={<InvestigationPage />} />
           <Route path="/intelligence" element={<IntelligencePage />} />
+          <Route path="/reports/application-health" element={<ApplicationHealthReportPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </AppShell>
@@ -79,3 +81,4 @@ function App() {
 }
 
 export default App;
+

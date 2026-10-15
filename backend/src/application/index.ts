@@ -4,5 +4,6 @@ export { incidentEventService } from './incident-event';
 export { evidenceService } from './evidence';
 export { investigationService } from './investigation';
 export { intelligenceContextService } from './intelligence-context';
+export { historicalIncidentIntelligenceService } from './historical-incident-intelligence';
 export { incidentAuthorizationService } from './incident-authorization';
 export { auditLogService } from './audit-log';

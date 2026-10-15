@@ -21,6 +21,11 @@ const navigation = [
     path: '/intelligence',
     icon: '✦',
   },
+  {
+    label: 'Reports',
+    path: '/reports/application-health',
+    icon: '▤',
+  },
 ];
 
 function Sidebar() {
@@ -45,7 +50,7 @@ function Sidebar() {
             key={item.path}
             to={item.path}
             end={item.path === '/'}
-            className={({ isActive }) =>
+            className={({ isActive }: { isActive: boolean }) =>
               `app-sidebar__link ${isActive ? 'app-sidebar__link--active' : ''}`.trim()
             }
           >

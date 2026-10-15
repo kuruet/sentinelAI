@@ -26,6 +26,7 @@ export interface SentinelAIIngestionClientConfig {
   baseUrl: string;
   token: string;
   incidentId: string;
+  timeoutMs?: number;
 }
 
 export class SentinelAIIngestionClient {
@@ -44,6 +45,7 @@ export class SentinelAIIngestionClient {
           incidentId: this.config.incidentId,
           signals,
         }),
+        signal: AbortSignal.timeout(this.config.timeoutMs ?? 5000),
       },
     );
 

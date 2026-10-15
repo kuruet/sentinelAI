@@ -80,6 +80,11 @@ const requestDuration: Histogram = {
 let databaseFailureInjected = false;
 let paymentAuthorizationFailureInjected = false;
 let inventoryLatencyFailureInjected = false;
+let searchClusterFailureInjected = false;
+let notificationQueueFailureInjected = false;
+let authenticationSessionStoreFailureInjected = false;
+let ordersDownstreamTimeoutInjected = false;
+let shippingCarrierDegradationInjected = false;
 
 function getActiveScenario() {
   return getDemoScenario(activeScenario);
@@ -95,6 +100,11 @@ function applyActiveScenario(id: DemoScenarioId): void {
   databaseFailureInjected = false;
   paymentAuthorizationFailureInjected = false;
   inventoryLatencyFailureInjected = false;
+  searchClusterFailureInjected = false;
+  notificationQueueFailureInjected = false;
+  authenticationSessionStoreFailureInjected = false;
+  ordersDownstreamTimeoutInjected = false;
+  shippingCarrierDegradationInjected = false;
 
   deploymentEvents.length = 0;
 }
@@ -238,6 +248,68 @@ const database = new Pool({
   connectionTimeoutMillis: 3000,
 });
 
+async function ingestAutomaticFailureSignal(input: {
+  requestId: string;
+  eventName: string;
+  statusCode: number;
+  severity: 'ERROR' | 'WARN';
+  dependency: string;
+  durationMs: number;
+}): Promise<void> {
+  if (!SENTINELAI_TOKEN || !SENTINELAI_INCIDENT_ID) {
+    log('WARN', 'automatic_signal_ingestion_skipped', {
+      requestId: input.requestId,
+      errorCode: 'INTEGRATION_NOT_CONFIGURED',
+    });
+    return;
+  }
+
+  const scenario = getActiveScenario();
+  const client = new SentinelAIIngestionClient({
+    baseUrl: SENTINELAI_URL,
+    token: SENTINELAI_TOKEN,
+    incidentId: scenario.incidentId,
+    timeoutMs: 2000,
+  });
+
+  try {
+    await client.ingest([
+      {
+        source: scenario.serviceName,
+        signalType: input.severity === 'WARN' ? 'METRIC' : 'ALERT',
+        occurredAt: new Date().toISOString(),
+        title: scenario.signalTitle,
+        description: scenario.signalDescription,
+        sourceRef: input.requestId,
+        metadata: {
+          service: scenario.serviceName,
+          version: scenario.serviceVersion,
+          integration: 'simulation-engine',
+          requestId: input.requestId,
+          dependency: input.dependency,
+          failureMode: scenario.failureMode,
+          statusCode: input.statusCode,
+          severity: input.severity,
+          durationMs: input.durationMs,
+          automatic: true,
+        },
+      },
+    ]);
+
+    log('INFO', 'sentinelai_automatic_signal_ingested', {
+      requestId: input.requestId,
+      dependency: input.dependency,
+      statusCode: input.statusCode,
+      durationMs: input.durationMs,
+    });
+  } catch {
+    log('WARN', 'sentinelai_automatic_signal_ingestion_failed', {
+      requestId: input.requestId,
+      dependency: input.dependency,
+      errorCode: 'SENTINELAI_AUTOMATIC_INGESTION_FAILED',
+    });
+  }
+}
 function writeJson(
   response: ServerResponse<IncomingMessage>,
   statusCode: number,
@@ -784,6 +856,15 @@ async function handleRequest(
           failureMode: 'controlled',
         });
 
+        void ingestAutomaticFailureSignal({
+          requestId,
+          eventName: 'payment_authorization_failed',
+          statusCode: 502,
+          severity: 'ERROR',
+          dependency: scenario.dependency,
+          durationMs,
+        });
+
         return;
       }
 
@@ -854,6 +935,15 @@ async function handleRequest(
           failureMode: 'controlled',
         });
 
+        void ingestAutomaticFailureSignal({
+          requestId,
+          eventName: 'inventory_lookup_degraded',
+          statusCode: 200,
+          severity: 'WARN',
+          dependency: scenario.dependency,
+          durationMs,
+        });
+
         return;
       }
 
@@ -873,6 +963,389 @@ async function handleRequest(
       inventorySuccessCount.value += 1;
 
       log('INFO', 'inventory_lookup_completed', {
+        requestId,
+        method,
+        path,
+        statusCode: 200,
+        durationMs,
+      });
+
+      return;
+    }
+
+    if (method === 'POST' && path === '/search') {
+      const scenario = getActiveScenario();
+
+      if (activeScenario !== 'search') {
+        writeJson(response, 409, {
+          error: 'DEMO_SCENARIO_NOT_ACTIVE',
+          message: 'Select the search scenario before running the search workload.',
+          activeScenario,
+          requiredScenario: 'search',
+        });
+
+        const durationMs = Date.now() - startedAt;
+        recordRequest(path, durationMs);
+        return;
+      }
+
+      if (searchClusterFailureInjected) {
+        writeJson(response, 503, {
+          status: 'failed',
+          service: scenario.serviceName,
+          error: scenario.failureErrorCode,
+          message: scenario.failureMessage,
+          dependency: scenario.dependency,
+        });
+
+        const durationMs = Date.now() - startedAt;
+        recordRequest(path, durationMs);
+        recordDependencyFailure(scenario.dependency);
+
+        log('ERROR', 'search_cluster_unavailable', {
+          requestId,
+          method,
+          path,
+          statusCode: 503,
+          errorCode: scenario.failureErrorCode,
+          dependency: scenario.dependency,
+          durationMs,
+          failureMode: 'controlled',
+        });
+
+        void ingestAutomaticFailureSignal({
+          requestId,
+          eventName: 'search_cluster_unavailable',
+          statusCode: 503,
+          severity: 'ERROR',
+          dependency: scenario.dependency,
+          durationMs,
+        });
+
+        return;
+      }
+
+      const searchRequestId = `demo-search-${Date.now()}`;
+
+      writeJson(response, 200, {
+        status: 'success',
+        service: scenario.serviceName,
+        message: scenario.successMessage,
+        searchRequestId,
+        latencyMs: 35,
+        results: 12,
+      });
+
+      const durationMs = Date.now() - startedAt;
+      recordRequest(path, durationMs);
+
+      log('INFO', 'search_completed', {
+        requestId,
+        method,
+        path,
+        statusCode: 200,
+        durationMs,
+      });
+
+      return;
+    }
+
+    if (method === 'POST' && path === '/notification') {
+      const scenario = getActiveScenario();
+
+      if (activeScenario !== 'notification') {
+        writeJson(response, 409, {
+          error: 'DEMO_SCENARIO_NOT_ACTIVE',
+          message: 'Select the notification scenario before running the notification workload.',
+          activeScenario,
+          requiredScenario: 'notification',
+        });
+
+        const durationMs = Date.now() - startedAt;
+        recordRequest(path, durationMs);
+        return;
+      }
+
+      if (notificationQueueFailureInjected) {
+        writeJson(response, 503, {
+          status: 'failed',
+          service: scenario.serviceName,
+          error: scenario.failureErrorCode,
+          message: scenario.failureMessage,
+          dependency: scenario.dependency,
+        });
+
+        const durationMs = Date.now() - startedAt;
+        recordRequest(path, durationMs);
+        recordDependencyFailure(scenario.dependency);
+
+        log('ERROR', 'notification_queue_backlog', {
+          requestId,
+          method,
+          path,
+          statusCode: 503,
+          errorCode: scenario.failureErrorCode,
+          dependency: scenario.dependency,
+          durationMs,
+          failureMode: 'controlled',
+        });
+
+        void ingestAutomaticFailureSignal({
+          requestId,
+          eventName: 'notification_queue_backlog',
+          statusCode: 503,
+          severity: 'ERROR',
+          dependency: scenario.dependency,
+          durationMs,
+        });
+
+        return;
+      }
+
+      const notificationRequestId = `demo-notification-${Date.now()}`;
+
+      writeJson(response, 200, {
+        status: 'success',
+        service: scenario.serviceName,
+        message: scenario.successMessage,
+        notificationRequestId,
+        queued: true,
+      });
+
+      const durationMs = Date.now() - startedAt;
+      recordRequest(path, durationMs);
+
+      log('INFO', 'notification_queued', {
+        requestId,
+        method,
+        path,
+        statusCode: 200,
+        durationMs,
+      });
+
+      return;
+    }
+
+    if (method === 'POST' && path === '/authentication') {
+      const scenario = getActiveScenario();
+
+      if (activeScenario !== 'authentication') {
+        writeJson(response, 409, {
+          error: 'DEMO_SCENARIO_NOT_ACTIVE',
+          message: 'Select the authentication scenario before running the authentication workload.',
+          activeScenario,
+          requiredScenario: 'authentication',
+        });
+
+        const durationMs = Date.now() - startedAt;
+        recordRequest(path, durationMs);
+        return;
+      }
+
+      if (authenticationSessionStoreFailureInjected) {
+        writeJson(response, 503, {
+          status: 'failed',
+          service: scenario.serviceName,
+          error: scenario.failureErrorCode,
+          message: scenario.failureMessage,
+          dependency: scenario.dependency,
+        });
+
+        const durationMs = Date.now() - startedAt;
+        recordRequest(path, durationMs);
+        recordDependencyFailure(scenario.dependency);
+
+        log('ERROR', 'authentication_session_store_unavailable', {
+          requestId,
+          method,
+          path,
+          statusCode: 503,
+          errorCode: scenario.failureErrorCode,
+          dependency: scenario.dependency,
+          durationMs,
+          failureMode: 'controlled',
+        });
+
+        void ingestAutomaticFailureSignal({
+          requestId,
+          eventName: 'authentication_session_store_unavailable',
+          statusCode: 503,
+          severity: 'ERROR',
+          dependency: scenario.dependency,
+          durationMs,
+        });
+
+        return;
+      }
+
+      const authenticationRequestId = `demo-auth-${Date.now()}`;
+
+      writeJson(response, 200, {
+        status: 'success',
+        service: scenario.serviceName,
+        message: scenario.successMessage,
+        authenticationRequestId,
+        authenticated: true,
+      });
+
+      const durationMs = Date.now() - startedAt;
+      recordRequest(path, durationMs);
+
+      log('INFO', 'authentication_completed', {
+        requestId,
+        method,
+        path,
+        statusCode: 200,
+        durationMs,
+      });
+
+      return;
+    }
+
+    if (method === 'POST' && path === '/orders') {
+      const scenario = getActiveScenario();
+
+      if (activeScenario !== 'orders') {
+        writeJson(response, 409, {
+          error: 'DEMO_SCENARIO_NOT_ACTIVE',
+          message: 'Select the orders scenario before running the orders workload.',
+          activeScenario,
+          requiredScenario: 'orders',
+        });
+
+        const durationMs = Date.now() - startedAt;
+        recordRequest(path, durationMs);
+        return;
+      }
+
+      if (ordersDownstreamTimeoutInjected) {
+        writeJson(response, 504, {
+          status: 'failed',
+          service: scenario.serviceName,
+          error: scenario.failureErrorCode,
+          message: scenario.failureMessage,
+          dependency: scenario.dependency,
+        });
+
+        const durationMs = Date.now() - startedAt;
+        recordRequest(path, durationMs);
+        recordDependencyFailure(scenario.dependency);
+
+        log('ERROR', 'orders_downstream_timeout', {
+          requestId,
+          method,
+          path,
+          statusCode: 504,
+          errorCode: scenario.failureErrorCode,
+          dependency: scenario.dependency,
+          durationMs,
+          failureMode: 'controlled',
+        });
+
+        void ingestAutomaticFailureSignal({
+          requestId,
+          eventName: 'orders_downstream_timeout',
+          statusCode: 504,
+          severity: 'ERROR',
+          dependency: scenario.dependency,
+          durationMs,
+        });
+
+        return;
+      }
+
+      const orderRequestId = `demo-order-${Date.now()}`;
+
+      writeJson(response, 200, {
+        status: 'success',
+        service: scenario.serviceName,
+        message: scenario.successMessage,
+        orderRequestId,
+        orderStatus: 'confirmed',
+      });
+
+      const durationMs = Date.now() - startedAt;
+      recordRequest(path, durationMs);
+
+      log('INFO', 'order_completed', {
+        requestId,
+        method,
+        path,
+        statusCode: 200,
+        durationMs,
+      });
+
+      return;
+    }
+
+    if (method === 'POST' && path === '/shipping') {
+      const scenario = getActiveScenario();
+
+      if (activeScenario !== 'shipping') {
+        writeJson(response, 409, {
+          error: 'DEMO_SCENARIO_NOT_ACTIVE',
+          message: 'Select the shipping scenario before running the shipping workload.',
+          activeScenario,
+          requiredScenario: 'shipping',
+        });
+
+        const durationMs = Date.now() - startedAt;
+        recordRequest(path, durationMs);
+        return;
+      }
+
+      if (shippingCarrierDegradationInjected) {
+        await new Promise((resolve) => setTimeout(resolve, 600));
+
+        writeJson(response, 200, {
+          status: 'degraded',
+          service: scenario.serviceName,
+          message: scenario.failureMessage,
+          dependency: scenario.dependency,
+          latencyMs: 600,
+        });
+
+        const durationMs = Date.now() - startedAt;
+        recordRequest(path, durationMs);
+        recordDependencyFailure(scenario.dependency);
+
+        log('WARN', 'shipping_carrier_degraded', {
+          requestId,
+          method,
+          path,
+          statusCode: 200,
+          errorCode: scenario.failureErrorCode,
+          dependency: scenario.dependency,
+          durationMs,
+          failureMode: 'controlled',
+        });
+
+        void ingestAutomaticFailureSignal({
+          requestId,
+          eventName: 'shipping_carrier_degraded',
+          statusCode: 200,
+          severity: 'WARN',
+          dependency: scenario.dependency,
+          durationMs,
+        });
+
+        return;
+      }
+
+      const shipmentRequestId = `demo-shipment-${Date.now()}`;
+
+      writeJson(response, 200, {
+        status: 'success',
+        service: scenario.serviceName,
+        message: scenario.successMessage,
+        shipmentRequestId,
+        carrier: 'demo-carrier',
+      });
+
+      const durationMs = Date.now() - startedAt;
+      recordRequest(path, durationMs);
+
+      log('INFO', 'shipping_completed', {
         requestId,
         method,
         path,
@@ -929,6 +1402,15 @@ async function handleRequest(
           dependency: 'postgresql',
           durationMs,
           failureMode: databaseFailureInjected ? 'controlled' : 'dependency',
+        });
+
+        void ingestAutomaticFailureSignal({
+          requestId,
+          eventName: 'checkout_failed',
+          statusCode: 503,
+          severity: 'ERROR',
+          dependency: 'postgresql',
+          durationMs,
         });
       }
 
@@ -1127,8 +1609,18 @@ async function handleRequest(
         databaseFailureInjected = payload.enabled;
       } else if (activeScenario === 'payment') {
         paymentAuthorizationFailureInjected = payload.enabled;
-      } else {
+      } else if (activeScenario === 'inventory') {
         inventoryLatencyFailureInjected = payload.enabled;
+      } else if (activeScenario === 'search') {
+        searchClusterFailureInjected = payload.enabled;
+      } else if (activeScenario === 'notification') {
+        notificationQueueFailureInjected = payload.enabled;
+      } else if (activeScenario === 'authentication') {
+        authenticationSessionStoreFailureInjected = payload.enabled;
+      } else if (activeScenario === 'orders') {
+        ordersDownstreamTimeoutInjected = payload.enabled;
+      } else if (activeScenario === 'shipping') {
+        shippingCarrierDegradationInjected = payload.enabled;
       }
 
       writeJson(response, 200, {

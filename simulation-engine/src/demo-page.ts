@@ -299,6 +299,11 @@ export function renderDemoPage(): string {
             <option value="checkout">Checkout</option>
             <option value="payment">Payment</option>
             <option value="inventory">Inventory</option>
+            <option value="search">Search API</option>
+            <option value="notification">Notification Service</option>
+            <option value="authentication">Authentication Service</option>
+            <option value="orders">Order Service</option>
+            <option value="shipping">Shipping Service</option>
           </select>
         </div>
 

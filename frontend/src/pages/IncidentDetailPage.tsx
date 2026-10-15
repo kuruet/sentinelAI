@@ -4,6 +4,9 @@ import { useAuth } from '../auth/AuthProvider';
 import {
   ApiRequestError,
   IncidentResponse,
+  HistoricalIncidentIntelligenceResponse,
+  downloadIncidentReport,
+  getHistoricalIncidentIntelligence,
   getIncident,
   updateIncidentLifecycle,
 } from '../lib/api';
@@ -69,6 +72,12 @@ export default function IncidentDetailPage() {
   const [error, setError] = useState('');
   const [lifecycleUpdating, setLifecycleUpdating] = useState(false);
   const [lifecycleError, setLifecycleError] = useState('');
+  const [reportDownloading, setReportDownloading] = useState(false);
+  const [reportError, setReportError] = useState('');
+  const [historicalIntelligence, setHistoricalIntelligence] =
+    useState<HistoricalIncidentIntelligenceResponse | null>(null);
+  const [historicalLoading, setHistoricalLoading] = useState(true);
+  const [historicalError, setHistoricalError] = useState('');
 
   useEffect(() => {
     let cancelled = false;
@@ -119,6 +128,48 @@ export default function IncidentDetailPage() {
     };
   }, [id, token]);
 
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadHistoricalIntelligence() {
+      if (!token || !id) {
+        setHistoricalLoading(false);
+        setHistoricalError('Unable to identify the current incident.');
+        return;
+      }
+
+      setHistoricalLoading(true);
+      setHistoricalError('');
+      setHistoricalIntelligence(null);
+
+      try {
+        const result = await getHistoricalIncidentIntelligence(token, id, 5);
+
+        if (!cancelled) {
+          setHistoricalIntelligence(result);
+        }
+      } catch (requestError) {
+        if (!cancelled) {
+          setHistoricalError(
+            requestError instanceof ApiRequestError
+              ? requestError.message
+              : 'Unable to load historical incident matches.',
+          );
+        }
+      } finally {
+        if (!cancelled) {
+          setHistoricalLoading(false);
+        }
+      }
+    }
+
+    void loadHistoricalIntelligence();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [id, token]);
+
   async function handleLifecycleTransition(nextStatus: IncidentResponse['status']) {
     if (!token || !incident) {
       return;
@@ -139,6 +190,36 @@ export default function IncidentDetailPage() {
       );
     } finally {
       setLifecycleUpdating(false);
+    }
+  }
+
+  async function handleDownloadReport() {
+    if (!token || !incident || reportDownloading) {
+      return;
+    }
+
+    setReportDownloading(true);
+    setReportError('');
+
+    try {
+      const pdf = await downloadIncidentReport(token, incident.id);
+      const objectUrl = URL.createObjectURL(pdf);
+      const anchor = document.createElement('a');
+
+      anchor.href = objectUrl;
+      anchor.download = `sentinelai-incident-${incident.id}-report.pdf`;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      window.setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
+    } catch (requestError) {
+      setReportError(
+        requestError instanceof ApiRequestError
+          ? requestError.message
+          : 'Unable to download the incident report. Please try again.',
+      );
+    } finally {
+      setReportDownloading(false);
     }
   }
 
@@ -223,6 +304,113 @@ export default function IncidentDetailPage() {
               <DetailField label="Created" value={formatDate(incident.createdAt)} />
               <DetailField label="Last updated" value={formatDate(incident.updatedAt)} />
             </dl>
+          </Card>
+
+          <Card className="incident-detail__historical">
+            <div className="incident-detail__panel-header">
+              <div>
+                <p className="eyebrow">Historical intelligence</p>
+                <h2>Similar Historical Incidents</h2>
+              </div>
+              {historicalIntelligence ? (
+                <Badge>{historicalIntelligence.matches.length} matches</Badge>
+              ) : null}
+            </div>
+
+            <p className="ui-muted">
+              Compare previous incidents for investigative clues. Similarity does
+              not establish the root cause of the current incident.
+            </p>
+
+            {historicalLoading ? (
+              <p role="status">Searching accessible historical incidents…</p>
+            ) : historicalError ? (
+              <div role="alert">
+                <p className="ui-error">{historicalError}</p>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => {
+                    setHistoricalError('');
+                    setHistoricalLoading(true);
+                    void getHistoricalIncidentIntelligence(token!, incident.id, 5)
+                      .then(setHistoricalIntelligence)
+                      .catch((error: unknown) => {
+                        setHistoricalError(
+                          error instanceof Error
+                            ? error.message
+                            : 'Unable to load historical matches.',
+                        );
+                      })
+                      .finally(() => setHistoricalLoading(false));
+                  }}
+                >
+                  Retry
+                </Button>
+              </div>
+            ) : !historicalIntelligence?.matches.length ? (
+              <p>
+                No similar incidents were found among the accessible historical
+                records.
+              </p>
+            ) : (
+              <>
+                <p className="ui-muted">
+                  Examined {historicalIntelligence.candidatesExamined} accessible
+                  historical incident(s).
+                </p>
+
+                <div className="incident-detail__historical-list">
+                  {historicalIntelligence.matches.map((match) => (
+                    <article
+                      className="incident-detail__historical-match"
+                      key={match.incidentId}
+                    >
+                      <div className="incident-detail__historical-heading">
+                        <h3>{match.title}</h3>
+                        <strong>{match.similarityScore}/100</strong>
+                      </div>
+
+                      <div className="incident-detail__historical-badges">
+                        <Badge variant={statusVariant(match.status)}>
+                          {formatLabel(match.status)}
+                        </Badge>
+                        <Badge variant={severityVariant(match.severity)}>
+                          {match.severity}
+                        </Badge>
+                      </div>
+
+                      <p className="ui-muted">
+                        Created {formatDate(match.createdAt)}
+                      </p>
+
+                      <h4>Why it matched</h4>
+                      <ul>
+                        {match.matchReasons.map((reason, index) => (
+                          <li key={`${reason.signal}-${index}`}>
+                            <strong>{formatLabel(reason.signal)}:</strong>{' '}
+                            {reason.description}
+                          </li>
+                        ))}
+                      </ul>
+
+                      <Link
+                        className="incident-detail__historical-link"
+                        to={`/incidents/${encodeURIComponent(match.incidentId)}`}
+                      >
+                        Open historical incident
+                      </Link>
+                    </article>
+                  ))}
+                </div>
+
+                <p className="ui-muted">
+                  Similarity scores are heuristic rankings, not probabilities.
+                  Historical incidents may still be under investigation, and
+                  their findings must be independently verified.
+                </p>
+              </>
+            )}
           </Card>
 
           <Card>
@@ -340,10 +528,25 @@ export default function IncidentDetailPage() {
                 All incidents
               </Button>
 
+              <Button
+                type="button"
+                variant="secondary"
+                disabled={reportDownloading}
+                onClick={() => void handleDownloadReport()}
+              >
+                {reportDownloading ? 'Generating PDF…' : 'Download PDF report'}
+              </Button>
+
               <Button type="button" variant="secondary" onClick={() => navigate('/incidents/new')}>
                 Create incident
               </Button>
             </div>
+
+            {reportError ? (
+              <p className="ui-error" role="alert">
+                {reportError}
+              </p>
+            ) : null}
           </Card>
 
           <Card>
